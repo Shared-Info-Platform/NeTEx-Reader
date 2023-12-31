@@ -23,7 +23,7 @@ import ch.bernmobil.netex.importer.netex.builder.ServiceDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.SiteDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.TimetableJourneyDomBuilder;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
-import ch.bernmobil.netex.importer.parser.Parser;
+import ch.bernmobil.netex.importer.xml.Parser;
 
 public class Importer {
 

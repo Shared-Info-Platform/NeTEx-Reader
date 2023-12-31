@@ -3,7 +3,7 @@ package ch.bernmobil.netex.importer.netex.builder;
 import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexOperator;
 import ch.bernmobil.netex.importer.netex.dom.NetexResponsibilitySet;
-import ch.bernmobil.netex.importer.parser.MultilingualStringParser.MultilingualString;
+import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
 
 public class ResourceDomBuilder {
 

@@ -7,7 +7,7 @@ import ch.bernmobil.netex.importer.netex.dom.NetexDestinationDisplay;
 import ch.bernmobil.netex.importer.netex.dom.NetexLine;
 import ch.bernmobil.netex.importer.netex.dom.NetexPassengerStopAssignment;
 import ch.bernmobil.netex.importer.netex.dom.NetexScheduledStopPoint;
-import ch.bernmobil.netex.importer.parser.MultilingualStringParser.MultilingualString;
+import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
 
 public class ServiceDomBuilder {
 

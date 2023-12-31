@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import ch.bernmobil.netex.importer.parser.MultilingualStringParser.MultilingualString;
+import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
 
 public class ObjectTree {
 

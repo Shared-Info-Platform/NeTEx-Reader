@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.importer.parser;
+package ch.bernmobil.netex.importer.xml;
 
 import java.util.ArrayList;
 import java.util.Collections;

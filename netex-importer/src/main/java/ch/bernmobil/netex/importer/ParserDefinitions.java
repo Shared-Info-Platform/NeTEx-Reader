@@ -1,10 +1,10 @@
 package ch.bernmobil.netex.importer;
 
 import ch.bernmobil.netex.importer.netex.builder.BuilderHelper;
-import ch.bernmobil.netex.importer.parser.ElementParser;
-import ch.bernmobil.netex.importer.parser.MultilingualStringParser;
-import ch.bernmobil.netex.importer.parser.Parser;
-import ch.bernmobil.netex.importer.parser.TextParser;
+import ch.bernmobil.netex.importer.xml.ElementParser;
+import ch.bernmobil.netex.importer.xml.MultilingualStringParser;
+import ch.bernmobil.netex.importer.xml.Parser;
+import ch.bernmobil.netex.importer.xml.TextParser;
 
 public class ParserDefinitions {
 

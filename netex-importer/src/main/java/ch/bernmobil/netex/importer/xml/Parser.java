@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.importer.parser;
+package ch.bernmobil.netex.importer.xml;
 
 import javax.xml.stream.XMLStreamException;
 
