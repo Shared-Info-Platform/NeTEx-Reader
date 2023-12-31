@@ -33,5 +33,13 @@ public class MultilingualStringParser implements Parser {
 			this.language = language;
 			this.text = text;
 		}
+
+		public String getLanguage() {
+			return language;
+		}
+
+		public String getText() {
+			return text;
+		}
 	}
 }

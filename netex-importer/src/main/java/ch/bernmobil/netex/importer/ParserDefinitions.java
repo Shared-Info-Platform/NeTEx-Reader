@@ -1,5 +1,6 @@
 package ch.bernmobil.netex.importer;
 
+import ch.bernmobil.netex.importer.netex.builder.BuilderHelper;
 import ch.bernmobil.netex.importer.parser.ElementParser;
 import ch.bernmobil.netex.importer.parser.MultilingualStringParser;
 import ch.bernmobil.netex.importer.parser.Parser;
@@ -33,11 +34,11 @@ public class ParserDefinitions {
 
 	public static Parser createCommonFramesParser() {
 		return new ElementParser()
-				.withChild("ResourceFrame", createResourceFrameParser())
-				.withChild("SiteFrame", createSiteFrameParser())
-				.withChild("ServiceFrame", createServiceFrameParser())
-				.withChild("ServiceCalendarFrame", createServiceCalendarFrameParser())
-				.withChild("TimetableFrame", createTimetableFrameCommonParser());
+				.withChild(BuilderHelper.RESOURCE_FRAME_NAME, createResourceFrameParser())
+				.withChild(BuilderHelper.SITE_FRAME_NAME, createSiteFrameParser())
+				.withChild(BuilderHelper.SERVICE_FRAME_NAME, createServiceFrameParser())
+				.withChild(BuilderHelper.SERVICE_CALENDAR_FRAME_NAME, createServiceCalendarFrameParser())
+				.withChild(BuilderHelper.TIMETABLE_FRAME_NAME, createTimetableFrameCommonParser());
 	}
 
 	public static Parser createTimetableFramesParser() {
@@ -47,7 +48,20 @@ public class ParserDefinitions {
 
 	private static Parser createResourceFrameParser() {
 		return new ElementParser()
-				.withChild("responsibilitySets", null) // TODO
+				.withChild("responsibilitySets", new ElementParser()
+					.withChild("ResponsibilitySet", new ElementParser()
+						.withAttribute("id")
+						.withChild("Name", new MultilingualStringParser())
+						.withChild("PrivateCode", new TextParser())
+						.withChild("roles", new ElementParser()
+							.withChild("ResponsibilityRoleAssignment", new ElementParser()
+								.withAttribute("id")
+								.withChild("StakeholderRoleType", new TextParser())
+								.withChild("ResponsibleOrganisationRef", createRefParser())
+							)
+						)
+					)
+				)
 				.withChild("typesOfValue", new ElementParser()
 					.withChild("ValueSet", new ElementParser()
 						.withAttribute("id")
@@ -108,7 +122,7 @@ public class ParserDefinitions {
 						.withChild("keyList", createKeyListParser())
 						.withChild("Extensions", null) // ignore
 						.withChild("Name", new TextParser())
-						.withChild("ShortName", new MultilingualStringParser())
+						.withChild("ShortName", new TextParser()) // multilingual?
 						.withChild("PrivateCode", new TextParser())
 						.withChild("Centroid", new ElementParser()
 							.withChild("Location", createLocationParser())
@@ -160,13 +174,14 @@ public class ParserDefinitions {
 				)
 				.withChild("scheduledStopPoints", new ElementParser()
 					.withChild("ScheduledStopPoint", new ElementParser()
+						.withAttribute("id")
 						.withChild("keyList", createKeyListParser())
 						.withChild("Name", new MultilingualStringParser())
 						.withChild("Location", createLocationParser())
 						.withChild("ShortName", new MultilingualStringParser())
 					)
 				)
-				.withChild("connections", null) // TODO
+				.withChild("connections", null)
 				.withChild("stopAssignments", new ElementParser()
 					.withChild("PassengerStopAssignment", new ElementParser()
 						.withAttribute("id")
@@ -206,8 +221,8 @@ public class ParserDefinitions {
 					.withChild("FromDate", new TextParser())
 					.withChild("ToDate", new TextParser())
 				)
-				.withChild("dayTypes", null) // TODO
-				.withChild("timebands", null) // TODO
+				.withChild("dayTypes", null)
+				.withChild("timebands", null)
 		;
 	}
 
@@ -237,8 +252,8 @@ public class ParserDefinitions {
 						.withChild("PrivateCode", new TextParser())
 					)
 				)
-				.withChild("journeyMeetings", null) // TODO
-				.withChild("interchangeRules", null) // TODO
+				.withChild("journeyMeetings", null)
+				.withChild("interchangeRules", null)
 		;
 	}
 
@@ -247,6 +262,7 @@ public class ParserDefinitions {
 				.withChild("vehicleJourneys", new ElementParser()
 					.withChild("ServiceJourney", new ElementParser()
 						.withAttribute("id")
+						.withAttribute("responsibilitySetRef")
 						.withChild("validityConditions", new ElementParser()
 							.withChild("AvailabilityConditionRef", createRefParser())
 						)
@@ -290,12 +306,14 @@ public class ParserDefinitions {
 									.withChild("DayOffset", new TextParser())
 									.withChild("ForAlighting", new TextParser())
 									.withChild("IsFlexible", new TextParser())
+									.withChild("CheckConstraint", null) // ignore
 								)
 								.withChild("Departure", new ElementParser()
 									.withChild("Time", new TextParser())
 									.withChild("DayOffset", new TextParser())
 									.withChild("ForBoarding", new TextParser())
 									.withChild("IsFlexible", new TextParser())
+									.withChild("CheckConstraint", null) // ignore
 								)
 								.withChild("DestinationDisplayRef", createRefParser())
 								.withChild("noticeAssignments", new ElementParser()
