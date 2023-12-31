@@ -4,26 +4,26 @@ import java.time.LocalTime;
 
 public class NetexCall {
 
-	public String id;
-	public int order;
-	public NetexScheduledStopPoint scheduledStopPoint;
-	public NetexDestinationDisplay destinationDisplay;
-	public boolean requestStop;
-	public boolean stopUse;
-	public Arrival arrival;
-	public Departure departure;
+	public String id; // required
+	public int order; // required
+	public NetexScheduledStopPoint scheduledStopPoint; // optional
+	public NetexDestinationDisplay destinationDisplay; // optional
+	public boolean requestStop; // required
+	public boolean stopUse; // required
+	public Arrival arrival; // optional
+	public Departure departure; // optional
 
 	public static class Arrival {
-		public LocalTime time;
-		public int dayOffset;
-		public boolean forAlighting;
-		public boolean isFlexible;
+		public LocalTime time; // required
+		public int dayOffset; // required
+		public boolean forAlighting; // required
+		public boolean isFlexible; // required
 	}
 
 	public static class Departure {
-		public LocalTime time;
-		public int dayOffset;
-		public boolean forBoarding;
-		public boolean isFlexible;
+		public LocalTime time; // required
+		public int dayOffset; // required
+		public boolean forBoarding; // required
+		public boolean isFlexible; // required
 	}
 }

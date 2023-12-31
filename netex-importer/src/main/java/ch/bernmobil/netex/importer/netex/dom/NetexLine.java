@@ -2,8 +2,8 @@ package ch.bernmobil.netex.importer.netex.dom;
 
 public class NetexLine {
 
-	public String id;
-	public String name;
-	public String shortName;
-	public String publicCode;
+	public String id; // required
+	public String name; // required
+	public String shortName; // optional
+	public String publicCode; // optional
 }

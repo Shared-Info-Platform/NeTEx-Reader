@@ -2,8 +2,8 @@ package ch.bernmobil.netex.importer.netex.dom;
 
 public class NetexPassengerStopAssignment {
 
-	public String id;
-	public NetexScheduledStopPoint scheduledStopPoint;
-	public NetexStopPlace stopPlace;
-	public NetexQuay quay;
+	public String id; // required
+	public NetexScheduledStopPoint scheduledStopPoint; // optional
+	public NetexStopPlace stopPlace; // required
+	public NetexQuay quay; // optional
 }

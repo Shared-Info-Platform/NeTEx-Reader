@@ -5,11 +5,11 @@ import java.util.List;
 
 public class NetexStopPlace {
 
-	public String id;
-	public String didok;
-	public String sloid;
-	public String name;
-	public String shortName;
-	public String privateCode;
-	public final List<NetexQuay> quays = new ArrayList<>();
+	public String id; // required
+	public String didok; // optional
+	public String sloid; // optional
+	public String name; // optional
+	public String shortName; // optional
+	public String privateCode; // optional
+	public final List<NetexQuay> quays = new ArrayList<>(); // required
 }
