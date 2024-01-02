@@ -1,6 +1,7 @@
 package ch.bernmobil.netex.importer;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +15,8 @@ import org.codehaus.stax2.XMLStreamReader2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.bernmobil.netex.importer.journey.dom.Journey;
+import ch.bernmobil.netex.importer.journey.transformer.JourneyTransformer;
 import ch.bernmobil.netex.importer.netex.builder.BuilderHelper;
 import ch.bernmobil.netex.importer.netex.builder.Frame;
 import ch.bernmobil.netex.importer.netex.builder.ObjectTree;
@@ -174,6 +177,12 @@ public class Importer {
 		count4 += (journey.calls.size() * journey.availabilityCondition.validDays.size());
 		if (count1 % 10000 == 0) {
 			System.out.println(count1 + " / " + count2 + " / " + count3 + " / " + count4);
+		}
+
+		for (final Journey result : JourneyTransformer.transform(journey)) {
+			if ("VBZ".equals(result.operatorShortName) && "N9".equals(result.lineName) && result.operatingDay.equals(LocalDate.of(2024, 10, 26))) {
+				System.out.println(result.operatingDay + " - " + result.id);
+			}
 		}
 	}
 

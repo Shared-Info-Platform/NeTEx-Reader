@@ -38,6 +38,7 @@ public class ServiceDomBuilder {
 		result.id = tree.text("id");
 		result.name = tree.multilingualString("Name").getText();
 		result.shortName = tree.optionalMultilingualString("ShortName").map(MultilingualString::getText).orElse(null);
+		result.transportMode = tree.optionalText("TransportMode");
 		result.publicCode = tree.optionalText("PublicCode");
 		return result;
 	}

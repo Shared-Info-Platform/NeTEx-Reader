@@ -1,6 +1,7 @@
 package ch.bernmobil.netex.importer.netex.builder;
 
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -8,9 +9,9 @@ import java.util.function.Consumer;
 
 import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall;
-import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall.Arrival;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall.Departure;
+import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 
 public class TimetableJourneyDomBuilder {
 
@@ -73,7 +74,9 @@ public class TimetableJourneyDomBuilder {
 			if (callList.isEmpty()) {
 				throw new IllegalArgumentException("ServiceJourney " + result.id + " has empty calls");
 			} else {
-				callList.stream().map(call -> buildCall(call, state)).forEach(result.calls::add);
+				result.calls = callList.stream().map(call -> buildCall(call, state))
+												.sorted(Comparator.comparing(TimetableJourneyDomBuilder::getCallOrder))
+												.toList();
 			}
 		}
 
@@ -128,5 +131,9 @@ public class TimetableJourneyDomBuilder {
 		}
 
 		return result;
+	}
+
+	private static int getCallOrder(NetexCall call) {
+		return call.order;
 	}
 }
