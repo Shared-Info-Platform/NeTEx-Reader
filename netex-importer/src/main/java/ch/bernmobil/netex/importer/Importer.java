@@ -1,11 +1,13 @@
 package ch.bernmobil.netex.importer;
 
 import java.io.File;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyTransformer;
+import ch.bernmobil.netex.importer.mongodb.export.MongoDbWriter;
 import ch.bernmobil.netex.importer.netex.builder.BuilderHelper;
 import ch.bernmobil.netex.importer.netex.builder.Frame;
 import ch.bernmobil.netex.importer.netex.builder.ObjectTree;
@@ -32,7 +35,10 @@ public class Importer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);
 
-	public static void main(String[] args) throws XMLStreamException {
+	private MongoDbWriter mongoDbWriter = new MongoDbWriter();
+	private ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+	public static void main(String[] args) throws XMLStreamException, InterruptedException {
 		final File directory = new File("C:\\projects\\bernmobil\\files\\netex\\prod_netex_tt_1.10_che_ski_2024_oev-schweiz__1_1_202312200612");
 //		final File file1 = new File(directory, "PROD_NETEX_TT_1.10_CHE_SKI_2024_OEV-SCHWEIZ_RESOURCE_1_1_202312200612.xml");
 //		final File file2 = new File(directory, "PROD_NETEX_TT_1.10_CHE_SKI_2024_OEV-SCHWEIZ_SITE_1_1_202312200612.xml");
@@ -49,7 +55,7 @@ public class Importer {
 		new Importer().importDirectory(directory);
 	}
 
-	public void importDirectory(File directory) throws XMLStreamException {
+	public void importDirectory(File directory) throws XMLStreamException, InterruptedException {
 		final List<File> filesForCommonEntities = new ArrayList<>();
 		final List<File> filesForServiceJourneys = new ArrayList<>();
 
@@ -73,6 +79,13 @@ public class Importer {
 		final ImportState state = new ImportState();
 		importCommonEntities(filesForCommonEntities, state);
 		importServiceJourneys(filesForServiceJourneys, state);
+
+		LOGGER.info("reading XML done, wait for output to be written");
+		executorService.shutdown();
+		executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+
+		LOGGER.info("done");
+		mongoDbWriter.close();
 	}
 
 	private List<File> filterXmlFiles(List<File> files) {
@@ -165,10 +178,12 @@ public class Importer {
 		}
 	}
 
-	private static int count1;
-	private static int count2;
-	private static int count3;
-	private static int count4;
+	private int count1;
+	private int count2;
+	private int count3;
+	private int count4;
+	private int exported;
+
 	private void processJourney(NetexServiceJourney journey) {
 //		System.out.println("new journey " + journey.id);
 		++count1;
@@ -176,14 +191,24 @@ public class Importer {
 		count3 += journey.availabilityCondition.validDays.size();
 		count4 += (journey.calls.size() * journey.availabilityCondition.validDays.size());
 		if (count1 % 10000 == 0) {
-			System.out.println(count1 + " / " + count2 + " / " + count3 + " / " + count4);
+			LOGGER.info("Imported {} / {} / {} / {}", count1, count2, count3, count4);
 		}
 
-		for (final Journey result : JourneyTransformer.transform(journey)) {
-			if ("VBZ".equals(result.operatorShortName) && "N9".equals(result.lineName) && result.operatingDay.equals(LocalDate.of(2024, 10, 26))) {
-				System.out.println(result.operatingDay + " - " + result.id);
+		executorService.execute(() -> {
+			final List<Journey> results = JourneyTransformer.transform(journey);
+			if (!results.isEmpty() && "820".equals(results.get(0).operatorCode)) {
+				mongoDbWriter.writeJourneys(results);
+				++exported;
+				if (exported % 10000 == 0) {
+					LOGGER.info("Exported {}", exported);
+				}
 			}
-		}
+		});
+//		for (final Journey result : results) {
+//			if ("VBZ".equals(result.operatorShortName) && "N9".equals(result.lineName) && result.operatingDay.equals(LocalDate.of(2024, 3, 30))) {
+//				System.out.println(result.operatingDay + " - " + result.id);
+//			}
+//		}
 	}
 
 	private void importTest(File file) throws XMLStreamException {

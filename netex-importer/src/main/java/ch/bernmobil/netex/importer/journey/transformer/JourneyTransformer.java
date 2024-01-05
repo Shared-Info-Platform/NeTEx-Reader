@@ -2,10 +2,10 @@ package ch.bernmobil.netex.importer.journey.transformer;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import ch.bernmobil.netex.importer.Constants;
 import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.Call.Arrival;
 import ch.bernmobil.netex.importer.journey.dom.Call.Departure;
@@ -14,8 +14,6 @@ import ch.bernmobil.netex.importer.netex.dom.NetexCall;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 
 public class JourneyTransformer {
-
-	private static final ZoneId ZONE_ID = ZoneId.of("CET");
 
 	public static List<Journey> transform(NetexServiceJourney journey) {
 		return journey.availabilityCondition.validDays.stream().map(date -> transform(journey, date)).toList();
@@ -41,7 +39,7 @@ public class JourneyTransformer {
 			result.lineShortName = journey.line.shortName;
 		}
 
-		final ZonedDateTime noon = ZonedDateTime.of(date, LocalTime.of(12, 0), ZONE_ID);
+		final ZonedDateTime noon = ZonedDateTime.of(date, LocalTime.of(12, 0), Constants.ZONE_ID);
 		final ZonedDateTime noonMinus12Hours = noon.minusHours(12);
 		result.calls = journey.calls.stream().map(call -> transform(call, noonMinus12Hours)).toList();
 
