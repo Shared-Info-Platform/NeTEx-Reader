@@ -32,7 +32,7 @@ public class MongoDbWriter {
 			final Map<String, Integer> index = new LinkedHashMap<>();
 			index.put("operatorCode", 1);
 			index.put("lineCode", 1);
-			index.put("operatingDay", 1);
+			index.put("calendarDay", 1);
 			journeyCollection.createIndex(new Document(index));
 		}
 
@@ -43,21 +43,21 @@ public class MongoDbWriter {
 			index.put("stopPlaceCode", 1);
 			index.put("operatorCode", 1);
 			index.put("lineCode", 1);
-			index.put("operatingDay", 1);
+			index.put("calendarDay", 1);
 			callCollection.createIndex(new Document(index));
 		}
-		{
-			final Map<String, Integer> index = new LinkedHashMap<>();
-			index.put("stopPlaceCode", 1);
-			index.put("arrival.time", 1);
-			callCollection.createIndex(new Document(index));
-		}
-		{
-			final Map<String, Integer> index = new LinkedHashMap<>();
-			index.put("stopPlaceCode", 1);
-			index.put("departure.time", 1);
-			callCollection.createIndex(new Document(index));
-		}
+//		{
+//			final Map<String, Integer> index = new LinkedHashMap<>();
+//			index.put("stopPlaceCode", 1);
+//			index.put("arrival.time", 1);
+//			callCollection.createIndex(new Document(index));
+//		}
+//		{
+//			final Map<String, Integer> index = new LinkedHashMap<>();
+//			index.put("stopPlaceCode", 1);
+//			index.put("departure.time", 1);
+//			callCollection.createIndex(new Document(index));
+//		}
 	}
 
 	public void writeJourneys(List<Journey> journeys) {

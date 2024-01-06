@@ -5,6 +5,7 @@ import java.util.Map;
 import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexDestinationDisplay;
 import ch.bernmobil.netex.importer.netex.dom.NetexLine;
+import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexPassengerStopAssignment;
 import ch.bernmobil.netex.importer.netex.dom.NetexScheduledStopPoint;
 import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
@@ -30,6 +31,11 @@ public class ServiceDomBuilder {
 		final ObjectTree stopAssignments = serviceFrame.frameTree.optionalChild("stopAssignments");
 		if (stopAssignments != null) {
 			stopAssignments.children("PassengerStopAssignment").stream().map(child -> buildPassengerStopAssignment(child, state)).forEach(state::addPassengerStopAssignment);
+		}
+
+		final ObjectTree notices = serviceFrame.frameTree.optionalChild("notices");
+		if (notices != null) {
+			notices.children("Notice").stream().map(child -> buildNotice(child, state)).forEach(state::addNotice);
 		}
 	}
 
@@ -93,6 +99,26 @@ public class ServiceDomBuilder {
 			}
 		}
 
+		return result;
+	}
+
+	private static NetexNotice buildNotice(ObjectTree tree, ImportState state) {
+		final NetexNotice result = new NetexNotice();
+		result.id = tree.text("id");
+		result.text = tree.optionalMultilingualString("Text").map(MultilingualString::getText).orElse(null);
+		result.shortCode = tree.optionalText("ShortCode");
+		result.privateCode = tree.optionalText("PrivateCode");
+
+		final String canBeAdvertised = tree.optionalText("CanBeAdvertised");
+		if (canBeAdvertised != null) {
+			result.canBeAdvertised = Boolean.parseBoolean(canBeAdvertised);
+		}
+
+		final String typeOfNoticeId = tree.child("TypeOfNoticeRef").text("ref");
+		result.typeOfNotice = state.getTypeOfNotices().get(typeOfNoticeId);
+		if (result.typeOfNotice == null) {
+			throw new IllegalArgumentException("unknown TypeOfNotices with id " + typeOfNoticeId);
+		}
 		return result;
 	}
 }

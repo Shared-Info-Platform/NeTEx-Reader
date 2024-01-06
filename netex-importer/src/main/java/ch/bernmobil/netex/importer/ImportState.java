@@ -9,12 +9,17 @@ import org.slf4j.LoggerFactory;
 import ch.bernmobil.netex.importer.netex.dom.NetexAvailabilityCondition;
 import ch.bernmobil.netex.importer.netex.dom.NetexDestinationDisplay;
 import ch.bernmobil.netex.importer.netex.dom.NetexLine;
+import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexOperator;
 import ch.bernmobil.netex.importer.netex.dom.NetexPassengerStopAssignment;
 import ch.bernmobil.netex.importer.netex.dom.NetexQuay;
 import ch.bernmobil.netex.importer.netex.dom.NetexResponsibilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexScheduledStopPoint;
+import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexStopPlace;
+import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfNotice;
+import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfProductCategory;
+import ch.bernmobil.netex.importer.netex.dom.NetexVehicleType;
 
 public class ImportState {
 
@@ -22,13 +27,18 @@ public class ImportState {
 
 	private final Map<String, NetexOperator> operators = new HashMap<>();
 	private final Map<String, NetexResponsibilitySet> responsibilitySets = new HashMap<>();
+	private final Map<String, NetexTypeOfNotice> typeOfNotices = new HashMap<>();
+	private final Map<String, NetexTypeOfProductCategory> typeOfProductCategories = new HashMap<>();
+	private final Map<String, NetexVehicleType> vehicleTypes = new HashMap<>();
 	private final Map<String, NetexStopPlace> stopPlaces = new HashMap<>();
 	private final Map<String, NetexQuay> quays = new HashMap<>();
 	private final Map<String, NetexLine> lines = new HashMap<>();
 	private final Map<String, NetexDestinationDisplay> destinationDisplays = new HashMap<>();
 	private final Map<String, NetexPassengerStopAssignment> passengerStopAssignments = new HashMap<>();
 	private final Map<String, NetexScheduledStopPoint> scheduledStopPoints = new HashMap<>();
+	private final Map<String, NetexNotice> notices = new HashMap<>();
 	private final Map<String, NetexAvailabilityCondition> availabilityConditions = new HashMap<>();
+	private final Map<String, NetexServiceFacilitySet> serviceFacilitySets = new HashMap<>();
 
 	public void addOperator(NetexOperator operator) {
 		if (operators.put(operator.id, operator) != null) {
@@ -48,6 +58,36 @@ public class ImportState {
 
 	public Map<String, NetexResponsibilitySet> getResponsibilitySets() {
 		return responsibilitySets;
+	}
+
+	public void addTypeOfNotice(NetexTypeOfNotice typeOfNotice) {
+		if (typeOfNotices.put(typeOfNotice.id, typeOfNotice) != null) {
+			LOGGER.warn("duplicate entry for {}", typeOfNotice.id);
+		}
+	}
+
+	public Map<String, NetexTypeOfNotice> getTypeOfNotices() {
+		return typeOfNotices;
+	}
+
+	public void addTypeOfProductCategory(NetexTypeOfProductCategory typeOfProductCategory) {
+		if (typeOfProductCategories.put(typeOfProductCategory.id, typeOfProductCategory) != null) {
+			LOGGER.warn("duplicate entry for {}", typeOfProductCategory.id);
+		}
+	}
+
+	public Map<String, NetexTypeOfProductCategory> getTypeOfProductCategories() {
+		return typeOfProductCategories;
+	}
+
+	public void addVehicleType(NetexVehicleType vehicleType) {
+		if (vehicleTypes.put(vehicleType.id, vehicleType) != null) {
+			LOGGER.warn("duplicate entry for {}", vehicleType.id);
+		}
+	}
+
+	public Map<String, NetexVehicleType> getVehicleTypes() {
+		return vehicleTypes;
 	}
 
 	public void addStopPlace(NetexStopPlace stopPlace) {
@@ -109,6 +149,16 @@ public class ImportState {
 		return scheduledStopPoints;
 	}
 
+	public void addNotice(NetexNotice notice) {
+		if (notices.put(notice.id, notice) != null) {
+			LOGGER.warn("duplicate entry for {}", notice.id);
+		}
+	}
+
+	public Map<String, NetexNotice> getNotices() {
+		return notices;
+	}
+
 	public void addAvailabilityCondition(NetexAvailabilityCondition availabilityCondition) {
 		if (availabilityConditions.put(availabilityCondition.id, availabilityCondition) != null) {
 			LOGGER.warn("duplicate entry for {}", availabilityCondition.id);
@@ -117,5 +167,15 @@ public class ImportState {
 
 	public Map<String, NetexAvailabilityCondition> getAvailabilityConditions() {
 		return availabilityConditions;
+	}
+
+	public void addServiceFacilitySet(NetexServiceFacilitySet serviceFacilitySet) {
+		if (serviceFacilitySets.put(serviceFacilitySet.id, serviceFacilitySet) != null) {
+			LOGGER.warn("duplicate entry for {}", serviceFacilitySet.id);
+		}
+	}
+
+	public Map<String, NetexServiceFacilitySet> getServiceFacilitySets() {
+		return serviceFacilitySets;
 	}
 }

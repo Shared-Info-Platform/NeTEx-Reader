@@ -1,5 +1,6 @@
 package ch.bernmobil.netex.importer.journey.dom;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 public class Call {
@@ -30,5 +31,9 @@ public class Call {
 		public ZonedDateTime time; // required
 		public boolean forBoarding; // required
 		public boolean isFlexible; // required
+	}
+
+	public LocalDate getCalendarDay() {
+		return (departure != null ? departure.time : arrival.time).toLocalDate();
 	}
 }

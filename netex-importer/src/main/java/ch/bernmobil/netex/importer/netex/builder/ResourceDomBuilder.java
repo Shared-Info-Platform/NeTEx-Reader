@@ -1,8 +1,13 @@
 package ch.bernmobil.netex.importer.netex.builder;
 
+import java.util.List;
+
 import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexOperator;
 import ch.bernmobil.netex.importer.netex.dom.NetexResponsibilitySet;
+import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfNotice;
+import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfProductCategory;
+import ch.bernmobil.netex.importer.netex.dom.NetexVehicleType;
 import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
 
 public class ResourceDomBuilder {
@@ -16,6 +21,26 @@ public class ResourceDomBuilder {
 		final ObjectTree responsibilitySets = resourceFrame.frameTree.optionalChild("responsibilitySets");
 		if (responsibilitySets != null) {
 			responsibilitySets.children("ResponsibilitySet").stream().map(child -> buildResponsibilitySet(child, state)).forEach(state::addResponsibilitySet);
+		}
+
+		final ObjectTree typesOfValue = resourceFrame.frameTree.optionalChild("typesOfValue");
+		if (typesOfValue != null) {
+			typesOfValue.children("ValueSet").stream()
+					.map(valueSet -> valueSet.child("values"))
+					.map(values -> values.children("TypeOfNotice"))
+					.flatMap(List::stream)
+					.map(ResourceDomBuilder::buildTypeOfNotice).forEach(state::addTypeOfNotice);
+
+			typesOfValue.children("ValueSet").stream()
+					.map(valueSet -> valueSet.child("values"))
+					.map(values -> values.children("TypeOfProductCategory"))
+					.flatMap(List::stream)
+					.map(ResourceDomBuilder::buildTypeOfProductCategory).forEach(state::addTypeOfProductCategory);
+		}
+
+		final ObjectTree vehicleTypes = resourceFrame.frameTree.optionalChild("vehicleTypes");
+		if (vehicleTypes != null) {
+			vehicleTypes.children("VehicleType").stream().map(ResourceDomBuilder::buildVehicleType).forEach(state::addVehicleType);
 		}
 	}
 
@@ -54,6 +79,32 @@ public class ResourceDomBuilder {
 			}
 		}
 
+		return result;
+	}
+
+	private static NetexTypeOfNotice buildTypeOfNotice(ObjectTree tree) {
+		final NetexTypeOfNotice result = new NetexTypeOfNotice();
+		result.id = tree.text("id");
+		result.name = tree.text("Name");
+		result.privateCode = tree.text("PrivateCode");
+		return result;
+	}
+
+	private static NetexTypeOfProductCategory buildTypeOfProductCategory(ObjectTree tree) {
+		final NetexTypeOfProductCategory result = new NetexTypeOfProductCategory();
+		result.id = tree.text("id");
+		result.name = tree.multilingualString("Name").text;
+		result.shortName = tree.multilingualString("ShortName").text;
+		return result;
+	}
+
+	private static NetexVehicleType buildVehicleType(ObjectTree tree) {
+		final NetexVehicleType result = new NetexVehicleType();
+		result.id = tree.text("id");
+		result.shortName = tree.multilingualString("ShortName").text;
+		result.lowFloor = Boolean.parseBoolean(tree.text("LowFloor"));
+		result.hasLiftOrRamp = Boolean.parseBoolean(tree.text("HasLiftOrRamp"));
+		result.hasHoist = Boolean.parseBoolean(tree.text("HasHoist"));
 		return result;
 	}
 }

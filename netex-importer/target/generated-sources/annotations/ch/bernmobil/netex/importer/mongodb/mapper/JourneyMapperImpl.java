@@ -6,12 +6,14 @@ import ch.bernmobil.netex.importer.mongodb.dom.CallWithJourney;
 import ch.bernmobil.netex.importer.mongodb.dom.JourneyWithCalls;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-01-06T20:42:33+0100",
+    date = "2024-01-06T21:26:49+0100",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.7 (Oracle Corporation)"
 )
 public class JourneyMapperImpl implements JourneyMapper {
@@ -27,8 +29,22 @@ public class JourneyMapperImpl implements JourneyMapper {
         if ( journey.operatingDay != null ) {
             journeyWithCalls.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
         }
+        if ( journey.getCalendarDay() != null ) {
+            journeyWithCalls.calendarDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.getCalendarDay() );
+        }
         journeyWithCalls.transportMode = journey.transportMode;
         journeyWithCalls.serviceAlteration = journey.serviceAlteration;
+        journeyWithCalls.vehicleType = journey.vehicleType;
+        journeyWithCalls.productCategoryName = journey.productCategoryName;
+        journeyWithCalls.productCategoryCode = journey.productCategoryCode;
+        List<String> list = journey.serviceFacilities;
+        if ( list != null ) {
+            journeyWithCalls.serviceFacilities = new ArrayList<String>( list );
+        }
+        Map<String, String> map = journey.notices;
+        if ( map != null ) {
+            journeyWithCalls.notices = new LinkedHashMap<String, String>( map );
+        }
         journeyWithCalls.operatorCode = journey.operatorCode;
         journeyWithCalls.operatorName = journey.operatorName;
         journeyWithCalls.operatorShortName = journey.operatorShortName;
@@ -39,6 +55,10 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyWithCalls.calls = callListToCallList( journey.calls );
 
         journeyWithCalls.id = journey.id + "_" + journey.operatingDay;
+        journeyWithCalls.departureTime = journey.calls.get(0).departure.time;
+        journeyWithCalls.departureStopPlaceCode = journey.calls.get(0).stopPlaceCode;
+        journeyWithCalls.arrivalTime = journey.calls.get(journey.calls.size() - 1).arrival.time;
+        journeyWithCalls.arrivalStopPlaceCode = journey.calls.get(journey.calls.size() - 1).stopPlaceCode;
 
         return journeyWithCalls;
     }
@@ -53,6 +73,9 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         if ( call != null ) {
             callWithJourney.originalId = call.id;
+            if ( call.getCalendarDay() != null ) {
+                callWithJourney.calendarDay = DateTimeFormatter.ISO_LOCAL_DATE.format( call.getCalendarDay() );
+            }
             callWithJourney.order = call.order;
             callWithJourney.requestStop = call.requestStop;
             callWithJourney.stopUse = call.stopUse;
@@ -69,6 +92,17 @@ public class JourneyMapperImpl implements JourneyMapper {
             }
             callWithJourney.transportMode = journey.transportMode;
             callWithJourney.serviceAlteration = journey.serviceAlteration;
+            callWithJourney.vehicleType = journey.vehicleType;
+            callWithJourney.productCategoryName = journey.productCategoryName;
+            callWithJourney.productCategoryCode = journey.productCategoryCode;
+            List<String> list = journey.serviceFacilities;
+            if ( list != null ) {
+                callWithJourney.serviceFacilities = new ArrayList<String>( list );
+            }
+            Map<String, String> map = journey.notices;
+            if ( map != null ) {
+                callWithJourney.notices = new LinkedHashMap<String, String>( map );
+            }
             callWithJourney.operatorCode = journey.operatorCode;
             callWithJourney.operatorName = journey.operatorName;
             callWithJourney.operatorShortName = journey.operatorShortName;

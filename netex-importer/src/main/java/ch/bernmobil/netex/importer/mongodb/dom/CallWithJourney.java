@@ -1,13 +1,25 @@
 package ch.bernmobil.netex.importer.mongodb.dom;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.bson.codecs.pojo.annotations.BsonId;
 
 public class CallWithJourney extends Call {
 
 	public String originalId; // required
 	public String operatingDay; // required
+	public String calendarDay; // required
+
 	public String transportMode; // optional (from ServiceJourney or fallback from Line)
 	public String serviceAlteration; // optional
+	public String vehicleType; // optional
+	public String productCategoryName; // optional
+	public String productCategoryCode; // optional
+	public List<String> serviceFacilities = new ArrayList<>(); // optional
+	public Map<String, String> notices = new LinkedHashMap<>(); // optional
 
 	// operator
 	public String operatorCode; // optional

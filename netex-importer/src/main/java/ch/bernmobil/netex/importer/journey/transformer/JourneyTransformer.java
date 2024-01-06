@@ -11,6 +11,8 @@ import ch.bernmobil.netex.importer.journey.dom.Call.Arrival;
 import ch.bernmobil.netex.importer.journey.dom.Call.Departure;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall;
+import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
+import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 
 public class JourneyTransformer {
@@ -26,6 +28,27 @@ public class JourneyTransformer {
 		result.transportMode = (journey.transportMode != null ? journey.transportMode : (journey.line != null ? journey.line.transportMode : null));
 		result.serviceAlteration = journey.serviceAlteration;
 		result.directionType = journey.directionType;
+
+		if (journey.vehicleType != null) {
+			result.vehicleType = journey.vehicleType.shortName;
+		}
+
+		if (journey.typeOfProductCategory != null) {
+			result.productCategoryName = journey.typeOfProductCategory.name;
+			result.productCategoryCode = journey.typeOfProductCategory.shortName;
+		}
+
+		for (NetexServiceFacilitySet serviceFacilitySet : journey.serviceFacilitySets) {
+			if (serviceFacilitySet.description != null) {
+				result.serviceFacilities.add(serviceFacilitySet.description);
+			}
+		}
+
+		for (NetexNotice notice : journey.notices) {
+			if (notice.text != null && Boolean.TRUE.equals(notice.canBeAdvertised)) {
+				result.notices.put(notice.text, notice.typeOfNotice.name);
+			}
+		}
 
 		if (journey.responsibilitySet != null && journey.responsibilitySet.operator != null) {
 			result.operatorCode = journey.responsibilitySet.operator.privateCode;

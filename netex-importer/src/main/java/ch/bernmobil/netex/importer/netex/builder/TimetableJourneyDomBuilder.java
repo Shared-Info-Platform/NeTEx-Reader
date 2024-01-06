@@ -4,6 +4,7 @@ import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -11,6 +12,8 @@ import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall.Arrival;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall.Departure;
+import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
+import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 
 public class TimetableJourneyDomBuilder {
@@ -49,6 +52,59 @@ public class TimetableJourneyDomBuilder {
 					throw new IllegalArgumentException("unknown AvailabilityCondition with id " + availabilityConditionId);
 				}
 			}
+		}
+
+		final ObjectTree typeOfProductCategoryRef = tree.optionalChild("TypeOfProductCategoryRef");
+		if (typeOfProductCategoryRef != null) {
+			final String typeOfProductCategoryId = typeOfProductCategoryRef.text("ref");
+			result.typeOfProductCategory = state.getTypeOfProductCategories().get(typeOfProductCategoryId);
+			if (result.typeOfProductCategory == null) {
+				throw new IllegalArgumentException("unknown TypeOfProductCategory with id " + typeOfProductCategoryId);
+			}
+		}
+
+		final ObjectTree vehicleTypeRef = tree.optionalChild("VehicleTypeRef");
+		if (vehicleTypeRef != null) {
+			final String vehicleTypeId = vehicleTypeRef.text("ref");
+			result.vehicleType = state.getVehicleTypes().get(vehicleTypeId);
+			if (result.vehicleType == null) {
+				throw new IllegalArgumentException("unknown VehicleType with id " + vehicleTypeId);
+			}
+		}
+
+		final ObjectTree extensions = tree.optionalChild("Extensions");
+		if (extensions != null) {
+			final ObjectTree facilities = extensions.optionalChild("facilities");
+			if (facilities != null) {
+				result.serviceFacilitySets = facilities.children("ServiceFacilitySetRef").stream()
+						.map(serviceFacilitySetRef -> serviceFacilitySetRef.text("ref"))
+						.map(serviceFacilitySetId -> {
+							final NetexServiceFacilitySet serviceFacilitySet = state.getServiceFacilitySets().get(serviceFacilitySetId);
+							if (serviceFacilitySet == null) {
+								throw new IllegalArgumentException("unknown ServiceFacilitySet with id " + serviceFacilitySetId);
+							}
+							return serviceFacilitySet;
+						})
+						.sorted(Comparator.comparing(serviceFacilitySet -> serviceFacilitySet.priority, Comparator.nullsLast(Comparator.naturalOrder())))
+						.toList();
+			}
+		}
+
+		final ObjectTree noticeAssignments = tree.optionalChild("noticeAssignments");
+		if (noticeAssignments != null) {
+			result.notices = noticeAssignments.children("NoticeAssignment").stream()
+					.sorted(Comparator.comparing(child -> child.text("order")))
+					.map(child -> child.optionalChild("NoticeRef"))
+					.filter(Objects::nonNull)
+					.map(noticeRef -> noticeRef.text("ref"))
+					.map(noticeId -> {
+						final NetexNotice notice = state.getNotices().get(noticeId);
+						if (notice == null) {
+							throw new IllegalArgumentException("unknown Notice with id " + noticeId);
+						}
+						return notice;
+					})
+					.toList();
 		}
 
 		final String responsibilitySetId = tree.text("responsibilitySetRef");

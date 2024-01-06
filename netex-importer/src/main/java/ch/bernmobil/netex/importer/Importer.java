@@ -27,6 +27,7 @@ import ch.bernmobil.netex.importer.netex.builder.ResourceDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.ServiceCalendarDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.ServiceDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.SiteDomBuilder;
+import ch.bernmobil.netex.importer.netex.builder.TimetableCommonDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.TimetableJourneyDomBuilder;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 import ch.bernmobil.netex.importer.xml.Parser;
@@ -127,11 +128,17 @@ public class Importer {
 		final List<Frame> serviceCalendarFrames = trees.stream()
 				.map(tree -> BuilderHelper.getFrame(tree, BuilderHelper.SERVICE_CALENDAR_FRAME_NAME))
 				.filter(Objects::nonNull).toList();
+		final List<Frame> timetableFrames = trees.stream()
+				.map(tree -> BuilderHelper.getFrame(tree, BuilderHelper.TIMETABLE_FRAME_NAME))
+				.filter(Objects::nonNull).toList();
 
 		for (final Frame resourceFrame : resourceFrames) {
 			ResourceDomBuilder.buildDom(resourceFrame, state);
 			LOGGER.info("operators: " + state.getOperators().size());
 			LOGGER.info("responsibility sets: " + state.getResponsibilitySets().size());
+			LOGGER.info("type of notices: " + state.getTypeOfNotices().size());
+			LOGGER.info("type of product categories: " + state.getTypeOfProductCategories().size());
+			LOGGER.info("vehicle types: " + state.getVehicleTypes().size());
 		}
 
 		for (final Frame siteFrame : siteFrames) {
@@ -145,7 +152,8 @@ public class Importer {
 			LOGGER.info("lines: " + state.getLines().size());
 			LOGGER.info("destination displays: " + state.getDestinationDisplays().size());
 			LOGGER.info("scheduled stop points: " + state.getScheduledStopPoints().size());
-			LOGGER.info("passenger stop assignment: " + state.getPassengerStopAssignments().size());
+			LOGGER.info("passenger stop assignments: " + state.getPassengerStopAssignments().size());
+			LOGGER.info("notices: " + state.getNotices().size());
 
 			// TODO: there seems to be a bug in the data - PassengerStopAssignments for quays does not reference ScheduledStopPoint for quays but instead the generic (quay-less) entity
 //				for (ScheduledStopPoint s : state.getScheduledStopPoints().values()) {
@@ -158,6 +166,11 @@ public class Importer {
 		for (final Frame serviceCalendarFrame : serviceCalendarFrames) {
 			ServiceCalendarDomBuilder.buildDom(serviceCalendarFrame, state);
 			LOGGER.info("availability conditions: " + state.getAvailabilityConditions().size());
+		}
+
+		for (final Frame timetableFrame : timetableFrames) {
+			TimetableCommonDomBuilder.buildDom(timetableFrame, state);
+			LOGGER.info("service facility sets: " + state.getServiceFacilitySets().size());
 		}
 	}
 

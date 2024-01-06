@@ -2,14 +2,22 @@ package ch.bernmobil.netex.importer.journey.dom;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Journey {
 
 	public String id; // required
 	public LocalDate operatingDay; // required
+
 	public String transportMode; // optional (from ServiceJourney or fallback from Line)
 	public String serviceAlteration; // optional
+	public String vehicleType; // optional
+	public String productCategoryName; // optional
+	public String productCategoryCode; // optional
+	public List<String> serviceFacilities = new ArrayList<>(); // optional
+	public Map<String, String> notices = new LinkedHashMap<>(); // optional
 
 	// operator
 	public String operatorCode; // optional
@@ -26,4 +34,8 @@ public class Journey {
 
 	// Calls
 	public List<Call> calls = new ArrayList<>();
+
+	public LocalDate getCalendarDay() {
+		return calls.get(0).departure.time.toLocalDate();
+	}
 }

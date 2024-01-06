@@ -15,9 +15,14 @@ public interface JourneyMapper {
 	JourneyMapper INSTANCE = Mappers.getMapper(JourneyMapper.class);
 
 	@Mapping(target = "id", expression = "java(journey.id + \"_\" + journey.operatingDay)")
+	@Mapping(target = "departureTime", expression = "java(journey.calls.get(0).departure.time)")
+	@Mapping(target = "departureStopPlaceCode", expression = "java(journey.calls.get(0).stopPlaceCode)")
+	@Mapping(target = "arrivalTime", expression = "java(journey.calls.get(journey.calls.size() - 1).arrival.time)")
+	@Mapping(target = "arrivalStopPlaceCode", expression = "java(journey.calls.get(journey.calls.size() - 1).stopPlaceCode)")
 	JourneyWithCalls mapJourney(Journey journey);
 
 	@Mapping(target = "id", expression = "java(journey.id + \"_\" + journey.operatingDay + \"_\" + call.order)")
 	@Mapping(target = "originalId", source = "call.id")
+	@Mapping(target = "calendarDay", source = "call.calendarDay")
 	CallWithJourney mapCalls(Call call, Journey journey);
 }
