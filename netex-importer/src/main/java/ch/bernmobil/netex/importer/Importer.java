@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.bernmobil.netex.importer.journey.dom.Journey;
+import ch.bernmobil.netex.importer.journey.transformer.JourneyAggregator;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyTransformer;
 import ch.bernmobil.netex.importer.mongodb.export.MongoDbWriter;
 import ch.bernmobil.netex.importer.netex.builder.BuilderHelper;
@@ -38,6 +39,7 @@ public class Importer {
 
 	private MongoDbWriter mongoDbWriter = new MongoDbWriter();
 	private ExecutorService executorService = Executors.newFixedThreadPool(10);
+	private JourneyAggregator aggregator = new JourneyAggregator();
 
 	public static void main(String[] args) throws XMLStreamException, InterruptedException {
 		final File directory = new File("C:\\projects\\bernmobil\\files\\netex\\prod_netex_tt_1.10_che_ski_2024_oev-schweiz__1_1_202312200612");
@@ -53,7 +55,12 @@ public class Importer {
 //		importer.importCommonEntities(Arrays.asList(file1, file2, file3, file4, file5), state);
 //		importer.importServiceJourneys(Arrays.asList(file6), state);
 
-		new Importer().importDirectory(directory);
+		try {
+			new Importer().importDirectory(directory);
+		} catch (Throwable t) {
+			LOGGER.error("import failed", t);
+			System.exit(1);
+		}
 	}
 
 	public void importDirectory(File directory) throws XMLStreamException, InterruptedException {
@@ -84,6 +91,10 @@ public class Importer {
 		LOGGER.info("reading XML done, wait for output to be written");
 		executorService.shutdown();
 		executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+
+		LOGGER.info("write aggregations");
+		mongoDbWriter.writeJourneyAggregations(aggregator.getJourneyAggregations());
+		mongoDbWriter.writeCallAggregations(aggregator.getCallAggregations());
 
 		LOGGER.info("done");
 		mongoDbWriter.close();
@@ -209,13 +220,15 @@ public class Importer {
 
 		executorService.execute(() -> {
 			final List<Journey> results = JourneyTransformer.transform(journey);
-			if (!results.isEmpty() && "820".equals(results.get(0).operatorCode)) {
+			aggregator.aggregateJourneys(results);
+
+//			if (!results.isEmpty() && "820".equals(results.get(0).operatorCode)) {
 				mongoDbWriter.writeJourneys(results);
 				++exported;
 				if (exported % 10000 == 0) {
 					LOGGER.info("Exported {}", exported);
 				}
-			}
+//			}
 		});
 //		for (final Journey result : results) {
 //			if ("VBZ".equals(result.operatorShortName) && "N9".equals(result.lineName) && result.operatingDay.equals(LocalDate.of(2024, 3, 30))) {

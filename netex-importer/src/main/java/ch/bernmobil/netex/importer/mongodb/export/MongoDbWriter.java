@@ -1,6 +1,7 @@
 package ch.bernmobil.netex.importer.mongodb.export;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +13,11 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import ch.bernmobil.netex.importer.journey.dom.Journey;
+import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
 import ch.bernmobil.netex.importer.mongodb.dom.CallWithJourney;
+import ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation;
 import ch.bernmobil.netex.importer.mongodb.dom.JourneyWithCalls;
+import ch.bernmobil.netex.importer.mongodb.mapper.AggregationMapper;
 import ch.bernmobil.netex.importer.mongodb.mapper.JourneyMapper;
 
 public class MongoDbWriter {
@@ -21,6 +25,8 @@ public class MongoDbWriter {
 	private MongoClient mongoClient;
 	private MongoCollection<JourneyWithCalls> journeyCollection;
 	private MongoCollection<CallWithJourney> callCollection;
+	private MongoCollection<JourneyAggregation> journeyAggregationCollection;
+	private MongoCollection<CallAggregation> callAggregationCollection;
 
 	public MongoDbWriter() {
 		mongoClient = MongoDbClientHelper.createClient();
@@ -58,6 +64,35 @@ public class MongoDbWriter {
 //			index.put("departure.time", 1);
 //			callCollection.createIndex(new Document(index));
 //		}
+
+		// Journey Aggregations
+		journeyAggregationCollection = database.getCollection("JourneyAggregations", JourneyAggregation.class);
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("operatorCode", 1);
+			index.put("lineCode", 1);
+			index.put("calendarDay", 1);
+			journeyAggregationCollection.createIndex(new Document(index));
+		}
+
+		// Call Aggregations
+		callAggregationCollection = database.getCollection("CallAggregations", CallAggregation.class);
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("stopPlaceCode", 1);
+			index.put("operatorCode", 1);
+			index.put("lineCode", 1);
+			index.put("calendarDay", 1);
+			callAggregationCollection.createIndex(new Document(index));
+		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("calendarDay", 1);
+			index.put("operatorCode", 1);
+			index.put("lineCode", 1);
+			index.put("stopPlaceCode", 1);
+			callAggregationCollection.createIndex(new Document(index));
+		}
 	}
 
 	public void writeJourneys(List<Journey> journeys) {
@@ -68,6 +103,26 @@ public class MongoDbWriter {
 		}
 		journeyCollection.insertMany(mappedJourneys);
 		callCollection.insertMany(mappedCalls);
+	}
+
+	public void writeJourneyAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.JourneyAggregation> aggregations) {
+		final List<JourneyAggregation> mappedAggregation = new ArrayList<>();
+		for (final ch.bernmobil.netex.importer.journey.dom.JourneyAggregation aggregation : aggregations) {
+			mappedAggregation.add(AggregationMapper.INSTANCE.mapJourneyAggregation(aggregation));
+		}
+		for (int i = 0; i < mappedAggregation.size(); i += 10000) {
+			journeyAggregationCollection.insertMany(mappedAggregation.subList(i, Math.min(i + 10000, mappedAggregation.size())));
+		}
+	}
+
+	public void writeCallAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.CallAggregation> aggregations) {
+		final List<CallAggregation> mappedAggregation = new ArrayList<>();
+		for (final ch.bernmobil.netex.importer.journey.dom.CallAggregation aggregation : aggregations) {
+			mappedAggregation.add(AggregationMapper.INSTANCE.mapCallAggregation(aggregation));
+		}
+		for (int i = 0; i < mappedAggregation.size(); i += 10000) {
+			callAggregationCollection.insertMany(mappedAggregation.subList(i, Math.min(i + 10000, mappedAggregation.size())));
+		}
 	}
 
 	public void close() {
