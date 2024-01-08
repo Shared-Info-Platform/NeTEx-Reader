@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLStreamException;
@@ -37,7 +37,7 @@ public class Importer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);
 
 	private MongoDbWriter mongoDbWriter = new MongoDbWriter();
-	private ExecutorService executorService = Executors.newFixedThreadPool(10);
+	private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
 	private JourneyAggregator aggregator = new JourneyAggregator();
 
 	public static void main(String[] args) throws XMLStreamException, InterruptedException {
@@ -76,8 +76,8 @@ public class Importer {
 		importServiceJourneys(filesForServiceJourneys, state);
 
 		LOGGER.info("reading XML done, wait for output to be written");
-		executorService.shutdown();
-		executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+		executor.shutdown();
+		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
 		LOGGER.info("write aggregations");
 		mongoDbWriter.writeJourneyAggregations(aggregator.getJourneyAggregations());
@@ -201,17 +201,27 @@ public class Importer {
 		count3 += journey.availabilityCondition.validDays.size();
 		count4 += (journey.calls.size() * journey.availabilityCondition.validDays.size());
 		if (count1 % 10000 == 0) {
-			LOGGER.info("Imported {} / {} / {} / {}", count1, count2, count3, count4);
+			LOGGER.info("Imported {} journeys and {} calls ({} and {} respectively when multiplied by valid days)", count1, count2, count3, count4);
 		}
 
-		executorService.execute(() -> {
+		if (executor.getQueue().size() > 100) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException("thread interrupted", e);
+			}
+		}
+
+		executor.execute(() -> {
 			final List<Journey> results = JourneyTransformer.transform(journey);
 			aggregator.aggregateJourneys(results);
 
 			mongoDbWriter.writeJourneys(results);
 			++exported;
 			if (exported % 10000 == 0) {
-				LOGGER.info("Exported {}", exported);
+				LOGGER.info("Exported {} journeys", exported);
+				System.exit(0);
 			}
 		});
 	}
