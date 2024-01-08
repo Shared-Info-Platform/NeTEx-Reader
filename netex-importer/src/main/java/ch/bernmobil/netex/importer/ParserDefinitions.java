@@ -6,8 +6,19 @@ import ch.bernmobil.netex.importer.xml.MultilingualStringParser;
 import ch.bernmobil.netex.importer.xml.Parser;
 import ch.bernmobil.netex.importer.xml.TextParser;
 
+/**
+ * This class contains definitions for how to parse the NeTEx files with a StAX parser. A StAX parser is different
+ * to a "regular" DOM parser: A DOM parser reads a whole XML file at once and builds a model of all its content in
+ * memory. The in-memory model then allows random access to all entities of the XML file in any order. A StAX parser
+ * however iterates over all elements in an XML file one by one and lets the application handle it. There is no
+ * in-memory model and no random access is possible. All elements have to be parsed in the same order they appear in
+ * the XML. Also unnecessary elements cannot just be ignored in a StAX parser, the application must handle them as
+ * well and ignore them "actively".
+ *
+ * The definitions in this class tell the StAX parser which elements are expected at which position in the node
+ * tree and how to parse them. All elements that are not defined here are ignored.
+ */
 public class ParserDefinitions {
-
 
 	public static Parser createPublicationDeliveryParser(Parser framesParser) {
 		return new ElementParser(true)

@@ -20,6 +20,10 @@ import ch.bernmobil.netex.importer.mongodb.dom.JourneyWithCalls;
 import ch.bernmobil.netex.importer.mongodb.mapper.AggregationMapper;
 import ch.bernmobil.netex.importer.mongodb.mapper.JourneyMapper;
 
+/**
+ * Opens collections in a MongoDB, creates indexes (if necessary) for these collections, transforms journeys
+ * to the model needed by the different collections and writes them to the database.
+ */
 public class MongoDbWriter {
 
 	private MongoClient mongoClient;

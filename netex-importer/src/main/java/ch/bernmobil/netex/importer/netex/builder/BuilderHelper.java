@@ -7,6 +7,9 @@ import java.util.Map;
 
 import ch.bernmobil.netex.importer.netex.builder.Frame.CompositeFrameHeader;
 
+/**
+ * Helper class that helps reading NeTEx frames.
+ */
 public class BuilderHelper {
 
 	public static final String RESOURCE_FRAME_NAME = "ResourceFrame";

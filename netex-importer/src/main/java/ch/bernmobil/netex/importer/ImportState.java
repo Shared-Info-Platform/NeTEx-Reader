@@ -21,6 +21,10 @@ import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfProductCategory;
 import ch.bernmobil.netex.importer.netex.dom.NetexVehicleType;
 
+/**
+ * This class is a cache for all common entities that are defined in different NeTEx files and are referenced
+ * by journeys (plus some of them also have references between each other).
+ */
 public class ImportState {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);

@@ -8,6 +8,9 @@ import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.builder.Frame.CompositeFrameHeader;
 import ch.bernmobil.netex.importer.netex.dom.NetexAvailabilityCondition;
 
+/**
+ * This class reads the object tree of a NeTEx service calendar frame and stores the contained entities in the ImportState.
+ */
 public class ServiceCalendarDomBuilder {
 
 	public static void buildDom(Frame serviceCalendarFrame, ImportState state) {

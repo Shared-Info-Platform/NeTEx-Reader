@@ -7,6 +7,12 @@ import org.mapstruct.factory.Mappers;
 import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
 import ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation;
 
+/**
+ * This interface maps Aggregations from the internal model to the model used in MongoDB.
+ *
+ * The conversion between input- and output-model is done automatically by MapStruct. The annotations contain
+ * some cues for non-trivial mappings.
+ */
 @Mapper
 public interface AggregationMapper {
 

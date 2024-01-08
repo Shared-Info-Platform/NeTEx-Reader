@@ -15,6 +15,11 @@ import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 
+/**
+ * Takes a NeTEx journey representation and transforms it to a specific journey for each day on which it is valid.
+ * The resulting journeys are defined in an internal model that's more convenient to use than the NeTEx representation
+ * and they contain the effective times with the right offsets for each day.
+ */
 public class JourneyTransformer {
 
 	public static List<Journey> transform(NetexServiceJourney journey) {

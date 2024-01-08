@@ -34,6 +34,9 @@ import ch.bernmobil.netex.importer.netex.builder.TimetableJourneyDomBuilder;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 import ch.bernmobil.netex.importer.xml.Parser;
 
+/**
+ * This class imports journeys from NeTEx files that are located in a given directory.
+ */
 public class Importer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);
@@ -57,6 +60,8 @@ public class Importer {
 		final List<File> filesForCommonEntities = new ArrayList<>();
 		final List<File> filesForServiceJourneys = new ArrayList<>();
 
+		// look at all files in the given directory and try to classify them into files for common entities and
+		// files for service journeys (based on the filename).
 		final File[] filesArray = directory.listFiles();
 		if (filesArray != null) {
 			final List<File> xmlFiles = filterXmlFiles(Arrays.asList(filesArray));
@@ -65,21 +70,28 @@ public class Importer {
 
 			// if the files don't contain the necessary tokens to distinguish them, just use all files for both categories
 			if (filesForCommonEntities.isEmpty() || filesForServiceJourneys.isEmpty()) {
+				LOGGER.warn("could not determine which files contain common objects and which contain journeys - "
+						+ "this import will read all files and use a lot of memory!");
 				filesForCommonEntities.addAll(xmlFiles);
 				filesForServiceJourneys.addAll(xmlFiles);
 			}
 		}
 
+		// abort if no files were found
 		if (filesForCommonEntities.isEmpty() || filesForServiceJourneys.isEmpty()) {
 			throw new IllegalArgumentException("no *.xml files found in directory " + directory);
 		}
 
+		// start import. first import common entities (and cache them in ImportState), then import all
+		// journeys (which reference the common entities)
 		final ImportState state = new ImportState();
 		importCommonEntities(filesForCommonEntities, state);
 		importServiceJourneys(filesForServiceJourneys, state);
 
 		LOGGER.info("reading XML done, wait for output to be written");
+		// tell the executor to shut down. it will process all queued journeys first, then quit
 		executor.shutdown();
+		// block the current function until the executor has quit
 		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
 		LOGGER.info("write aggregations");
@@ -90,10 +102,16 @@ public class Importer {
 		mongoDbWriter.close();
 	}
 
+	/**
+	 * Returns all files that end with ".xml"
+	 */
 	private List<File> filterXmlFiles(List<File> files) {
 		return files.stream().filter(file -> file.getName().toUpperCase().endsWith(".XML")).toList();
 	}
 
+	/**
+	 * Returns all files that contain a token that marks them as containing common entities (like stop places)
+	 */
 	private List<File> filterFilesForCommonEntities(List<File> files) {
 		return files.stream().filter(file -> file.getName().toUpperCase().contains("_RESOURCE_") ||
 											 file.getName().toUpperCase().contains("_SITE_") ||
@@ -102,14 +120,23 @@ public class Importer {
 											 file.getName().toUpperCase().contains("_COMMON_")).toList();
 	}
 
+	/**
+	 * Returns all files that contain a token that marks them as containing journeys.
+	 */
 	private List<File> filterFilesForServiceJourneys(List<File> files) {
 		return files.stream().filter(file -> file.getName().toUpperCase().contains("_TIMETABLE_")).toList();
 	}
 
+	/**
+	 * Imports common entities (like stop places) from the given files and caches them in ImportState.
+	 */
 	private void importCommonEntities(List<File> files, ImportState state) throws XMLStreamException {
 		final Parser parser = ParserDefinitions.createPublicationDeliveryParser(ParserDefinitions.createCommonFramesParser());
 		final XMLInputFactory2 factory = (XMLInputFactory2)XMLInputFactory2.newInstance();
 
+		// parse all files and keep the parsed object trees in memory. however, the parser is configured up to only
+		// keep objects in memory that are actually needed to import the common entities. objects that are not needed
+		// at this point (like journeys) are ignored and don't take any space in memory.
 		final List<ObjectTree> trees = new ArrayList<>();
 		for (final File file : files) {
 			final XMLStreamReader2 reader = factory.createXMLStreamReader(file);
@@ -117,6 +144,7 @@ public class Importer {
 			trees.add(ObjectTree.of(result));
 		}
 
+		// search all relevant NeTEx frames in all parsed object trees
 		final List<Frame> resourceFrames = trees.stream()
 				.map(tree -> BuilderHelper.getFrame(tree, BuilderHelper.RESOURCE_FRAME_NAME))
 				.filter(Objects::nonNull).toList();
@@ -132,6 +160,11 @@ public class Importer {
 		final List<Frame> timetableFrames = trees.stream()
 				.map(tree -> BuilderHelper.getFrame(tree, BuilderHelper.TIMETABLE_FRAME_NAME))
 				.filter(Objects::nonNull).toList();
+
+		// read the contents of all frames (separated by type), build the common entities and cache them in
+		// ImportState. be sure to read the frames in the correct order such that references between the entities
+		// can be resolved (e.g. import operators from the resource-frame first before importing lines that reference
+		// the operators).
 
 		for (final Frame resourceFrame : resourceFrames) {
 			ResourceDomBuilder.buildDom(resourceFrame, state);
@@ -175,18 +208,25 @@ public class Importer {
 		}
 	}
 
+	/**
+	 * Imports service Journeys from the given files.
+	 */
 	private void importServiceJourneys(List<File> files, ImportState state) throws XMLStreamException {
 		final Parser parser = ParserDefinitions.createPublicationDeliveryParser(ParserDefinitions.createTimetableFramesParser());
 		final XMLInputFactory2 factory = (XMLInputFactory2)XMLInputFactory2.newInstance();
 
+		// iterate over all files
 		for (final File file : files) {
 			try {
+				// read the content of the file. the parser is configured to read only the journey-elements.
 				final XMLStreamReader2 reader = factory.createXMLStreamReader(file);
 				final Object result = parser.parse(reader);
 				final ObjectTree root = ObjectTree.of(result);
 
+				// if the file contains a timetable frame, import its content
 				final Frame timetableFrame = BuilderHelper.getFrame(root, BuilderHelper.TIMETABLE_FRAME_NAME);
 				if (timetableFrame != null) {
+					// read the journeys from the frame and pass them to this::processJourney (callback) for further processing
 					TimetableJourneyDomBuilder.buildDom(timetableFrame, state, this::processJourney);
 				}
 			} catch (RuntimeException e) {
@@ -195,9 +235,15 @@ public class Importer {
 		}
 	}
 
+	/**
+	 * Callback function. Is called by TimetableJourneyDomBuilder.buildDom() when a new journey is imported from XML.
+	 * This function passes the journey to a set of worker threads which will transform the NeTEx-Journey to an
+	 * internal Journey-Model and then write it to MongoDB.
+	 */
 	private void processJourney(NetexServiceJourney journey) {
 		statistics.countImport(journey);
 
+		// wait some time if queue is filling up (filling the queue needs memory ->  throttle import instead)
 		if (executor.getQueue().size() > 100) {
 			try {
 				Thread.sleep(100);
@@ -207,6 +253,7 @@ public class Importer {
 			}
 		}
 
+		// push imported journey into queue. will be transformed and exported to MongoDB by a bunch of parallel worker threads
 		executor.execute(() -> {
 			try {
 				transformAndExport(journey);

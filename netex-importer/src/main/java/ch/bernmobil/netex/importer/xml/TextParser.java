@@ -7,6 +7,11 @@ import org.codehaus.stax2.XMLStreamReader2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Reads a text from an XML element using the StAX parser. A text is just a bunch of characters in an XML element,
+ * for example <element>TEXT</element>. Therefore this parsers appends all characters found until the current
+ * element ends.
+ */
 public class TextParser implements Parser {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TextParser.class);
@@ -20,6 +25,7 @@ public class TextParser implements Parser {
 			final int eventType = reader.next();
 			switch (eventType) {
 				case XMLStreamConstants.CHARACTERS:
+					// found characters: add to text
 					final String text = reader.getText();
 					if (result == null) {
 						result = text;
@@ -28,6 +34,7 @@ public class TextParser implements Parser {
 					}
 					break;
 				case XMLStreamConstants.END_ELEMENT:
+					// found end of element: text is complete (check if it is actually the right end-tag)
 					final int currentDepth = reader.getDepth();
 					if (currentDepth == elementDepth) {
 						return result;
@@ -35,8 +42,10 @@ public class TextParser implements Parser {
 						throw new IllegalStateException("found end tag at unexpected depth " + currentDepth);
 					}
 				case XMLStreamConstants.START_ELEMENT:
+					// found a child element: this is not expected here
 					throw new IllegalStateException("expected text but found child element " + reader.getLocalName());
 				default:
+					// found unexpected content
 					LOGGER.info("unexpected event type {}", eventType);
 					break;
 			}

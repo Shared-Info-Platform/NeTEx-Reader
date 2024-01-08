@@ -6,6 +6,9 @@ import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexQuay;
 import ch.bernmobil.netex.importer.netex.dom.NetexStopPlace;
 
+/**
+ * This class reads the object tree of a NeTEx site frame and stores the contained entities in the ImportState.
+ */
 public class SiteDomBuilder {
 
 	public static void buildDom(Frame siteFrame, ImportState state) {

@@ -10,6 +10,9 @@ import ch.bernmobil.netex.importer.journey.dom.CallAggregation;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
 
+/**
+ * Aggregates the number of journeys and calls for each day, operator, and line (and stopPlace, but only for calls).
+ */
 public class JourneyAggregator {
 
 	private Map<JourneyAggregation.Id, JourneyAggregation> journeyAggregations = new HashMap<>();

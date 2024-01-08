@@ -7,6 +7,9 @@ import java.util.Optional;
 
 import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
 
+/**
+ * This class wraps a map of objects that is returned by a StAX parser and makes it easier accessible.
+ */
 public class ObjectTree {
 
 	private final Map<String, List<Object>> tree;

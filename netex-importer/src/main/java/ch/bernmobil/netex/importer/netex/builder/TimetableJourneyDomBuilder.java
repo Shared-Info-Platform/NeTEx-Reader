@@ -16,6 +16,10 @@ import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 
+/**
+ * This class reads the object tree of a NeTEx timetable frame and passes the contained journeys to the "consumer" function.
+ * It ignores any other objects that may also be contained in this frame.
+ */
 public class TimetableJourneyDomBuilder {
 
 	public static void buildDom(Frame timetableFrame, ImportState state, Consumer<NetexServiceJourney> consumer) {

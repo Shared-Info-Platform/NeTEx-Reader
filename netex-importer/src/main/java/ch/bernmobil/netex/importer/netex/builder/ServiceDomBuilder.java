@@ -10,6 +10,9 @@ import ch.bernmobil.netex.importer.netex.dom.NetexPassengerStopAssignment;
 import ch.bernmobil.netex.importer.netex.dom.NetexScheduledStopPoint;
 import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
 
+/**
+ * This class reads the object tree of a NeTEx service frame and stores the contained entities in the ImportState.
+ */
 public class ServiceDomBuilder {
 
 	public static void buildDom(Frame serviceFrame, ImportState state) {

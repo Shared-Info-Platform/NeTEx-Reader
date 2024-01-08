@@ -4,6 +4,10 @@ import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualString;
 
+/**
+ * This class reads the object tree of a NeTEx timetable frame and stores the contained common entities in the ImportState.
+ * It ignores any journeys that may also be contained in this frame.
+ */
 public class TimetableCommonDomBuilder {
 
 	public static void buildDom(Frame resourceFrame, ImportState state) {
