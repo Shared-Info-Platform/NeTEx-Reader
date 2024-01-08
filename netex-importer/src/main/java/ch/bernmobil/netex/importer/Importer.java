@@ -16,6 +16,8 @@ import org.codehaus.stax2.XMLStreamReader2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.MongoException;
+
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyAggregator;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyTransformer;
@@ -39,6 +41,7 @@ public class Importer {
 	private MongoDbWriter mongoDbWriter = new MongoDbWriter();
 	private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
 	private JourneyAggregator aggregator = new JourneyAggregator();
+	private Statistics statistics = new Statistics();
 
 	public static void main(String[] args) throws XMLStreamException, InterruptedException {
 		try {
@@ -132,26 +135,26 @@ public class Importer {
 
 		for (final Frame resourceFrame : resourceFrames) {
 			ResourceDomBuilder.buildDom(resourceFrame, state);
-			LOGGER.info("operators: " + state.getOperators().size());
-			LOGGER.info("responsibility sets: " + state.getResponsibilitySets().size());
-			LOGGER.info("type of notices: " + state.getTypeOfNotices().size());
-			LOGGER.info("type of product categories: " + state.getTypeOfProductCategories().size());
-			LOGGER.info("vehicle types: " + state.getVehicleTypes().size());
+			LOGGER.info("operators: {}", state.getOperators().size());
+			LOGGER.info("responsibility sets: {}", state.getResponsibilitySets().size());
+			LOGGER.info("type of notices: {}", state.getTypeOfNotices().size());
+			LOGGER.info("type of product categories: {}", state.getTypeOfProductCategories().size());
+			LOGGER.info("vehicle types: {}", state.getVehicleTypes().size());
 		}
 
 		for (final Frame siteFrame : siteFrames) {
 			SiteDomBuilder.buildDom(siteFrame, state);
-			LOGGER.info("stop places: " + state.getStopPlaces().size());
-			LOGGER.info("quays: " + state.getQuays().size());
+			LOGGER.info("stop places: {}", state.getStopPlaces().size());
+			LOGGER.info("quays: {}", state.getQuays().size());
 		}
 
 		for (final Frame serviceFrame : serviceFrames) {
 			ServiceDomBuilder.buildDom(serviceFrame, state);
-			LOGGER.info("lines: " + state.getLines().size());
-			LOGGER.info("destination displays: " + state.getDestinationDisplays().size());
-			LOGGER.info("scheduled stop points: " + state.getScheduledStopPoints().size());
-			LOGGER.info("passenger stop assignments: " + state.getPassengerStopAssignments().size());
-			LOGGER.info("notices: " + state.getNotices().size());
+			LOGGER.info("lines: {}", state.getLines().size());
+			LOGGER.info("destination displays: {}", state.getDestinationDisplays().size());
+			LOGGER.info("scheduled stop points: {}", state.getScheduledStopPoints().size());
+			LOGGER.info("passenger stop assignments: {}", state.getPassengerStopAssignments().size());
+			LOGGER.info("notices: {}", state.getNotices().size());
 
 			// TODO: there seems to be a bug in the data - PassengerStopAssignments for quays does not reference ScheduledStopPoint for quays but instead the generic (quay-less) entity
 //				for (ScheduledStopPoint s : state.getScheduledStopPoints().values()) {
@@ -163,12 +166,12 @@ public class Importer {
 
 		for (final Frame serviceCalendarFrame : serviceCalendarFrames) {
 			ServiceCalendarDomBuilder.buildDom(serviceCalendarFrame, state);
-			LOGGER.info("availability conditions: " + state.getAvailabilityConditions().size());
+			LOGGER.info("availability conditions: {}", state.getAvailabilityConditions().size());
 		}
 
 		for (final Frame timetableFrame : timetableFrames) {
 			TimetableCommonDomBuilder.buildDom(timetableFrame, state);
-			LOGGER.info("service facility sets: " + state.getServiceFacilitySets().size());
+			LOGGER.info("service facility sets: {}", state.getServiceFacilitySets().size());
 		}
 	}
 
@@ -177,32 +180,23 @@ public class Importer {
 		final XMLInputFactory2 factory = (XMLInputFactory2)XMLInputFactory2.newInstance();
 
 		for (final File file : files) {
-			final XMLStreamReader2 reader = factory.createXMLStreamReader(file);
-			final Object result = parser.parse(reader);
-			final ObjectTree root = ObjectTree.of(result);
-//			final CompositeFrameHeader header = BuilderHelper.getCompositeFrameHeader(root);
+			try {
+				final XMLStreamReader2 reader = factory.createXMLStreamReader(file);
+				final Object result = parser.parse(reader);
+				final ObjectTree root = ObjectTree.of(result);
 
-			final Frame timetableFrame = BuilderHelper.getFrame(root, BuilderHelper.TIMETABLE_FRAME_NAME);
-			if (timetableFrame != null) {
-				TimetableJourneyDomBuilder.buildDom(timetableFrame, state, this::processJourney);
+				final Frame timetableFrame = BuilderHelper.getFrame(root, BuilderHelper.TIMETABLE_FRAME_NAME);
+				if (timetableFrame != null) {
+					TimetableJourneyDomBuilder.buildDom(timetableFrame, state, this::processJourney);
+				}
+			} catch (RuntimeException e) {
+				LOGGER.error("failed to import journeys from " + file, e);
 			}
 		}
 	}
 
-	private int count1;
-	private int count2;
-	private int count3;
-	private int count4;
-	private int exported;
-
 	private void processJourney(NetexServiceJourney journey) {
-		++count1;
-		count2 += journey.calls.size();
-		count3 += journey.availabilityCondition.validDays.size();
-		count4 += (journey.calls.size() * journey.availabilityCondition.validDays.size());
-		if (count1 % 10000 == 0) {
-			LOGGER.info("Imported {} journeys and {} calls ({} and {} respectively when multiplied by valid days)", count1, count2, count3, count4);
-		}
+		statistics.countImport(journey);
 
 		if (executor.getQueue().size() > 100) {
 			try {
@@ -214,15 +208,60 @@ public class Importer {
 		}
 
 		executor.execute(() -> {
-			final List<Journey> results = JourneyTransformer.transform(journey);
-			aggregator.aggregateJourneys(results);
-
-			mongoDbWriter.writeJourneys(results);
-			++exported;
-			if (exported % 10000 == 0) {
-				LOGGER.info("Exported {} journeys", exported);
-				System.exit(0);
+			try {
+				transformAndExport(journey);
+			} catch (Throwable t) {
+				LOGGER.error("failed to transform and export journey " + journey.id, t);
 			}
 		});
+	}
+
+	private void transformAndExport(NetexServiceJourney journey) {
+		final List<Journey> results = JourneyTransformer.transform(journey);
+		aggregator.aggregateJourneys(results);
+
+		try {
+			mongoDbWriter.writeJourneys(results);
+		} catch (MongoException e) {
+			LOGGER.error("exporting journey to MongoDB failed", e);
+			LOGGER.error("stop import");
+			System.exit(1);
+		}
+
+		statistics.countExport(journey);
+	}
+
+	private static class Statistics {
+		private long importedJourneys;
+		private long importedCalls;
+		private long importedJourneysTimesDays;
+		private long importedCallsTimesDays;
+		private long exportedJourneys;
+
+		public void countImport(NetexServiceJourney journey) {
+			++importedJourneys;
+			importedCalls += journey.calls.size();
+			importedJourneysTimesDays += journey.availabilityCondition.validDays.size();
+			importedCallsTimesDays += (journey.calls.size() * journey.availabilityCondition.validDays.size());
+			if (importedJourneys % 10000 == 0) {
+				logImports();
+			}
+		}
+
+		public void countExport(NetexServiceJourney journey) {
+			++exportedJourneys;
+			if (exportedJourneys % 10000 == 0) {
+				logExports();
+			}
+		}
+
+		public void logImports() {
+			LOGGER.info("Imported {} journeys and {} calls ({} and {} respectively when multiplied by valid days)",
+					importedJourneys, importedCalls, importedJourneysTimesDays, importedCallsTimesDays);
+		}
+
+		public void logExports() {
+			LOGGER.info("Exported {} journeys", exportedJourneys);
+		}
 	}
 }
