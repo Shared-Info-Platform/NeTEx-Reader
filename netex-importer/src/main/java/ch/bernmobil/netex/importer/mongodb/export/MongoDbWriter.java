@@ -32,9 +32,9 @@ public class MongoDbWriter {
 	private MongoCollection<JourneyAggregation> journeyAggregationCollection;
 	private MongoCollection<CallAggregation> callAggregationCollection;
 
-	public MongoDbWriter() {
-		mongoClient = MongoDbClientHelper.createClient();
-		final MongoDatabase database = mongoClient.getDatabase("netex");
+	public MongoDbWriter(String connectionString, String databaseName) {
+		mongoClient = MongoDbClientHelper.createClient(connectionString);
+		final MongoDatabase database = mongoClient.getDatabase(databaseName);
 
 		// Journeys
 		journeyCollection = database.getCollection("Journeys", JourneyWithCalls.class);

@@ -41,19 +41,13 @@ public class Importer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);
 
-	private MongoDbWriter mongoDbWriter = new MongoDbWriter();
-	private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
-	private JourneyAggregator aggregator = new JourneyAggregator();
-	private Statistics statistics = new Statistics();
+	private final MongoDbWriter mongoDbWriter;
+	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+	private final JourneyAggregator aggregator = new JourneyAggregator();
+	private final Statistics statistics = new Statistics();
 
-	public static void main(String[] args) throws XMLStreamException, InterruptedException {
-		try {
-			final File directory = new File("C:\\projects\\bernmobil\\files\\netex\\prod_netex_tt_1.10_che_ski_2024_oev-schweiz__1_1_202312200612");
-			new Importer().importDirectory(directory);
-		} catch (Throwable t) {
-			LOGGER.error("import failed", t);
-			System.exit(1);
-		}
+	public Importer(MongoDbWriter mongoDbWriter) {
+		this.mongoDbWriter = mongoDbWriter;
 	}
 
 	public void importDirectory(File directory) throws XMLStreamException, InterruptedException {

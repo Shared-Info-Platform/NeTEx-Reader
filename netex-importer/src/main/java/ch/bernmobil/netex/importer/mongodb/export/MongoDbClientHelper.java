@@ -21,14 +21,14 @@ import ch.bernmobil.netex.importer.Constants;
 
 public class MongoDbClientHelper {
 
-	public static MongoClient createClient() {
-		final ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017/");
+	public static MongoClient createClient(String connectionString) {
+		final ConnectionString connection = new ConnectionString(connectionString);
 		final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
 				MongoClientSettings.getDefaultCodecRegistry(),
 				CodecRegistries.fromCodecs(new ZonedDateTimeCodec()),
 				CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
-		MongoClientSettings clientSettings = MongoClientSettings.builder()
-				.applyConnectionString(connectionString)
+		final MongoClientSettings clientSettings = MongoClientSettings.builder()
+				.applyConnectionString(connection)
 				.codecRegistry(codecRegistry)
 				.build();
 		return MongoClients.create(clientSettings);
