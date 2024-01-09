@@ -44,6 +44,10 @@ public class SiteDomBuilder {
 		final NetexQuay result = new NetexQuay();
 		result.id = tree.text("id");
 		result.publicCode = tree.optionalText("PublicCode");
+
+		final Map<String, String> keyValueMap = BuilderHelper.buildMapFromKeyList(tree.optionalChild("keyList"));
+		result.sloid = keyValueMap.get("SLOID");
+
 		return result;
 	}
 }

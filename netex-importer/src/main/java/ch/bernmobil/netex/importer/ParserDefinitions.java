@@ -144,6 +144,7 @@ public class ParserDefinitions {
 						.withChild("quays", new ElementParser()
 							.withChild("Quay", new ElementParser()
 								.withAttribute("id")
+								.withChild("keyList", createKeyListParser())
 								.withChild("Centroid", new ElementParser()
 									.withChild("Location", createLocationParser())
 								)
