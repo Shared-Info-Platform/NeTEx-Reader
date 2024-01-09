@@ -22,38 +22,48 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(description = "Imports journeys from a set of NeTEx files",  mixinStandardHelpOptions = true, version = "1.0")
+@Command(description = "Imports journeys from a set of NeTEx files. Exactly one input must be defined: file, directory, zip-file, or url.",
+		 mixinStandardHelpOptions = true,
+		 sortOptions = false,
+		 version = "1.0")
 public class Main implements Runnable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
 	@Option(names = {"-f", "--file"},
+			paramLabel = "<FILE>",
 			description = "An *.xml file that contains netex data")
 	private File file;
 
 	@Option(names = {"-d", "--directory"},
+			paramLabel = "<DIRECTORY>",
 			description = "A directory that contains *.xml files with netex data")
 	private File directory;
 
 	@Option(names = {"-z", "--zip-file"},
+			paramLabel = "<FILE>",
 			description = "A *.zip file that contains *.xml files with netex data")
 	private File zipFile;
 
 	@Option(names = {"-u", "--url"},
+			paramLabel = "<URL>",
 			description = "URL to a *.zip file that contains *.xml files with netex data")
 	private URL url;
 
 	@Option(names = {"-t", "--temporary-directory"},
-			description = "A directory where temporary files can be stored (downloaded or unpacked zip files)")
+			paramLabel = "<DIRECTORY>",
+			description = "Optional directory where temporary files can be stored (downloaded or unpacked zip files). If not defined, the system default is used.")
 	private File temporaryFilesDirectory;
 
 	@Option(names = {"-c", "--mongo-connection-string"},
-			description = "Connection string for MongoDB",
+			paramLabel = "<STRING>",
+			description = "Connection string for MongoDB. Default: mongodb://localhost:27017/",
 			defaultValue = "mongodb://localhost:27017/")
 	private String connectionString;
 
 	@Option(names = {"-n", "--mongo-database-name"},
-			description = "Name of the database in MongoDB",
+			paramLabel = "<NAME>",
+			description = "Name of the database in MongoDB. Default: netex",
 			defaultValue = "netex")
 	private String databaseName;
 
@@ -90,7 +100,7 @@ public class Main implements Runnable {
 		final Map<String, Object> fileOptions = new LinkedHashMap<>();
 		fileOptions.put("file", file);
 		fileOptions.put("directory", directory);
-		fileOptions.put("zipFile", zipFile);
+		fileOptions.put("zip-file", zipFile);
 		fileOptions.put("url", url);
 
 		final Map<String, Object> nonNullOptions = fileOptions.entrySet().stream()
