@@ -3,6 +3,7 @@ package ch.bernmobil.netex.importer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -50,6 +51,11 @@ public class Importer {
 		this.mongoDbWriter = mongoDbWriter;
 	}
 
+	public void importFile(File file) throws XMLStreamException, InterruptedException {
+		final List<File> list = Collections.singletonList(file);
+		importFiles(list, list);
+	}
+
 	public void importDirectory(File directory) throws XMLStreamException, InterruptedException {
 		final List<File> filesForCommonEntities = new ArrayList<>();
 		final List<File> filesForServiceJourneys = new ArrayList<>();
@@ -71,9 +77,13 @@ public class Importer {
 			}
 		}
 
+		importFiles(filesForCommonEntities, filesForServiceJourneys);
+	}
+
+	private void importFiles(List<File> filesForCommonEntities, List<File> filesForServiceJourneys) throws XMLStreamException, InterruptedException {
 		// abort if no files were found
 		if (filesForCommonEntities.isEmpty() || filesForServiceJourneys.isEmpty()) {
-			throw new IllegalArgumentException("no *.xml files found in directory " + directory);
+			throw new IllegalArgumentException("found no *.xml files to import");
 		}
 
 		// start import. first import common entities (and cache them in ImportState), then import all
