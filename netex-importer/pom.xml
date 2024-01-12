@@ -12,6 +12,8 @@
 		<maven.compiler.target>17</maven.compiler.target>
 		
 		<org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+		
+		<build.number>test</build.number>
 	</properties>
 
 	<dependencies>
@@ -120,6 +122,32 @@
 							<version>${org.mapstruct.version}</version>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.43.4</version>
+				<configuration>
+					<jib>true</jib>
+					<images>
+						<image>
+							<name>harbor-core.apps.ocp.intra.bernmobil.ch/sip/netex-reader:${build.number}</name>
+							<build>
+								<from>eclipse-temurin:17-jre</from>
+								<assembly>
+									<descriptorRef>artifact</descriptorRef>
+								</assembly>
+							</build>
+						</image>
+					</images>
+					<authConfig>
+						<push>
+							<username>${env.REGISTRY_USERNAME}</username>
+							<password>${env.REGISTRY_PASSWORD}</password>
+						</push>
+					</authConfig>
 				</configuration>
 			</plugin>
 		</plugins>
