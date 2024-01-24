@@ -133,7 +133,7 @@
 					<jib>true</jib>
 					<images>
 						<image>
-							<name>harbor-core.apps.ocp.intra.bernmobil.ch/sip/netex-reader:${build.number}</name>
+							<name>harbor.bernmobil.ch/sip/netex-reader:${build.number}</name>
 							<build>
 								<from>eclipse-temurin:17-jre</from>
 								<assembly>
