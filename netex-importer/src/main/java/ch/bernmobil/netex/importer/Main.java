@@ -32,40 +32,55 @@ public class Main implements Runnable {
 
 	@Option(names = {"-f", "--file"},
 			paramLabel = "<FILE>",
-			description = "An *.xml file that contains netex data")
+			defaultValue = "${NETEX_FILE}",
+			description = "An *.xml file that contains netex data. "
+					+ "Can also be defined with environment variable NETEX_FILE.")
 	private File file;
 
 	@Option(names = {"-d", "--directory"},
 			paramLabel = "<DIRECTORY>",
-			description = "A directory that contains *.xml files with netex data")
+			defaultValue = "${NETEX_DIRECTORY}",
+			description = "A directory that contains *.xml files with netex data. "
+					+ "Can also be defined with environment variable NETEX_DIRECTORY.")
 	private File directory;
 
 	@Option(names = {"-z", "--zip-file"},
 			paramLabel = "<FILE>",
-			description = "A *.zip file that contains *.xml files with netex data")
+			defaultValue = "${NETEX_ZIP_FILE}",
+			description = "A *.zip file that contains *.xml files with netex data. "
+					+ "Can also be defined with environment variable NETEX_ZIP_FILE.")
 	private File zipFile;
 
 	@Option(names = {"-u", "--url"},
 			paramLabel = "<URL>",
-			description = "URL to a *.zip file that contains *.xml files with netex data")
+			defaultValue = "${NETEX_URL}",
+			description = "URL to a *.zip file that contains *.xml files with netex data. "
+					+ "Can also be defined with environment variable NETEX_URL.")
 	private URL url;
 
 	@Option(names = {"-t", "--temporary-directory"},
 			paramLabel = "<DIRECTORY>",
-			description = "Optional directory where temporary files can be stored (downloaded or unpacked zip files). If not defined, the system default is used.")
+			defaultValue = "${NETEX_TEMPORARY_DIRECTORY}",
+			description = "Optional directory where temporary files can be stored (downloaded or unpacked zip files). "
+					+ "If not defined, the system default is used. "
+					+ "Can also be defined with environment variable NETEX_TEMPORARY_DIRECTORY.")
 	private File temporaryFilesDirectory;
 
 	@Option(names = {"-c", "--mongo-connection-string"},
 			paramLabel = "<STRING>",
-			description = "Connection string for MongoDB. Default: mongodb://localhost:27017/",
-			defaultValue = "mongodb://localhost:27017/")
-	private String connectionString;
+			defaultValue = "${NETEX_MONGO_CONNECTION_STRING}",
+			description = "Connection string for MongoDB. "
+					+ "Can also be defined with environment variable NETEX_MONGO_CONNECTION_STRING. "
+					+ "Default: mongodb://localhost:27017/")
+	private String connectionString = "mongodb://localhost:27017/";
 
 	@Option(names = {"-n", "--mongo-database-name"},
 			paramLabel = "<NAME>",
-			description = "Name of the database in MongoDB. Default: netex",
-			defaultValue = "netex")
-	private String databaseName;
+			defaultValue = "${NETEX_MONGO_DATABASE_NAME}",
+			description = "Name of the database in MongoDB. "
+					+ "Can also be defined with environment variable NETEX_MONGO_DATABASE_NAME. "
+					+ "Default: netex")
+	private String databaseName = "netex";
 
 	@Override
 	public void run() {
