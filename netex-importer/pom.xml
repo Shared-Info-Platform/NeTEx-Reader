@@ -168,6 +168,14 @@
 								<assembly>
 									<descriptorRef>artifact</descriptorRef>
 								</assembly>
+								<entryPoint>
+									<exec>
+										<arg>java</arg>
+										<arg>-XX:+ExitOnOutOfMemoryError</arg>
+										<arg>-jar</arg>
+										<arg>/maven/${project.artifactId}-${project.version}.${project.packaging}</arg>
+									</exec>
+								</entryPoint>
 							</build>
 						</image>
 					</images>
