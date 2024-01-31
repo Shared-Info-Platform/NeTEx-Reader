@@ -1,5 +1,6 @@
 package ch.bernmobil.netex.importer.journey.transformer;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -15,33 +16,35 @@ import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
  */
 public class JourneyAggregator {
 
+	private static final int MAX_NUMBER_OF_AGGREGATIONS = 250_000;
+
 	private Map<JourneyAggregation.Id, JourneyAggregation> journeyAggregations = new HashMap<>();
 	private Map<CallAggregation.Id, CallAggregation> callAggregations = new HashMap<>();
 
 	public void aggregateJourneys(List<Journey> journeys) {
-		journeys.stream().forEach(this::aggregateJourney);
+		synchronized(this) {
+			journeys.stream().forEach(this::aggregateJourney);
+		}
 	}
 
-	public void aggregateJourney(Journey journey) {
+	private void aggregateJourney(Journey journey) {
 		final JourneyAggregation.Id journeyAggregationId = createJourneyAggregationId(journey);
 		final List<CallAggregation.Id> callAggregationIds = journey.calls.stream().map(call -> createCallAggregationId(call, journey)).toList();
 
-		synchronized(this) {
-			JourneyAggregation journeyAggregation = journeyAggregations.get(journeyAggregationId);
-			if (journeyAggregation == null) {
-				journeyAggregation = new JourneyAggregation(journeyAggregationId);
-				journeyAggregations.put(journeyAggregationId, journeyAggregation);
-			}
-			++journeyAggregation.journeys;
+		JourneyAggregation journeyAggregation = journeyAggregations.get(journeyAggregationId);
+		if (journeyAggregation == null) {
+			journeyAggregation = new JourneyAggregation(journeyAggregationId);
+			journeyAggregations.put(journeyAggregationId, journeyAggregation);
+		}
+		++journeyAggregation.journeys;
 
-			for (final CallAggregation.Id callAggregationId : callAggregationIds) {
-				CallAggregation callAggregation = callAggregations.get(callAggregationId);
-				if (callAggregation == null) {
-					callAggregation = new CallAggregation(callAggregationId);
-					callAggregations.put(callAggregationId, callAggregation);
-				}
-				++callAggregation.calls;
+		for (final CallAggregation.Id callAggregationId : callAggregationIds) {
+			CallAggregation callAggregation = callAggregations.get(callAggregationId);
+			if (callAggregation == null) {
+				callAggregation = new CallAggregation(callAggregationId);
+				callAggregations.put(callAggregationId, callAggregation);
 			}
+			++callAggregation.calls;
 		}
 	}
 
@@ -51,6 +54,30 @@ public class JourneyAggregator {
 
 	public Collection<CallAggregation> getCallAggregations() {
 		return callAggregations.values();
+	}
+
+	public List<JourneyAggregation> resetJourneyAggregationsIfNecessary() {
+		synchronized (this) {
+			if (journeyAggregations.size() > MAX_NUMBER_OF_AGGREGATIONS) {
+				final List<JourneyAggregation> copy = new ArrayList<>(journeyAggregations.values());
+				journeyAggregations.clear();
+				return copy;
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public List<CallAggregation> resetCallAggregationsIfNecessary() {
+		synchronized (this) {
+			if (callAggregations.size() > MAX_NUMBER_OF_AGGREGATIONS) {
+				final List<CallAggregation> copy = new ArrayList<>(callAggregations.values());
+				callAggregations.clear();
+				return copy;
+			} else {
+				return null;
+			}
+		}
 	}
 
 	private JourneyAggregation.Id createJourneyAggregationId(Journey journey) {

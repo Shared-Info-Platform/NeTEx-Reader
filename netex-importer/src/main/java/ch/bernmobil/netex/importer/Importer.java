@@ -19,7 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 
+import ch.bernmobil.netex.importer.journey.dom.CallAggregation;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
+import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyAggregator;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyTransformer;
 import ch.bernmobil.netex.importer.mongodb.export.MongoDbWriter;
@@ -269,7 +271,7 @@ public class Importer {
 
 	private void transformAndExport(NetexServiceJourney journey) {
 		final List<Journey> results = JourneyTransformer.transform(journey);
-		aggregator.aggregateJourneys(results);
+		aggregateValues(results);
 
 		try {
 			mongoDbWriter.writeJourneys(results);
@@ -280,6 +282,20 @@ public class Importer {
 		}
 
 		statistics.countExport(journey);
+	}
+
+	private void aggregateValues(List<Journey> journeys) {
+		aggregator.aggregateJourneys(journeys);
+
+		// flush aggregations to mongoDB every now and then to avoid using too much memory
+		final List<JourneyAggregation> journeyAggregations = aggregator.resetJourneyAggregationsIfNecessary();
+		if (journeyAggregations != null) {
+			mongoDbWriter.writeJourneyAggregations(journeyAggregations);
+		}
+		final List<CallAggregation> callAggregations = aggregator.resetCallAggregationsIfNecessary();
+		if (callAggregations != null) {
+			mongoDbWriter.writeCallAggregations(callAggregations);
+		}
 	}
 
 	private static class Statistics {

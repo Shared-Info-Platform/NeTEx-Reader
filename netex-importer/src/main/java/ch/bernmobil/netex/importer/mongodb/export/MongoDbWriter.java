@@ -6,11 +6,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.BsonDocument;
+import org.bson.BsonInt64;
+import org.bson.BsonString;
 import org.bson.Document;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
 
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
@@ -110,23 +115,54 @@ public class MongoDbWriter {
 	}
 
 	public void writeJourneyAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.JourneyAggregation> aggregations) {
-		final List<JourneyAggregation> mappedAggregation = new ArrayList<>();
+		final List<JourneyAggregation> mappedAggregations = new ArrayList<>();
 		for (final ch.bernmobil.netex.importer.journey.dom.JourneyAggregation aggregation : aggregations) {
-			mappedAggregation.add(AggregationMapper.INSTANCE.mapJourneyAggregation(aggregation));
+			mappedAggregations.add(AggregationMapper.INSTANCE.mapJourneyAggregation(aggregation));
 		}
-		for (int i = 0; i < mappedAggregation.size(); i += 10000) {
-			journeyAggregationCollection.insertMany(mappedAggregation.subList(i, Math.min(i + 10000, mappedAggregation.size())));
+
+		final List<UpdateOneModel<JourneyAggregation>> updates = new ArrayList<>();
+		for (final JourneyAggregation journeyAggregation : mappedAggregations) {
+			final BsonString id = new BsonString(journeyAggregation.getId());
+			final BsonDocument filter = new BsonDocument("_id", id);
+			final BsonDocument set = new BsonDocument();
+			set.put("_id", id);
+			set.put("calendarDay", new BsonString(journeyAggregation.calendarDay));
+			set.put("operatorCode", new BsonString(journeyAggregation.operatorCode));
+			set.put("lineCode", new BsonString(journeyAggregation.lineCode));
+			final BsonDocument update = new BsonDocument();
+			update.put("$set", set);
+			update.put("$inc", new BsonDocument("journeys", new BsonInt64(journeyAggregation.journeys)));
+			final UpdateOptions options = new UpdateOptions();
+			options.upsert(true);
+			updates.add(new UpdateOneModel<JourneyAggregation>(filter, update, options));
 		}
+		journeyAggregationCollection.bulkWrite(updates);
 	}
 
 	public void writeCallAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.CallAggregation> aggregations) {
-		final List<CallAggregation> mappedAggregation = new ArrayList<>();
+		final List<CallAggregation> mappedAggregations = new ArrayList<>();
 		for (final ch.bernmobil.netex.importer.journey.dom.CallAggregation aggregation : aggregations) {
-			mappedAggregation.add(AggregationMapper.INSTANCE.mapCallAggregation(aggregation));
+			mappedAggregations.add(AggregationMapper.INSTANCE.mapCallAggregation(aggregation));
 		}
-		for (int i = 0; i < mappedAggregation.size(); i += 10000) {
-			callAggregationCollection.insertMany(mappedAggregation.subList(i, Math.min(i + 10000, mappedAggregation.size())));
+
+		final List<UpdateOneModel<CallAggregation>> updates = new ArrayList<>();
+		for (final CallAggregation callAggregation : mappedAggregations) {
+			final BsonString id = new BsonString(callAggregation.getId());
+			final BsonDocument filter = new BsonDocument("_id", id);
+			final BsonDocument set = new BsonDocument();
+			set.put("_id", id);
+			set.put("calendarDay", new BsonString(callAggregation.calendarDay));
+			set.put("stopPlaceCode", new BsonString(callAggregation.stopPlaceCode));
+			set.put("operatorCode", new BsonString(callAggregation.operatorCode));
+			set.put("lineCode", new BsonString(callAggregation.lineCode));
+			final BsonDocument update = new BsonDocument();
+			update.put("$set", set);
+			update.put("$inc", new BsonDocument("calls", new BsonInt64(callAggregation.calls)));
+			final UpdateOptions options = new UpdateOptions();
+			options.upsert(true);
+			updates.add(new UpdateOneModel<CallAggregation>(filter, update, options));
 		}
+		callAggregationCollection.bulkWrite(updates);
 	}
 
 	public void close() {
