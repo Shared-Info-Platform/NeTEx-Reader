@@ -46,7 +46,7 @@ public class Importer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);
 
 	private final MongoDbWriter mongoDbWriter;
-	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Constants.NUMBER_OF_THREADS);
 	private final JourneyAggregator aggregator = new JourneyAggregator();
 	private final Statistics statistics = new Statistics();
 
@@ -251,9 +251,9 @@ public class Importer {
 		statistics.countImport(journey);
 
 		// wait some time if queue is filling up (filling the queue needs memory ->  throttle import instead)
-		if (executor.getQueue().size() > 100) {
+		if (executor.getQueue().size() > Constants.MAX_ENTRIES_IN_QUEUE) {
 			try {
-				Thread.sleep(100);
+				Thread.sleep(Constants.SLEEP_MS_WHEN_QUEUE_FULL);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new RuntimeException("thread interrupted", e);
@@ -310,13 +310,13 @@ public class Importer {
 			importedCalls.addAndGet(journey.calls.size());
 			importedJourneysTimesDays.addAndGet(journey.availabilityCondition.validDays.size());
 			importedCallsTimesDays.addAndGet(journey.calls.size() * journey.availabilityCondition.validDays.size());
-			if (importedJourneys.addAndGet(1) % 10000 == 0) {
+			if (importedJourneys.addAndGet(1) % Constants.LOG_STATISTICS_EVERY_N_JOURNEYS == 0) {
 				logImports();
 			}
 		}
 
 		public void countExport(NetexServiceJourney journey) {
-			if (exportedJourneys.addAndGet(1) % 10000 == 0) {
+			if (exportedJourneys.addAndGet(1) % Constants.LOG_STATISTICS_EVERY_N_JOURNEYS == 0) {
 				logExports();
 			}
 		}

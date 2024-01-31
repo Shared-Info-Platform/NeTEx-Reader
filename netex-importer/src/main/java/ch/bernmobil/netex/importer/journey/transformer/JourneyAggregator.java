@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.bernmobil.netex.importer.Constants;
 import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.CallAggregation;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
@@ -15,8 +16,6 @@ import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
  * Aggregates the number of journeys and calls for each day, operator, and line (and stopPlace, but only for calls).
  */
 public class JourneyAggregator {
-
-	private static final int MAX_NUMBER_OF_AGGREGATIONS = 250_000;
 
 	private Map<JourneyAggregation.Id, JourneyAggregation> journeyAggregations = new HashMap<>();
 	private Map<CallAggregation.Id, CallAggregation> callAggregations = new HashMap<>();
@@ -58,7 +57,7 @@ public class JourneyAggregator {
 
 	public List<JourneyAggregation> resetJourneyAggregationsIfNecessary() {
 		synchronized (this) {
-			if (journeyAggregations.size() > MAX_NUMBER_OF_AGGREGATIONS) {
+			if (journeyAggregations.size() > Constants.MAX_NUMBER_OF_AGGREGATIONS) {
 				final List<JourneyAggregation> copy = new ArrayList<>(journeyAggregations.values());
 				journeyAggregations.clear();
 				return copy;
@@ -70,7 +69,7 @@ public class JourneyAggregator {
 
 	public List<CallAggregation> resetCallAggregationsIfNecessary() {
 		synchronized (this) {
-			if (callAggregations.size() > MAX_NUMBER_OF_AGGREGATIONS) {
+			if (callAggregations.size() > Constants.MAX_NUMBER_OF_AGGREGATIONS) {
 				final List<CallAggregation> copy = new ArrayList<>(callAggregations.values());
 				callAggregations.clear();
 				return copy;
