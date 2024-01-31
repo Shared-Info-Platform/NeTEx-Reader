@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -299,25 +300,23 @@ public class Importer {
 	}
 
 	private static class Statistics {
-		private long importedJourneys;
-		private long importedCalls;
-		private long importedJourneysTimesDays;
-		private long importedCallsTimesDays;
-		private long exportedJourneys;
+		private AtomicLong importedJourneys = new AtomicLong();
+		private AtomicLong importedCalls = new AtomicLong();
+		private AtomicLong importedJourneysTimesDays = new AtomicLong();
+		private AtomicLong importedCallsTimesDays = new AtomicLong();
+		private AtomicLong exportedJourneys = new AtomicLong();
 
 		public void countImport(NetexServiceJourney journey) {
-			++importedJourneys;
-			importedCalls += journey.calls.size();
-			importedJourneysTimesDays += journey.availabilityCondition.validDays.size();
-			importedCallsTimesDays += (journey.calls.size() * journey.availabilityCondition.validDays.size());
-			if (importedJourneys % 10000 == 0) {
+			importedCalls.addAndGet(journey.calls.size());
+			importedJourneysTimesDays.addAndGet(journey.availabilityCondition.validDays.size());
+			importedCallsTimesDays.addAndGet(journey.calls.size() * journey.availabilityCondition.validDays.size());
+			if (importedJourneys.addAndGet(1) % 10000 == 0) {
 				logImports();
 			}
 		}
 
 		public void countExport(NetexServiceJourney journey) {
-			++exportedJourneys;
-			if (exportedJourneys % 10000 == 0) {
+			if (exportedJourneys.addAndGet(1) % 10000 == 0) {
 				logExports();
 			}
 		}
