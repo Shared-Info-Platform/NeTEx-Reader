@@ -17,6 +17,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 
+import ch.bernmobil.netex.importer.Constants;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
 import ch.bernmobil.netex.importer.mongodb.dom.CallWithJourney;
@@ -105,13 +106,26 @@ public class MongoDbWriter {
 	}
 
 	public void writeJourneys(List<Journey> journeys) {
-		final List<JourneyWithCalls> mappedJourneys = journeys.stream().map(JourneyMapper.INSTANCE::mapJourney).toList();
+		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();
 		final List<CallWithJourney> mappedCalls = new ArrayList<>();
 		for (final Journey journey : journeys) {
+			mappedJourneys.add(JourneyMapper.INSTANCE.mapJourney(journey));
 			mappedCalls.addAll(journey.calls.stream().map(call -> JourneyMapper.INSTANCE.mapCalls(call, journey)).toList());
+
+			// insert frequently before batch becomes too large. checking the number of calls is enough because
+			// they are also embedded in journeys, so there may not be many journeys but they are still large.
+			if (mappedCalls.size() >= Constants.MAX_NUMBER_OF_CALLS_PER_MONGODB_WRITE) {
+				journeyCollection.insertMany(mappedJourneys);
+				callCollection.insertMany(mappedCalls);
+				mappedJourneys.clear();
+				mappedCalls.clear();
+			}
 		}
-		journeyCollection.insertMany(mappedJourneys);
-		callCollection.insertMany(mappedCalls);
+		// insert the rest of the documents if there are any
+		if (mappedCalls.size() > 0) {
+			journeyCollection.insertMany(mappedJourneys);
+			callCollection.insertMany(mappedCalls);
+		}
 	}
 
 	public void writeJourneyAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.JourneyAggregation> aggregations) {
@@ -135,8 +149,17 @@ public class MongoDbWriter {
 			final UpdateOptions options = new UpdateOptions();
 			options.upsert(true);
 			updates.add(new UpdateOneModel<JourneyAggregation>(filter, update, options));
+
+			// insert frequently before batch becomes too large
+			if (updates.size() >= Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE) {
+				journeyAggregationCollection.bulkWrite(updates);
+				updates.clear();
+			}
 		}
-		journeyAggregationCollection.bulkWrite(updates);
+		// insert the rest of the documents if there are any
+		if (updates.size() > 0) {
+			journeyAggregationCollection.bulkWrite(updates);
+		}
 	}
 
 	public void writeCallAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.CallAggregation> aggregations) {
@@ -161,8 +184,17 @@ public class MongoDbWriter {
 			final UpdateOptions options = new UpdateOptions();
 			options.upsert(true);
 			updates.add(new UpdateOneModel<CallAggregation>(filter, update, options));
+
+			// insert frequently before batch becomes too large
+			if (updates.size() >= Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE) {
+				callAggregationCollection.bulkWrite(updates);
+				updates.clear();
+			}
 		}
-		callAggregationCollection.bulkWrite(updates);
+		// insert the rest of the documents if there are any
+		if (updates.size() > 0) {
+			callAggregationCollection.bulkWrite(updates);
+		}
 	}
 
 	public void close() {

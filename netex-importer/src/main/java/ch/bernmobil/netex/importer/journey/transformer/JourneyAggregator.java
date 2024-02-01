@@ -57,7 +57,7 @@ public class JourneyAggregator {
 
 	public List<JourneyAggregation> resetJourneyAggregationsIfNecessary() {
 		synchronized (this) {
-			if (journeyAggregations.size() > Constants.MAX_NUMBER_OF_AGGREGATIONS) {
+			if (journeyAggregations.size() > Constants.MAX_NUMBER_OF_AGGREGATIONS_IN_MEMORY) {
 				final List<JourneyAggregation> copy = new ArrayList<>(journeyAggregations.values());
 				journeyAggregations.clear();
 				return copy;
@@ -69,7 +69,7 @@ public class JourneyAggregator {
 
 	public List<CallAggregation> resetCallAggregationsIfNecessary() {
 		synchronized (this) {
-			if (callAggregations.size() > Constants.MAX_NUMBER_OF_AGGREGATIONS) {
+			if (callAggregations.size() > Constants.MAX_NUMBER_OF_AGGREGATIONS_IN_MEMORY) {
 				final List<CallAggregation> copy = new ArrayList<>(callAggregations.values());
 				callAggregations.clear();
 				return copy;
