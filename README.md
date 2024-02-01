@@ -9,6 +9,17 @@ With docker:
 The supported arguments are explained in the next section. Instead of providing command line arguments, it's also
 possible to use environment variables (also explained in the next section).
 
+The process needs around 1 GB of RAM. With default settings, the Java process will only use 25% of the pod's memory
+as heap space. To increase this, use the environment variable JAVA_TOOL_OPTIONS with the following values:
+
+	JAVA_TOOL_OPTIONS="-Xmx1024M -Xms1024M"
+
+The pod will need slightly more RAM, for example 1.5 GB. Different values for java heap size and the pod's memory
+may work as well, depending on the input data and maybe also other factors.
+
+The process spawns several threads to read and store the data in parallel. Therefore the pod can benefit of multiple
+cores.
+
 ## Help
 ```
 Usage: <main class> [-hV] [-c=<STRING>] [-d=<DIRECTORY>] [-f=<FILE>]
