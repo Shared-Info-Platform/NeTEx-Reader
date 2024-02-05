@@ -23,7 +23,7 @@ pipeline {
 			steps {
 				withCredentials([usernamePassword(credentialsId: 'bernmobil_harbor_robots_credentials', passwordVariable: 'REGISTRY_PASSWORD', usernameVariable: 'REGISTRY_USERNAME')]) {
 					withMaven(maven: '3.9.6') {
-						sh 'mvn -f netex-importer package docker:build docker:push'
+						sh 'mvn -f netex-importer package docker:build docker:push -Dbuild.number=$BUILD_NUMBER'
 					}
 				}
 			}
