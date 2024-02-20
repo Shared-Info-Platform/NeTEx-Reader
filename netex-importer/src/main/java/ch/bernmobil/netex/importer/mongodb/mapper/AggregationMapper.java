@@ -6,6 +6,7 @@ import org.mapstruct.factory.Mappers;
 
 import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
 import ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation;
+import ch.bernmobil.netex.importer.mongodb.dom.RouteAggregation;
 
 /**
  * This interface maps Aggregations from the internal model to the model used in MongoDB.
@@ -28,4 +29,11 @@ public interface AggregationMapper {
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
 	CallAggregation mapCallAggregation(ch.bernmobil.netex.importer.journey.dom.CallAggregation aggregation);
+
+	@Mapping(target = "calendarDay", source = "id.calendarDay")
+	@Mapping(target = "operatorCode", source = "id.operatorCode")
+	@Mapping(target = "lineCode", source = "id.lineCode")
+	@Mapping(target = "directionType", source = "id.directionType")
+	@Mapping(target = "stopPlaceCodes", source = "id.stopPlaceCodes")
+	RouteAggregation mapRouteAggregation(ch.bernmobil.netex.importer.journey.dom.RouteAggregation aggregation);
 }

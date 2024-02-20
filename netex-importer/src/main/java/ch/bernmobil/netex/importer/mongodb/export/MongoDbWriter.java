@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonInt64;
 import org.bson.BsonString;
@@ -23,6 +24,7 @@ import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
 import ch.bernmobil.netex.importer.mongodb.dom.CallWithJourney;
 import ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation;
 import ch.bernmobil.netex.importer.mongodb.dom.JourneyWithCalls;
+import ch.bernmobil.netex.importer.mongodb.dom.RouteAggregation;
 import ch.bernmobil.netex.importer.mongodb.mapper.AggregationMapper;
 import ch.bernmobil.netex.importer.mongodb.mapper.JourneyMapper;
 
@@ -37,6 +39,7 @@ public class MongoDbWriter {
 	private MongoCollection<CallWithJourney> callCollection;
 	private MongoCollection<JourneyAggregation> journeyAggregationCollection;
 	private MongoCollection<CallAggregation> callAggregationCollection;
+	private MongoCollection<RouteAggregation> routeAggregationCollection;
 
 	public MongoDbWriter(String connectionString, String databaseName) {
 		mongoClient = MongoDbClientHelper.createClient(connectionString);
@@ -102,6 +105,17 @@ public class MongoDbWriter {
 			index.put("lineCode", 1);
 			index.put("stopPlaceCode", 1);
 			callAggregationCollection.createIndex(new Document(index));
+		}
+
+		// Route Aggregations
+		routeAggregationCollection = database.getCollection("RouteAggregations", RouteAggregation.class);
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("operatorCode", 1);
+			index.put("lineCode", 1);
+			index.put("directionType", 1);
+			index.put("calendarDay", 1);
+			routeAggregationCollection.createIndex(new Document(index));
 		}
 	}
 
@@ -194,6 +208,43 @@ public class MongoDbWriter {
 		// insert the rest of the documents if there are any
 		if (updates.size() > 0) {
 			callAggregationCollection.bulkWrite(updates);
+		}
+	}
+
+	public void writeRouteAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.RouteAggregation> aggregations) {
+		final List<RouteAggregation> mappedAggregations = new ArrayList<>();
+		for (final ch.bernmobil.netex.importer.journey.dom.RouteAggregation aggregation : aggregations) {
+			mappedAggregations.add(AggregationMapper.INSTANCE.mapRouteAggregation(aggregation));
+		}
+
+		final List<UpdateOneModel<RouteAggregation>> updates = new ArrayList<>();
+		for (final RouteAggregation routeAggregation : mappedAggregations) {
+			final BsonString id = new BsonString(routeAggregation.getId());
+			final BsonDocument filter = new BsonDocument("_id", id);
+			final BsonDocument set = new BsonDocument();
+			set.put("_id", id);
+			set.put("calendarDay", new BsonString(routeAggregation.calendarDay));
+			set.put("operatorCode", new BsonString(routeAggregation.operatorCode));
+			set.put("lineCode", new BsonString(routeAggregation.lineCode));
+			set.put("directionType", new BsonString(routeAggregation.directionType));
+			final List<BsonString> stopPlaceCodes = routeAggregation.stopPlaceCodes.stream().map(BsonString::new).toList();
+			set.put("stopPlaceCodes", new BsonArray(stopPlaceCodes));
+			final BsonDocument update = new BsonDocument();
+			update.put("$set", set);
+			update.put("$inc", new BsonDocument("journeys", new BsonInt64(routeAggregation.journeys)));
+			final UpdateOptions options = new UpdateOptions();
+			options.upsert(true);
+			updates.add(new UpdateOneModel<RouteAggregation>(filter, update, options));
+
+			// insert frequently before batch becomes too large
+			if (updates.size() >= Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE) {
+				routeAggregationCollection.bulkWrite(updates);
+				updates.clear();
+			}
+		}
+		// insert the rest of the documents if there are any
+		if (updates.size() > 0) {
+			routeAggregationCollection.bulkWrite(updates);
 		}
 	}
 

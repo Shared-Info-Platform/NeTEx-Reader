@@ -23,6 +23,7 @@ import com.mongodb.MongoException;
 import ch.bernmobil.netex.importer.journey.dom.CallAggregation;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
+import ch.bernmobil.netex.importer.journey.dom.RouteAggregation;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyAggregator;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyTransformer;
 import ch.bernmobil.netex.importer.mongodb.export.MongoDbWriter;
@@ -104,6 +105,7 @@ public class Importer {
 		LOGGER.info("write aggregations");
 		mongoDbWriter.writeJourneyAggregations(aggregator.getJourneyAggregations());
 		mongoDbWriter.writeCallAggregations(aggregator.getCallAggregations());
+		mongoDbWriter.writeRouteAggregations(aggregator.getRouteAggregations());
 
 		LOGGER.info("done");
 		mongoDbWriter.close();
@@ -296,6 +298,10 @@ public class Importer {
 		final List<CallAggregation> callAggregations = aggregator.resetCallAggregationsIfNecessary();
 		if (callAggregations != null) {
 			mongoDbWriter.writeCallAggregations(callAggregations);
+		}
+		final List<RouteAggregation> routeAggregations = aggregator.resetRouteAggregationsIfNecessary();
+		if (routeAggregations != null) {
+			mongoDbWriter.writeRouteAggregations(routeAggregations);
 		}
 	}
 
