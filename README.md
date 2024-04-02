@@ -4,7 +4,7 @@
 
 With docker:
 
-	docker run -it harbor.bernmobil.ch/sip/netex-reader:latest <arguments>
+	docker run -it <image-name> <arguments>
 
 The supported arguments are explained in the next section. Instead of providing command line arguments, it's also
 possible to use environment variables (also explained in the next section).
@@ -57,3 +57,14 @@ file, directory, zip-file, or url.
   -V, --version           Print version information and exit.
 ```
 
+## Build
+
+This project uses java and maven. 
+
+Build an executable jar file:
+
+    mvn -f netex-importer clean install
+
+Build a docker image:
+
+    mvn -f netex-importer package docker:build
