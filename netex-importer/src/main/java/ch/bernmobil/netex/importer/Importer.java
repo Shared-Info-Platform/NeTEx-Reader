@@ -37,6 +37,7 @@ import ch.bernmobil.netex.importer.netex.builder.ServiceDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.SiteDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.TimetableCommonDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.TimetableJourneyDomBuilder;
+import ch.bernmobil.netex.importer.netex.builder.TimetableTrainNumberDomBuilder;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 import ch.bernmobil.netex.importer.xml.Parser;
 
@@ -229,15 +230,32 @@ public class Importer {
 	private void importServiceJourneys(List<File> files, ImportState state) throws XMLStreamException {
 		final Consumer<Object> serviceJourneyConsumer = object -> processJourney(TimetableJourneyDomBuilder.buildServiceJourney(ObjectTree.of(object), state));
 
-		final Parser parser = ParserDefinitions.createPublicationDeliveryParser(ParserDefinitions.createTimetableFramesParser(serviceJourneyConsumer));
+		final Parser trainNumberParser = ParserDefinitions.createPublicationDeliveryParser(
+				ParserDefinitions.createTimetableFramesTrainNumberParser());
+		final Parser vehicleJourneyParser = ParserDefinitions.createPublicationDeliveryParser(
+				ParserDefinitions.createTimetableFramesVehicleJourneyParser(serviceJourneyConsumer));
+
 		final XMLInputFactory2 factory = (XMLInputFactory2)XMLInputFactory2.newInstance();
 
 		// iterate over all files
 		for (final File file : files) {
 			try {
-				// read the content of the file. the parser is configured to read only the journey-elements.
-				final XMLStreamReader2 reader = factory.createXMLStreamReader(file);
-				parser.parse(reader);
+				// first read the train numbers (and only those)
+				final Object result = trainNumberParser.parse(factory.createXMLStreamReader(file));
+				final ObjectTree root = ObjectTree.of(result);
+
+				// if the file contains a timetable frame, import the vehicle numbers content
+				final Frame timetableFrame = BuilderHelper.getFrame(root, BuilderHelper.TIMETABLE_FRAME_NAME);
+				if (timetableFrame != null) {
+					// read the journeys from the frame and pass them to this::processJourney (callback) for further processing
+					TimetableTrainNumberDomBuilder.buildDom(timetableFrame, state);
+				}
+
+				// then read the file again to parse the vehicle journeys (and only those) and pass them to the consumer
+				vehicleJourneyParser.parse(factory.createXMLStreamReader(file));
+
+				// clear vehicle numbers because they are not needed for the next file
+				state.getTrainNumbers().clear();
 			} catch (RuntimeException e) {
 				LOGGER.error("failed to import journeys from " + file, e);
 			}

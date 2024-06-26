@@ -17,6 +17,7 @@ import ch.bernmobil.netex.importer.netex.dom.NetexResponsibilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexScheduledStopPoint;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexStopPlace;
+import ch.bernmobil.netex.importer.netex.dom.NetexTrainNumber;
 import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexTypeOfProductCategory;
 import ch.bernmobil.netex.importer.netex.dom.NetexVehicleType;
@@ -43,6 +44,7 @@ public class ImportState {
 	private final Map<String, NetexNotice> notices = new HashMap<>();
 	private final Map<String, NetexAvailabilityCondition> availabilityConditions = new HashMap<>();
 	private final Map<String, NetexServiceFacilitySet> serviceFacilitySets = new HashMap<>();
+	private final Map<String, NetexTrainNumber> trainNumbers = new HashMap<>();
 
 	public void addOperator(NetexOperator operator) {
 		if (operators.put(operator.id, operator) != null) {
@@ -181,5 +183,15 @@ public class ImportState {
 
 	public Map<String, NetexServiceFacilitySet> getServiceFacilitySets() {
 		return serviceFacilitySets;
+	}
+
+	public void addTrainNumber(NetexTrainNumber trainNumber) {
+		if (trainNumbers.put(trainNumber.id, trainNumber) != null) {
+			LOGGER.warn("duplicate entry for {}", trainNumber.id);
+		}
+	}
+
+	public Map<String, NetexTrainNumber> getTrainNumbers() {
+		return trainNumbers;
 	}
 }

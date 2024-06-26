@@ -14,6 +14,7 @@ import ch.bernmobil.netex.importer.netex.dom.NetexCall.Departure;
 import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
+import ch.bernmobil.netex.importer.netex.dom.NetexTrainNumber;
 
 /**
  * This class converts a single ObjectTree to a ServiceJourney.
@@ -117,6 +118,20 @@ public class TimetableJourneyDomBuilder {
 			if (result.line == null) {
 				throw new IllegalArgumentException("unknown Line with id " + lineId);
 			}
+		}
+
+		final ObjectTree trainNumbers = tree.optionalChild("trainNumbers");
+		if (trainNumbers != null) {
+			result.trainNumbers = trainNumbers.children("TrainNumberRef").stream()
+					.map(trainNumberRef -> trainNumberRef.text("ref"))
+					.map(trainNumberId -> {
+						final NetexTrainNumber trainNumber = state.getTrainNumbers().get(trainNumberId);
+						if (trainNumber == null) {
+							throw new IllegalArgumentException("unknown TrainNumber with id " + trainNumberId);
+						}
+						return trainNumber;
+					})
+					.toList();
 		}
 
 		final ObjectTree calls = tree.optionalChild("calls");

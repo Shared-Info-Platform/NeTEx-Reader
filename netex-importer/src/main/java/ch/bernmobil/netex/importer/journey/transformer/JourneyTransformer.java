@@ -14,6 +14,7 @@ import ch.bernmobil.netex.importer.netex.dom.NetexCall;
 import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
+import ch.bernmobil.netex.importer.netex.dom.NetexTrainNumber;
 
 /**
  * Takes a NeTEx journey representation and transforms it to a specific journey for each day on which it is valid.
@@ -41,6 +42,14 @@ public class JourneyTransformer {
 		if (journey.typeOfProductCategory != null) {
 			result.productCategoryName = journey.typeOfProductCategory.name;
 			result.productCategoryCode = journey.typeOfProductCategory.shortName;
+		}
+
+		for (NetexTrainNumber trainNumber : journey.trainNumbers) {
+			if (trainNumber.forAdvertisement != null) {
+				result.trainNumbers.add(trainNumber.forAdvertisement);
+			} else {
+				result.trainNumbers.add(trainNumber.id);
+			}
 		}
 
 		for (NetexServiceFacilitySet serviceFacilitySet : journey.serviceFacilitySets) {

@@ -18,6 +18,7 @@ public class CallWithJourney extends Call {
 	public String vehicleType; // optional
 	public String productCategoryName; // optional
 	public String productCategoryCode; // optional
+	public List<String> trainNumbers = new ArrayList<>(); // optional
 	public List<String> serviceFacilities = new ArrayList<>(); // optional
 	public Map<String, String> notices = new LinkedHashMap<>(); // optional
 

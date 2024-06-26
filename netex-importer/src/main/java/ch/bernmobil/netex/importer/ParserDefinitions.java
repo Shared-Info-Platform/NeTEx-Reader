@@ -55,9 +55,14 @@ public class ParserDefinitions {
 				.withChild(BuilderHelper.TIMETABLE_FRAME_NAME, createTimetableFrameCommonParser());
 	}
 
-	public static Parser createTimetableFramesParser(final Consumer<Object> serviceJourneyConsumer) {
+	public static Parser createTimetableFramesVehicleJourneyParser(final Consumer<Object> serviceJourneyConsumer) {
 		return new ElementParser()
-				.withChild("TimetableFrame", createTimetableFrameTimetableParser(serviceJourneyConsumer));
+				.withChild("TimetableFrame", createTimetableFrameVehicleJourneyParser(serviceJourneyConsumer));
+	}
+
+	public static Parser createTimetableFramesTrainNumberParser() {
+		return new ElementParser()
+				.withChild("TimetableFrame", createTimetableFrameTrainNumberParser());
 	}
 
 	private static Parser createResourceFrameParser() {
@@ -274,7 +279,7 @@ public class ParserDefinitions {
 		;
 	}
 
-	private static Parser createTimetableFrameTimetableParser(final Consumer<Object> serviceJourneyConsumer) {
+	private static Parser createTimetableFrameVehicleJourneyParser(final Consumer<Object> serviceJourneyConsumer) {
 		return new ElementParser()
 				.withChild("vehicleJourneys", new ElementParser()
 					.withChild("ServiceJourney", new ElementParserWithConsumer(serviceJourneyConsumer)
@@ -356,7 +361,14 @@ public class ParserDefinitions {
 						)
 					)
 				)
-				.withChild("trainNumbers", new ElementParser() // TODO: parsed after Journeys, cannot be referenced
+				.withChild("trainNumbers", null) // ignore in this parser
+		;
+	}
+
+	private static Parser createTimetableFrameTrainNumberParser() {
+		return new ElementParser()
+				.withChild("vehicleJourneys", null) // ignore in this parser
+				.withChild("trainNumbers", new ElementParser()
 					.withChild("TrainNumber", new ElementParser()
 						.withAttribute("id")
 						.withChild("ForAdvertisement", new TextParser())

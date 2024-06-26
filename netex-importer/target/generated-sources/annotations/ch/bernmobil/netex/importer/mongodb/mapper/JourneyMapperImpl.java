@@ -13,8 +13,8 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-02-20T13:59:42+0100",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.7 (Oracle Corporation)"
+    date = "2024-06-26T19:00:00+0200",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.3 (Oracle Corporation)"
 )
 public class JourneyMapperImpl implements JourneyMapper {
 
@@ -37,9 +37,13 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyWithCalls.vehicleType = journey.vehicleType;
         journeyWithCalls.productCategoryName = journey.productCategoryName;
         journeyWithCalls.productCategoryCode = journey.productCategoryCode;
-        List<String> list = journey.serviceFacilities;
+        List<String> list = journey.trainNumbers;
         if ( list != null ) {
-            journeyWithCalls.serviceFacilities = new ArrayList<String>( list );
+            journeyWithCalls.trainNumbers = new ArrayList<String>( list );
+        }
+        List<String> list1 = journey.serviceFacilities;
+        if ( list1 != null ) {
+            journeyWithCalls.serviceFacilities = new ArrayList<String>( list1 );
         }
         Map<String, String> map = journey.notices;
         if ( map != null ) {
@@ -95,9 +99,13 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.vehicleType = journey.vehicleType;
             callWithJourney.productCategoryName = journey.productCategoryName;
             callWithJourney.productCategoryCode = journey.productCategoryCode;
-            List<String> list = journey.serviceFacilities;
+            List<String> list = journey.trainNumbers;
             if ( list != null ) {
-                callWithJourney.serviceFacilities = new ArrayList<String>( list );
+                callWithJourney.trainNumbers = new ArrayList<String>( list );
+            }
+            List<String> list1 = journey.serviceFacilities;
+            if ( list1 != null ) {
+                callWithJourney.serviceFacilities = new ArrayList<String>( list1 );
             }
             Map<String, String> map = journey.notices;
             if ( map != null ) {
