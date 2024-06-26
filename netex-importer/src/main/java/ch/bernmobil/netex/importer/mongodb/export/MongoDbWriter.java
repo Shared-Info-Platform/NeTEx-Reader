@@ -119,6 +119,15 @@ public class MongoDbWriter {
 		}
 	}
 
+	public boolean isDatabaseEmpty() {
+		final long numDocuments = journeyCollection.estimatedDocumentCount ()
+				+ callCollection.estimatedDocumentCount ()
+				+ journeyAggregationCollection.estimatedDocumentCount ()
+				+ callAggregationCollection.estimatedDocumentCount ()
+				+ routeAggregationCollection.estimatedDocumentCount ();
+		return numDocuments == 0;
+	}
+
 	public void writeJourneys(List<Journey> journeys) {
 		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();
 		final List<CallWithJourney> mappedCalls = new ArrayList<>();

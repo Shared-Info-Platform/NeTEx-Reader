@@ -90,6 +90,11 @@ public class Importer {
 			throw new IllegalArgumentException("found no *.xml files to import");
 		}
 
+		// check if database is empty
+		if (!mongoDbWriter.isDatabaseEmpty()) {
+			throw new IllegalStateException("database is not empty");
+		}
+
 		// start import. first import common entities (and cache them in ImportState), then import all
 		// journeys (which reference the common entities)
 		final ImportState state = new ImportState();
