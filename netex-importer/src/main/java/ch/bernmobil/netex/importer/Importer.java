@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -226,7 +227,9 @@ public class Importer {
 	 * Imports service Journeys from the given files.
 	 */
 	private void importServiceJourneys(List<File> files, ImportState state) throws XMLStreamException {
-		final Parser parser = ParserDefinitions.createPublicationDeliveryParser(ParserDefinitions.createTimetableFramesParser());
+		final Consumer<Object> serviceJourneyConsumer = object -> processJourney(TimetableJourneyDomBuilder.buildServiceJourney(ObjectTree.of(object), state));
+
+		final Parser parser = ParserDefinitions.createPublicationDeliveryParser(ParserDefinitions.createTimetableFramesParser(serviceJourneyConsumer));
 		final XMLInputFactory2 factory = (XMLInputFactory2)XMLInputFactory2.newInstance();
 
 		// iterate over all files
@@ -234,15 +237,7 @@ public class Importer {
 			try {
 				// read the content of the file. the parser is configured to read only the journey-elements.
 				final XMLStreamReader2 reader = factory.createXMLStreamReader(file);
-				final Object result = parser.parse(reader);
-				final ObjectTree root = ObjectTree.of(result);
-
-				// if the file contains a timetable frame, import its content
-				final Frame timetableFrame = BuilderHelper.getFrame(root, BuilderHelper.TIMETABLE_FRAME_NAME);
-				if (timetableFrame != null) {
-					// read the journeys from the frame and pass them to this::processJourney (callback) for further processing
-					TimetableJourneyDomBuilder.buildDom(timetableFrame, state, this::processJourney);
-				}
+				parser.parse(reader);
 			} catch (RuntimeException e) {
 				LOGGER.error("failed to import journeys from " + file, e);
 			}

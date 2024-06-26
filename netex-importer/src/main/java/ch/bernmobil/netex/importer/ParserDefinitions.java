@@ -1,7 +1,10 @@
 package ch.bernmobil.netex.importer;
 
+import java.util.function.Consumer;
+
 import ch.bernmobil.netex.importer.netex.builder.BuilderHelper;
 import ch.bernmobil.netex.importer.xml.ElementParser;
+import ch.bernmobil.netex.importer.xml.ElementParserWithConsumer;
 import ch.bernmobil.netex.importer.xml.MultilingualStringParser;
 import ch.bernmobil.netex.importer.xml.Parser;
 import ch.bernmobil.netex.importer.xml.TextParser;
@@ -52,9 +55,9 @@ public class ParserDefinitions {
 				.withChild(BuilderHelper.TIMETABLE_FRAME_NAME, createTimetableFrameCommonParser());
 	}
 
-	public static Parser createTimetableFramesParser() {
+	public static Parser createTimetableFramesParser(final Consumer<Object> serviceJourneyConsumer) {
 		return new ElementParser()
-				.withChild("TimetableFrame", createTimetableFrameTimetableParser());
+				.withChild("TimetableFrame", createTimetableFrameTimetableParser(serviceJourneyConsumer));
 	}
 
 	private static Parser createResourceFrameParser() {
@@ -271,10 +274,10 @@ public class ParserDefinitions {
 		;
 	}
 
-	private static Parser createTimetableFrameTimetableParser() {
+	private static Parser createTimetableFrameTimetableParser(final Consumer<Object> serviceJourneyConsumer) {
 		return new ElementParser()
 				.withChild("vehicleJourneys", new ElementParser()
-					.withChild("ServiceJourney", new ElementParser()
+					.withChild("ServiceJourney", new ElementParserWithConsumer(serviceJourneyConsumer)
 						.withAttribute("id")
 						.withAttribute("responsibilitySetRef")
 						.withChild("validityConditions", new ElementParser()

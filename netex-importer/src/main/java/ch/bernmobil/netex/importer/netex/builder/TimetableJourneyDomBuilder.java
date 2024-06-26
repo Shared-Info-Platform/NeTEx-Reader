@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexCall;
@@ -17,19 +16,11 @@ import ch.bernmobil.netex.importer.netex.dom.NetexServiceFacilitySet;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 
 /**
- * This class reads the object tree of a NeTEx timetable frame and passes the contained journeys to the "consumer" function.
- * It ignores any other objects that may also be contained in this frame.
+ * This class converts a single ObjectTree to a ServiceJourney.
  */
 public class TimetableJourneyDomBuilder {
 
-	public static void buildDom(Frame timetableFrame, ImportState state, Consumer<NetexServiceJourney> consumer) {
-		final ObjectTree vehicleJourneys = timetableFrame.frameTree.optionalChild("vehicleJourneys");
-		if (vehicleJourneys != null) {
-			vehicleJourneys.children("ServiceJourney").stream().map(child -> buildServiceJourney(child, state)).forEach(consumer::accept);
-		}
-	}
-
-	private static NetexServiceJourney buildServiceJourney(ObjectTree tree, ImportState state) {
+	public static NetexServiceJourney buildServiceJourney(ObjectTree tree, ImportState state) {
 		final NetexServiceJourney result = new NetexServiceJourney();
 		result.id = tree.text("id");
 		result.privateCode = tree.optionalText("PrivateCode");
