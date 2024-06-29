@@ -1,6 +1,8 @@
 package ch.bernmobil.netex.importer;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -159,6 +161,17 @@ public class Importer {
 			final Object result = parser.parse(reader);
 			trees.add(ObjectTree.of(result));
 		}
+
+		// log the PublicationTimestamp of the parsed files
+		final List<LocalDate> publicationTimestamps = trees.stream().map(tree -> tree.child("PublicationDelivery"))
+			.filter(Objects::nonNull)
+			.map(publicationDelivery -> publicationDelivery.text("PublicationTimestamp"))
+			.filter(Objects::nonNull)
+			.map(ZonedDateTime::parse)
+			.map(ZonedDateTime::toLocalDate)
+			.distinct()
+			.toList();
+		LOGGER.info("Import data with PublicationTimestamp {}", publicationTimestamps);
 
 		// search all relevant NeTEx frames in all parsed object trees
 		final List<Frame> resourceFrames = trees.stream()
