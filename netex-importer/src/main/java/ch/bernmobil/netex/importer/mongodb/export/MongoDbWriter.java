@@ -15,6 +15,8 @@ import org.bson.Document;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 
@@ -141,6 +143,8 @@ public class MongoDbWriter {
 	}
 
 	public void writeJourneys(List<Journey> journeys) {
+		final InsertManyOptions options = new InsertManyOptions().ordered(false);
+
 		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();
 		final List<CallWithJourney> mappedCalls = new ArrayList<>();
 		for (final Journey journey : journeys) {
@@ -150,16 +154,16 @@ public class MongoDbWriter {
 			// insert frequently before batch becomes too large. checking the number of calls is enough because
 			// they are also embedded in journeys, so there may not be many journeys but they are still large.
 			if (mappedCalls.size() >= Constants.MAX_NUMBER_OF_CALLS_PER_MONGODB_WRITE) {
-				journeyCollection.insertMany(mappedJourneys);
-				callCollection.insertMany(mappedCalls);
+				journeyCollection.insertMany(mappedJourneys, options);
+				callCollection.insertMany(mappedCalls, options);
 				mappedJourneys.clear();
 				mappedCalls.clear();
 			}
 		}
 		// insert the rest of the documents if there are any
 		if (mappedCalls.size() > 0) {
-			journeyCollection.insertMany(mappedJourneys);
-			callCollection.insertMany(mappedCalls);
+			journeyCollection.insertMany(mappedJourneys, options);
+			callCollection.insertMany(mappedCalls, options);
 		}
 	}
 
@@ -187,13 +191,13 @@ public class MongoDbWriter {
 
 			// insert frequently before batch becomes too large
 			if (updates.size() >= Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE) {
-				journeyAggregationCollection.bulkWrite(updates);
+				journeyAggregationCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 				updates.clear();
 			}
 		}
 		// insert the rest of the documents if there are any
 		if (updates.size() > 0) {
-			journeyAggregationCollection.bulkWrite(updates);
+			journeyAggregationCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 		}
 	}
 
@@ -222,13 +226,13 @@ public class MongoDbWriter {
 
 			// insert frequently before batch becomes too large
 			if (updates.size() >= Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE) {
-				callAggregationCollection.bulkWrite(updates);
+				callAggregationCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 				updates.clear();
 			}
 		}
 		// insert the rest of the documents if there are any
 		if (updates.size() > 0) {
-			callAggregationCollection.bulkWrite(updates);
+			callAggregationCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 		}
 	}
 
@@ -259,13 +263,13 @@ public class MongoDbWriter {
 
 			// insert frequently before batch becomes too large
 			if (updates.size() >= Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE) {
-				routeAggregationCollection.bulkWrite(updates);
+				routeAggregationCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 				updates.clear();
 			}
 		}
 		// insert the rest of the documents if there are any
 		if (updates.size() > 0) {
-			routeAggregationCollection.bulkWrite(updates);
+			routeAggregationCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 		}
 	}
 
