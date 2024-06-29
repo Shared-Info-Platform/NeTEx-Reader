@@ -12,6 +12,7 @@ public class JourneyWithCalls {
 
 	@BsonId
 	public String id; // required
+	public String sjyid; // optional
 	public String operatingDay; // required
 	public String calendarDay; // required
 	public ZonedDateTime departureTime; // required

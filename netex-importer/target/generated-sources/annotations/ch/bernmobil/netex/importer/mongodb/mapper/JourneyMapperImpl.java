@@ -13,7 +13,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-06-26T19:00:00+0200",
+    date = "2024-06-29T15:21:40+0200",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.3 (Oracle Corporation)"
 )
 public class JourneyMapperImpl implements JourneyMapper {
@@ -26,6 +26,7 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         JourneyWithCalls journeyWithCalls = new JourneyWithCalls();
 
+        journeyWithCalls.sjyid = journey.sjyid;
         if ( journey.operatingDay != null ) {
             journeyWithCalls.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
         }
@@ -91,6 +92,7 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.departure = departureToDeparture( call.departure );
         }
         if ( journey != null ) {
+            callWithJourney.sjyid = journey.sjyid;
             if ( journey.operatingDay != null ) {
                 callWithJourney.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
             }

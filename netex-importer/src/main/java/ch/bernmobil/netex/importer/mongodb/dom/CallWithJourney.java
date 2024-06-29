@@ -10,6 +10,7 @@ import org.bson.codecs.pojo.annotations.BsonId;
 public class CallWithJourney extends Call {
 
 	public String originalId; // required
+	public String sjyid; // optional
 	public String operatingDay; // required
 	public String calendarDay; // required
 

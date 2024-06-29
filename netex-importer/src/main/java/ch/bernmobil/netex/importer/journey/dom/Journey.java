@@ -9,6 +9,7 @@ import java.util.Map;
 public class Journey {
 
 	public String id; // required
+	public String sjyid; // optional
 	public LocalDate operatingDay; // required
 
 	public String transportMode; // optional (from ServiceJourney or fallback from Line)

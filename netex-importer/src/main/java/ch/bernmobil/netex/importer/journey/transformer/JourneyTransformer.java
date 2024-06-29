@@ -29,7 +29,8 @@ public class JourneyTransformer {
 
 	private static Journey transform(NetexServiceJourney journey, LocalDate date) {
 		final Journey result = new Journey();
-		result.id = (journey.sjyid != null ? journey.sjyid : journey.id);
+		result.id = journey.id;
+		result.sjyid = journey.sjyid;
 		result.operatingDay = date;
 		result.transportMode = (journey.transportMode != null ? journey.transportMode : (journey.line != null ? journey.line.transportMode : null));
 		result.serviceAlteration = journey.serviceAlteration;

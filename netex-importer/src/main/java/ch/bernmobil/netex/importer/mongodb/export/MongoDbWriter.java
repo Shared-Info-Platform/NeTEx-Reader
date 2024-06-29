@@ -54,6 +54,12 @@ public class MongoDbWriter {
 			index.put("calendarDay", 1);
 			journeyCollection.createIndex(new Document(index));
 		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("sjyid", 1);
+			index.put("calendarDay", 1);
+			journeyCollection.createIndex(new Document(index));
+		}
 
 		// Calls
 		callCollection = database.getCollection("Calls", CallWithJourney.class);
@@ -77,6 +83,12 @@ public class MongoDbWriter {
 //			index.put("departure.time", 1);
 //			callCollection.createIndex(new Document(index));
 //		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("sjyid", 1);
+			index.put("calendarDay", 1);
+			journeyCollection.createIndex(new Document(index));
+		}
 
 		// Journey Aggregations
 		journeyAggregationCollection = database.getCollection("JourneyAggregations", JourneyAggregation.class);
