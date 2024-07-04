@@ -1,6 +1,7 @@
 package ch.bernmobil.netex.importer.journey.dom;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +39,6 @@ public class Journey {
 	public List<Call> calls = new ArrayList<>();
 
 	public LocalDate getCalendarDay() {
-		return calls.get(0).departure.time.toLocalDate();
+		return calls.get(0).departure.time.withZoneSameInstant(ZoneOffset.UTC).toLocalDate();
 	}
 }

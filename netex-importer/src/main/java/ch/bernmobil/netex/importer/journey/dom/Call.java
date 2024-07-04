@@ -1,6 +1,7 @@
 package ch.bernmobil.netex.importer.journey.dom;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 public class Call {
@@ -34,6 +35,6 @@ public class Call {
 	}
 
 	public LocalDate getCalendarDay() {
-		return (departure != null ? departure.time : arrival.time).toLocalDate();
+		return (departure != null ? departure.time : arrival.time).withZoneSameInstant(ZoneOffset.UTC).toLocalDate();
 	}
 }
