@@ -62,6 +62,13 @@ public class MongoDbWriter {
 			index.put("calendarDay", 1);
 			journeyCollection.createIndex(new Document(index));
 		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("operatorCode", 1);
+			index.put("trainNumbers", 1);
+			index.put("calendarDay", 1);
+			journeyCollection.createIndex(new Document(index));
+		}
 
 		// Calls
 		callCollection = database.getCollection("Calls", CallWithJourney.class);
