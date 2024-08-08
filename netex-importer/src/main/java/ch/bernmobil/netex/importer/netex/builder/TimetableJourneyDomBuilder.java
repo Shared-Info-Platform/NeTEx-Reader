@@ -156,7 +156,7 @@ public class TimetableJourneyDomBuilder {
 		result.id = tree.text("id");
 		result.order = Integer.parseInt(tree.text("order"));
 		result.requestStop = Boolean.parseBoolean(tree.text("RequestStop"));
-		result.stopUse = Boolean.parseBoolean(tree.text("StopUse"));
+		result.stopUse = tree.text("StopUse");
 
 		final ObjectTree scheduledStopPointRef = tree.optionalChild("ScheduledStopPointRef");
 		if (scheduledStopPointRef != null) {

@@ -9,7 +9,7 @@ public class Call {
 	public String id; // required
 	public int order; // required
 	public boolean requestStop; // required
-	public boolean stopUse; // required
+	public String stopUse; // optional
 
 	// ScheduledStopPoint
 	public String stopPlaceCode; // optional

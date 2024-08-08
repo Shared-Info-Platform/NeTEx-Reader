@@ -9,7 +9,7 @@ public class NetexCall {
 	public NetexScheduledStopPoint scheduledStopPoint; // optional
 	public NetexDestinationDisplay destinationDisplay; // optional
 	public boolean requestStop; // required
-	public boolean stopUse; // required
+	public String stopUse; // optional
 	public Arrival arrival; // optional
 	public Departure departure; // optional
 
