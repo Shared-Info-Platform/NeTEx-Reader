@@ -1,6 +1,12 @@
 package ch.bernmobil.netex.importer.netex.builder;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexDestinationDisplay;
@@ -14,6 +20,8 @@ import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualStri
  * This class reads the object tree of a NeTEx service frame and stores the contained entities in the ImportState.
  */
 public class ServiceDomBuilder {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceDomBuilder.class);
 
 	public static void buildDom(Frame serviceFrame, ImportState state) {
 		final ObjectTree lines = serviceFrame.frameTree.optionalChild("lines");
@@ -49,6 +57,29 @@ public class ServiceDomBuilder {
 		result.shortName = tree.optionalMultilingualString("ShortName").map(MultilingualString::getText).orElse(null);
 		result.transportMode = tree.optionalText("TransportMode");
 		result.publicCode = tree.optionalText("PublicCode");
+
+		final ObjectTree transportSubmode = tree.optionalChild("TransportSubmode");
+		if (transportSubmode != null) {
+			final List<String> transportSubmodes = Arrays.asList(
+					transportSubmode.optionalText("RailSubmode"),
+					transportSubmode.optionalText("MetroSubmode"),
+					transportSubmode.optionalText("TramSubmode"),
+					transportSubmode.optionalText("BusSubmode"),
+					transportSubmode.optionalText("CoachSubmode"),
+					transportSubmode.optionalText("FunicularSubmode"),
+					transportSubmode.optionalText("WaterSubmode"),
+					transportSubmode.optionalText("TelecabinSubmode"),
+					transportSubmode.optionalText("TaxiSubmode"))
+					.stream()
+					.filter(Objects::nonNull)
+					.toList();
+			if (transportSubmodes.size() >= 1) {
+				if (transportSubmodes.size() > 1) {
+					LOGGER.warn("more than one submode defined for line {}: {}", result.id, transportSubmodes);
+				}
+				result.transportSubmode = transportSubmodes.get(0);
+			}
+		}
 		return result;
 	}
 

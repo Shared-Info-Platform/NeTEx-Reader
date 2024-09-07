@@ -33,6 +33,7 @@ public class JourneyTransformer {
 		result.sjyid = journey.sjyid;
 		result.operatingDay = date;
 		result.transportMode = (journey.transportMode != null ? journey.transportMode : (journey.line != null ? journey.line.transportMode : null));
+		result.transportSubmode = (journey.line != null ? journey.line.transportSubmode : null);
 		result.serviceAlteration = journey.serviceAlteration;
 		result.directionType = journey.directionType;
 

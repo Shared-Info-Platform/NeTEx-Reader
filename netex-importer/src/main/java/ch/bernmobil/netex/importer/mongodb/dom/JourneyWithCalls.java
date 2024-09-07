@@ -21,6 +21,7 @@ public class JourneyWithCalls {
 	public String arrivalStopPlaceCode; // optional
 
 	public String transportMode; // optional (from ServiceJourney or fallback from Line)
+	public String transportSubmode; // optional (from Line)
 	public String serviceAlteration; // optional
 	public String vehicleType; // optional
 	public String productCategoryName; // optional

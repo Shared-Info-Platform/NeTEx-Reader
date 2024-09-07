@@ -34,6 +34,7 @@ public class JourneyMapperImpl implements JourneyMapper {
             journeyWithCalls.calendarDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.getCalendarDay() );
         }
         journeyWithCalls.transportMode = journey.transportMode;
+        journeyWithCalls.transportSubmode = journey.transportSubmode;
         journeyWithCalls.serviceAlteration = journey.serviceAlteration;
         journeyWithCalls.vehicleType = journey.vehicleType;
         journeyWithCalls.productCategoryName = journey.productCategoryName;
@@ -97,6 +98,7 @@ public class JourneyMapperImpl implements JourneyMapper {
                 callWithJourney.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
             }
             callWithJourney.transportMode = journey.transportMode;
+            callWithJourney.transportSubmode = journey.transportSubmode;
             callWithJourney.serviceAlteration = journey.serviceAlteration;
             callWithJourney.vehicleType = journey.vehicleType;
             callWithJourney.productCategoryName = journey.productCategoryName;
