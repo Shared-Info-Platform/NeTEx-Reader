@@ -14,7 +14,7 @@ pipeline {
 		stage('Build') {
 			steps {
 				withMaven(maven: '3.9.6') {
-					sh 'mvn -f netex-importer clean install'
+					sh 'mvn clean install'
 				}
 			}
 		}
