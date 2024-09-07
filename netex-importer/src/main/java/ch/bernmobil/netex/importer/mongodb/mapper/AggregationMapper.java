@@ -4,9 +4,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
-import ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation;
-import ch.bernmobil.netex.importer.mongodb.dom.RouteAggregation;
+import ch.bernmobil.netex.importer.journey.dom.CallAggregation;
+import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
+import ch.bernmobil.netex.importer.journey.dom.RouteAggregation;
 
 /**
  * This interface maps Aggregations from the internal model to the model used in MongoDB.
@@ -22,18 +22,18 @@ public interface AggregationMapper {
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
-	JourneyAggregation mapJourneyAggregation(ch.bernmobil.netex.importer.journey.dom.JourneyAggregation aggregation);
+	ch.bernmobil.netex.persistence.dom.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation);
 
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "stopPlaceCode", source = "id.stopPlaceCode")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
-	CallAggregation mapCallAggregation(ch.bernmobil.netex.importer.journey.dom.CallAggregation aggregation);
+	ch.bernmobil.netex.persistence.dom.CallAggregation mapCallAggregation(CallAggregation aggregation);
 
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
 	@Mapping(target = "directionType", source = "id.directionType")
 	@Mapping(target = "stopPlaceCodes", source = "id.stopPlaceCodes")
-	RouteAggregation mapRouteAggregation(ch.bernmobil.netex.importer.journey.dom.RouteAggregation aggregation);
+	ch.bernmobil.netex.persistence.dom.RouteAggregation mapRouteAggregation(RouteAggregation aggregation);
 }

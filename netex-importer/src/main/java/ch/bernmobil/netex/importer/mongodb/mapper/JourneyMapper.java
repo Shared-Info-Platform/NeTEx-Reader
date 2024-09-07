@@ -6,8 +6,8 @@ import org.mapstruct.factory.Mappers;
 
 import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
-import ch.bernmobil.netex.importer.mongodb.dom.CallWithJourney;
-import ch.bernmobil.netex.importer.mongodb.dom.JourneyWithCalls;
+import ch.bernmobil.netex.persistence.dom.CallWithJourney;
+import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 
 /**
  * This interface maps a Journey from the internal model to the different "views" for MongoDB.

@@ -29,7 +29,8 @@ import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
 import ch.bernmobil.netex.importer.journey.dom.RouteAggregation;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyAggregator;
 import ch.bernmobil.netex.importer.journey.transformer.JourneyTransformer;
-import ch.bernmobil.netex.importer.mongodb.export.MongoDbWriter;
+import ch.bernmobil.netex.importer.mongodb.mapper.AggregationMapper;
+import ch.bernmobil.netex.importer.mongodb.mapper.JourneyMapper;
 import ch.bernmobil.netex.importer.netex.builder.BuilderHelper;
 import ch.bernmobil.netex.importer.netex.builder.Frame;
 import ch.bernmobil.netex.importer.netex.builder.ObjectTree;
@@ -42,6 +43,9 @@ import ch.bernmobil.netex.importer.netex.builder.TimetableJourneyDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.TimetableTrainNumberDomBuilder;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 import ch.bernmobil.netex.importer.xml.Parser;
+import ch.bernmobil.netex.persistence.dom.CallWithJourney;
+import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
+import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 
 /**
  * This class imports journeys from NeTEx files that are located in a given directory.
@@ -112,9 +116,9 @@ public class Importer {
 		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
 		LOGGER.info("write aggregations");
-		mongoDbWriter.writeJourneyAggregations(aggregator.getJourneyAggregations());
-		mongoDbWriter.writeCallAggregations(aggregator.getCallAggregations());
-		mongoDbWriter.writeRouteAggregations(aggregator.getRouteAggregations());
+		mongoDbWriter.writeJourneyAggregations(aggregator.getJourneyAggregations().stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
+		mongoDbWriter.writeCallAggregations(aggregator.getCallAggregations().stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
+		mongoDbWriter.writeRouteAggregations(aggregator.getRouteAggregations().stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
 
 		LOGGER.info("done");
 		mongoDbWriter.close();
@@ -307,8 +311,16 @@ public class Importer {
 		final List<Journey> results = JourneyTransformer.transform(journey);
 		aggregateValues(results);
 
+		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();
+		final List<CallWithJourney> mappedCalls = new ArrayList<>();
+		for (final Journey result : results) {
+			mappedJourneys.add(JourneyMapper.INSTANCE.mapJourney(result));
+			mappedCalls.addAll(result.calls.stream().map(call -> JourneyMapper.INSTANCE.mapCalls(call, result)).toList());
+		}
+
 		try {
-			mongoDbWriter.writeJourneys(results);
+			mongoDbWriter.writeJourneys(mappedJourneys);
+			mongoDbWriter.writeCalls(mappedCalls);
 		} catch (MongoException e) {
 			LOGGER.error("exporting journey to MongoDB failed", e);
 			LOGGER.error("stop import");
@@ -324,15 +336,15 @@ public class Importer {
 		// flush aggregations to mongoDB every now and then to avoid using too much memory
 		final List<JourneyAggregation> journeyAggregations = aggregator.resetJourneyAggregationsIfNecessary();
 		if (journeyAggregations != null) {
-			mongoDbWriter.writeJourneyAggregations(journeyAggregations);
+			mongoDbWriter.writeJourneyAggregations(journeyAggregations.stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
 		}
 		final List<CallAggregation> callAggregations = aggregator.resetCallAggregationsIfNecessary();
 		if (callAggregations != null) {
-			mongoDbWriter.writeCallAggregations(callAggregations);
+			mongoDbWriter.writeCallAggregations(callAggregations.stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
 		}
 		final List<RouteAggregation> routeAggregations = aggregator.resetRouteAggregationsIfNecessary();
 		if (routeAggregations != null) {
-			mongoDbWriter.writeRouteAggregations(routeAggregations);
+			mongoDbWriter.writeRouteAggregations(routeAggregations.stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
 		}
 	}
 

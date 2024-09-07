@@ -2,8 +2,8 @@ package ch.bernmobil.netex.importer.mongodb.mapper;
 
 import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
-import ch.bernmobil.netex.importer.mongodb.dom.CallWithJourney;
-import ch.bernmobil.netex.importer.mongodb.dom.JourneyWithCalls;
+import ch.bernmobil.netex.persistence.dom.CallWithJourney;
+import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,7 +13,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-06-29T15:21:40+0200",
+    date = "2024-09-07T22:29:54+0200",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.3 (Oracle Corporation)"
 )
 public class JourneyMapperImpl implements JourneyMapper {
@@ -128,12 +128,12 @@ public class JourneyMapperImpl implements JourneyMapper {
         return callWithJourney;
     }
 
-    protected ch.bernmobil.netex.importer.mongodb.dom.Call.Arrival arrivalToArrival(Call.Arrival arrival) {
+    protected ch.bernmobil.netex.persistence.dom.Call.Arrival arrivalToArrival(Call.Arrival arrival) {
         if ( arrival == null ) {
             return null;
         }
 
-        ch.bernmobil.netex.importer.mongodb.dom.Call.Arrival arrival1 = new ch.bernmobil.netex.importer.mongodb.dom.Call.Arrival();
+        ch.bernmobil.netex.persistence.dom.Call.Arrival arrival1 = new ch.bernmobil.netex.persistence.dom.Call.Arrival();
 
         arrival1.time = arrival.time;
         arrival1.forAlighting = arrival.forAlighting;
@@ -142,12 +142,12 @@ public class JourneyMapperImpl implements JourneyMapper {
         return arrival1;
     }
 
-    protected ch.bernmobil.netex.importer.mongodb.dom.Call.Departure departureToDeparture(Call.Departure departure) {
+    protected ch.bernmobil.netex.persistence.dom.Call.Departure departureToDeparture(Call.Departure departure) {
         if ( departure == null ) {
             return null;
         }
 
-        ch.bernmobil.netex.importer.mongodb.dom.Call.Departure departure1 = new ch.bernmobil.netex.importer.mongodb.dom.Call.Departure();
+        ch.bernmobil.netex.persistence.dom.Call.Departure departure1 = new ch.bernmobil.netex.persistence.dom.Call.Departure();
 
         departure1.time = departure.time;
         departure1.forBoarding = departure.forBoarding;
@@ -156,12 +156,12 @@ public class JourneyMapperImpl implements JourneyMapper {
         return departure1;
     }
 
-    protected ch.bernmobil.netex.importer.mongodb.dom.Call callToCall(Call call) {
+    protected ch.bernmobil.netex.persistence.dom.Call callToCall(Call call) {
         if ( call == null ) {
             return null;
         }
 
-        ch.bernmobil.netex.importer.mongodb.dom.Call call1 = new ch.bernmobil.netex.importer.mongodb.dom.Call();
+        ch.bernmobil.netex.persistence.dom.Call call1 = new ch.bernmobil.netex.persistence.dom.Call();
 
         call1.id = call.id;
         call1.order = call.order;
@@ -177,12 +177,12 @@ public class JourneyMapperImpl implements JourneyMapper {
         return call1;
     }
 
-    protected List<ch.bernmobil.netex.importer.mongodb.dom.Call> callListToCallList(List<Call> list) {
+    protected List<ch.bernmobil.netex.persistence.dom.Call> callListToCallList(List<Call> list) {
         if ( list == null ) {
             return null;
         }
 
-        List<ch.bernmobil.netex.importer.mongodb.dom.Call> list1 = new ArrayList<ch.bernmobil.netex.importer.mongodb.dom.Call>( list.size() );
+        List<ch.bernmobil.netex.persistence.dom.Call> list1 = new ArrayList<ch.bernmobil.netex.persistence.dom.Call>( list.size() );
         for ( Call call : list ) {
             list1.add( callToCall( call ) );
         }

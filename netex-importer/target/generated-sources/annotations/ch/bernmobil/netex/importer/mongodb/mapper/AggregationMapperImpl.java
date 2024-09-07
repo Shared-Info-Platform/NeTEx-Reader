@@ -1,8 +1,8 @@
 package ch.bernmobil.netex.importer.mongodb.mapper;
 
 import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
-import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
-import ch.bernmobil.netex.importer.mongodb.dom.RouteAggregation;
+import ch.bernmobil.netex.importer.journey.dom.RouteAggregation;
+import ch.bernmobil.netex.persistence.dom.CallAggregation;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -11,18 +11,18 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-06-29T15:21:41+0200",
+    date = "2024-09-07T22:29:54+0200",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.3 (Oracle Corporation)"
 )
 public class AggregationMapperImpl implements AggregationMapper {
 
     @Override
-    public ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation) {
+    public ch.bernmobil.netex.persistence.dom.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation) {
         if ( aggregation == null ) {
             return null;
         }
 
-        ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation journeyAggregation = new ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation();
+        ch.bernmobil.netex.persistence.dom.JourneyAggregation journeyAggregation = new ch.bernmobil.netex.persistence.dom.JourneyAggregation();
 
         LocalDate calendarDay = aggregationIdCalendarDay( aggregation );
         if ( calendarDay != null ) {
@@ -56,12 +56,12 @@ public class AggregationMapperImpl implements AggregationMapper {
     }
 
     @Override
-    public RouteAggregation mapRouteAggregation(ch.bernmobil.netex.importer.journey.dom.RouteAggregation aggregation) {
+    public ch.bernmobil.netex.persistence.dom.RouteAggregation mapRouteAggregation(RouteAggregation aggregation) {
         if ( aggregation == null ) {
             return null;
         }
 
-        RouteAggregation routeAggregation = new RouteAggregation();
+        ch.bernmobil.netex.persistence.dom.RouteAggregation routeAggregation = new ch.bernmobil.netex.persistence.dom.RouteAggregation();
 
         LocalDate calendarDay = aggregationIdCalendarDay2( aggregation );
         if ( calendarDay != null ) {
@@ -185,11 +185,11 @@ public class AggregationMapperImpl implements AggregationMapper {
         return lineCode;
     }
 
-    private LocalDate aggregationIdCalendarDay2(ch.bernmobil.netex.importer.journey.dom.RouteAggregation routeAggregation) {
+    private LocalDate aggregationIdCalendarDay2(RouteAggregation routeAggregation) {
         if ( routeAggregation == null ) {
             return null;
         }
-        ch.bernmobil.netex.importer.journey.dom.RouteAggregation.Id id = routeAggregation.id;
+        RouteAggregation.Id id = routeAggregation.id;
         if ( id == null ) {
             return null;
         }
@@ -200,11 +200,11 @@ public class AggregationMapperImpl implements AggregationMapper {
         return calendarDay;
     }
 
-    private String aggregationIdOperatorCode2(ch.bernmobil.netex.importer.journey.dom.RouteAggregation routeAggregation) {
+    private String aggregationIdOperatorCode2(RouteAggregation routeAggregation) {
         if ( routeAggregation == null ) {
             return null;
         }
-        ch.bernmobil.netex.importer.journey.dom.RouteAggregation.Id id = routeAggregation.id;
+        RouteAggregation.Id id = routeAggregation.id;
         if ( id == null ) {
             return null;
         }
@@ -215,11 +215,11 @@ public class AggregationMapperImpl implements AggregationMapper {
         return operatorCode;
     }
 
-    private String aggregationIdLineCode2(ch.bernmobil.netex.importer.journey.dom.RouteAggregation routeAggregation) {
+    private String aggregationIdLineCode2(RouteAggregation routeAggregation) {
         if ( routeAggregation == null ) {
             return null;
         }
-        ch.bernmobil.netex.importer.journey.dom.RouteAggregation.Id id = routeAggregation.id;
+        RouteAggregation.Id id = routeAggregation.id;
         if ( id == null ) {
             return null;
         }
@@ -230,11 +230,11 @@ public class AggregationMapperImpl implements AggregationMapper {
         return lineCode;
     }
 
-    private String aggregationIdDirectionType(ch.bernmobil.netex.importer.journey.dom.RouteAggregation routeAggregation) {
+    private String aggregationIdDirectionType(RouteAggregation routeAggregation) {
         if ( routeAggregation == null ) {
             return null;
         }
-        ch.bernmobil.netex.importer.journey.dom.RouteAggregation.Id id = routeAggregation.id;
+        RouteAggregation.Id id = routeAggregation.id;
         if ( id == null ) {
             return null;
         }
@@ -245,11 +245,11 @@ public class AggregationMapperImpl implements AggregationMapper {
         return directionType;
     }
 
-    private List<String> aggregationIdStopPlaceCodes(ch.bernmobil.netex.importer.journey.dom.RouteAggregation routeAggregation) {
+    private List<String> aggregationIdStopPlaceCodes(RouteAggregation routeAggregation) {
         if ( routeAggregation == null ) {
             return null;
         }
-        ch.bernmobil.netex.importer.journey.dom.RouteAggregation.Id id = routeAggregation.id;
+        RouteAggregation.Id id = routeAggregation.id;
         if ( id == null ) {
             return null;
         }

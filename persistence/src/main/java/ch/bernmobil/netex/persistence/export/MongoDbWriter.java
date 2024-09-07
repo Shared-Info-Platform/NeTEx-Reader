@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.importer.mongodb.export;
+package ch.bernmobil.netex.persistence.export;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,15 +20,12 @@ import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 
-import ch.bernmobil.netex.importer.Constants;
-import ch.bernmobil.netex.importer.journey.dom.Journey;
-import ch.bernmobil.netex.importer.mongodb.dom.CallAggregation;
-import ch.bernmobil.netex.importer.mongodb.dom.CallWithJourney;
-import ch.bernmobil.netex.importer.mongodb.dom.JourneyAggregation;
-import ch.bernmobil.netex.importer.mongodb.dom.JourneyWithCalls;
-import ch.bernmobil.netex.importer.mongodb.dom.RouteAggregation;
-import ch.bernmobil.netex.importer.mongodb.mapper.AggregationMapper;
-import ch.bernmobil.netex.importer.mongodb.mapper.JourneyMapper;
+import ch.bernmobil.netex.persistence.Constants;
+import ch.bernmobil.netex.persistence.dom.CallAggregation;
+import ch.bernmobil.netex.persistence.dom.CallWithJourney;
+import ch.bernmobil.netex.persistence.dom.JourneyAggregation;
+import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
+import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 
 /**
  * Opens collections in a MongoDB, creates indexes (if necessary) for these collections, transforms journeys
@@ -149,39 +146,50 @@ public class MongoDbWriter {
 		return numDocuments == 0;
 	}
 
-	public void writeJourneys(List<Journey> journeys) {
+	public void writeJourneys(final List<JourneyWithCalls> journeys) {
 		final InsertManyOptions options = new InsertManyOptions().ordered(false);
 
-		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();
-		final List<CallWithJourney> mappedCalls = new ArrayList<>();
-		for (final Journey journey : journeys) {
-			mappedJourneys.add(JourneyMapper.INSTANCE.mapJourney(journey));
-			mappedCalls.addAll(journey.calls.stream().map(call -> JourneyMapper.INSTANCE.mapCalls(call, journey)).toList());
+		int numberOfCalls = 0;
+		final List<JourneyWithCalls> batch = new ArrayList<>();
+		for (final JourneyWithCalls journey : journeys) {
+			batch.add(journey);
+			numberOfCalls += journey.calls.size();
 
-			// insert frequently before batch becomes too large. checking the number of calls is enough because
-			// they are also embedded in journeys, so there may not be many journeys but they are still large.
-			if (mappedCalls.size() >= Constants.MAX_NUMBER_OF_CALLS_PER_MONGODB_WRITE) {
-				journeyCollection.insertMany(mappedJourneys, options);
-				callCollection.insertMany(mappedCalls, options);
-				mappedJourneys.clear();
-				mappedCalls.clear();
+			// insert frequently before batch becomes too large.
+			if (numberOfCalls >= Constants.MAX_NUMBER_OF_CALLS_PER_MONGODB_WRITE) {
+				journeyCollection.insertMany(batch, options);
+				batch.clear();
+				numberOfCalls = 0;
 			}
 		}
 		// insert the rest of the documents if there are any
-		if (mappedCalls.size() > 0) {
-			journeyCollection.insertMany(mappedJourneys, options);
-			callCollection.insertMany(mappedCalls, options);
+		if (batch.size() > 0) {
+			journeyCollection.insertMany(batch, options);
 		}
 	}
 
-	public void writeJourneyAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.JourneyAggregation> aggregations) {
-		final List<JourneyAggregation> mappedAggregations = new ArrayList<>();
-		for (final ch.bernmobil.netex.importer.journey.dom.JourneyAggregation aggregation : aggregations) {
-			mappedAggregations.add(AggregationMapper.INSTANCE.mapJourneyAggregation(aggregation));
-		}
+	public void writeCalls(final List<CallWithJourney> calls) {
+		final InsertManyOptions options = new InsertManyOptions().ordered(false);
 
+		final List<CallWithJourney> batch = new ArrayList<>();
+		for (final CallWithJourney call : calls) {
+			batch.add(call);
+
+			// insert frequently before batch becomes too large.
+			if (batch.size() >= Constants.MAX_NUMBER_OF_CALLS_PER_MONGODB_WRITE) {
+				callCollection.insertMany(batch, options);
+				batch.clear();
+			}
+		}
+		// insert the rest of the documents if there are any
+		if (batch.size() > 0) {
+			callCollection.insertMany(batch, options);
+		}
+	}
+
+	public void writeJourneyAggregations(Collection<JourneyAggregation> aggregations) {
 		final List<UpdateOneModel<JourneyAggregation>> updates = new ArrayList<>();
-		for (final JourneyAggregation journeyAggregation : mappedAggregations) {
+		for (final JourneyAggregation journeyAggregation : aggregations) {
 			final BsonString id = new BsonString(journeyAggregation.getId());
 			final BsonDocument filter = new BsonDocument("_id", id);
 			final BsonDocument set = new BsonDocument();
@@ -208,14 +216,9 @@ public class MongoDbWriter {
 		}
 	}
 
-	public void writeCallAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.CallAggregation> aggregations) {
-		final List<CallAggregation> mappedAggregations = new ArrayList<>();
-		for (final ch.bernmobil.netex.importer.journey.dom.CallAggregation aggregation : aggregations) {
-			mappedAggregations.add(AggregationMapper.INSTANCE.mapCallAggregation(aggregation));
-		}
-
+	public void writeCallAggregations(Collection<CallAggregation> aggregations) {
 		final List<UpdateOneModel<CallAggregation>> updates = new ArrayList<>();
-		for (final CallAggregation callAggregation : mappedAggregations) {
+		for (final CallAggregation callAggregation : aggregations) {
 			final BsonString id = new BsonString(callAggregation.getId());
 			final BsonDocument filter = new BsonDocument("_id", id);
 			final BsonDocument set = new BsonDocument();
@@ -243,14 +246,9 @@ public class MongoDbWriter {
 		}
 	}
 
-	public void writeRouteAggregations(Collection<ch.bernmobil.netex.importer.journey.dom.RouteAggregation> aggregations) {
-		final List<RouteAggregation> mappedAggregations = new ArrayList<>();
-		for (final ch.bernmobil.netex.importer.journey.dom.RouteAggregation aggregation : aggregations) {
-			mappedAggregations.add(AggregationMapper.INSTANCE.mapRouteAggregation(aggregation));
-		}
-
+	public void writeRouteAggregations(Collection<RouteAggregation> aggregations) {
 		final List<UpdateOneModel<RouteAggregation>> updates = new ArrayList<>();
-		for (final RouteAggregation routeAggregation : mappedAggregations) {
+		for (final RouteAggregation routeAggregation : aggregations) {
 			final BsonString id = new BsonString(routeAggregation.getId());
 			final BsonDocument filter = new BsonDocument("_id", id);
 			final BsonDocument set = new BsonDocument();

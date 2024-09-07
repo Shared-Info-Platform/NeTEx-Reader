@@ -16,6 +16,7 @@
 
     <modules>
         <module>netex-importer</module>
+        <module>persistence</module>
     </modules>
 
     <properties>
@@ -27,6 +28,12 @@
     <!-- central version management for all dependencies -->
     <dependencyManagement>
         <dependencies>
+			<dependency>
+				<groupId>ch.bernmobil.sip.netex</groupId>
+				<artifactId>sip-netex-persistence</artifactId>
+				<version>${revision}</version>
+			</dependency>
+	
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter</artifactId>

@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.importer.mongodb.dom;
+package ch.bernmobil.netex.persistence.dom;
 
 import java.time.ZonedDateTime;
 

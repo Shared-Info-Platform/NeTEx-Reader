@@ -17,6 +17,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>ch.bernmobil.sip.netex</groupId>
+			<artifactId>sip-netex-persistence</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
@@ -27,10 +32,6 @@
 		<dependency>
 			<groupId>com.fasterxml.woodstox</groupId>
 			<artifactId>woodstox-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongodb-driver-sync</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.mapstruct</groupId>

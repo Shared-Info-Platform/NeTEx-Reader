@@ -16,7 +16,7 @@ import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.bernmobil.netex.importer.mongodb.export.MongoDbWriter;
+import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 import net.lingala.zip4j.ZipFile;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

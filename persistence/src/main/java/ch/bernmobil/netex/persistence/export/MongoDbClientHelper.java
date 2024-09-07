@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.importer.mongodb.export;
+package ch.bernmobil.netex.persistence.export;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -17,7 +17,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
-import ch.bernmobil.netex.importer.Constants;
+import ch.bernmobil.netex.persistence.Constants;
 
 public class MongoDbClientHelper {
 

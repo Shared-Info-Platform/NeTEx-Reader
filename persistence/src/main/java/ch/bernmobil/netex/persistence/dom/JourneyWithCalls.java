@@ -1,5 +1,6 @@
-package ch.bernmobil.netex.importer.mongodb.dom;
+package ch.bernmobil.netex.persistence.dom;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -7,12 +8,17 @@ import java.util.Map;
 
 import org.bson.codecs.pojo.annotations.BsonId;
 
-public class CallWithJourney extends Call {
+public class JourneyWithCalls {
 
-	public String originalId; // required
+	@BsonId
+	public String id; // required
 	public String sjyid; // optional
 	public String operatingDay; // required
 	public String calendarDay; // required
+	public ZonedDateTime departureTime; // required
+	public String departureStopPlaceCode; // optional
+	public ZonedDateTime arrivalTime; // required
+	public String arrivalStopPlaceCode; // optional
 
 	public String transportMode; // optional (from ServiceJourney or fallback from Line)
 	public String transportSubmode; // optional (from Line)
@@ -37,8 +43,6 @@ public class CallWithJourney extends Call {
 	// Direction
 	public String directionType; // required
 
-	@BsonId
-	public String getId() {
-		return id;
-	}
+	// Calls
+	public List<Call> calls = new ArrayList<>();
 }
