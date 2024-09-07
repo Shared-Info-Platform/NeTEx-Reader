@@ -14,7 +14,7 @@ import ch.bernmobil.netex.importer.journey.dom.RouteAggregation;
  * The conversion between input- and output-model is done automatically by MapStruct. The annotations contain
  * some cues for non-trivial mappings.
  */
-@Mapper
+@Mapper(suppressTimestampInGenerated = true)
 public interface AggregationMapper {
 
 	AggregationMapper INSTANCE = Mappers.getMapper(AggregationMapper.class);

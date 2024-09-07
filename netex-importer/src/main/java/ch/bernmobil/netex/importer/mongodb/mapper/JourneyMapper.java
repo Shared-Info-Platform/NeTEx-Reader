@@ -15,7 +15,7 @@ import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
  * The conversion between input- and output-model is done automatically by MapStruct. The annotations contain
  * some cues for non-trivial mappings.
  */
-@Mapper
+@Mapper(suppressTimestampInGenerated = true)
 public interface JourneyMapper {
 
 	JourneyMapper INSTANCE = Mappers.getMapper(JourneyMapper.class);
