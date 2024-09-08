@@ -69,11 +69,8 @@ public class AggregationMapperImpl implements AggregationMapper {
         routeAggregation.operatorCode = aggregationIdOperatorCode2( aggregation );
         routeAggregation.lineCode = aggregationIdLineCode2( aggregation );
         routeAggregation.directionType = aggregationIdDirectionType( aggregation );
-        List<String> stopPlaceCodes = aggregationIdStopPlaceCodes( aggregation );
-        List<String> list = stopPlaceCodes;
-        if ( list != null ) {
-            routeAggregation.stopPlaceCodes = new ArrayList<String>( list );
-        }
+        List<RouteAggregation.StopPlace> stopPlaces = aggregationIdStopPlaces( aggregation );
+        routeAggregation.stopPlaces = stopPlaceListToStopPlaceList( stopPlaces );
         routeAggregation.journeys = aggregation.journeys;
 
         return routeAggregation;
@@ -244,7 +241,7 @@ public class AggregationMapperImpl implements AggregationMapper {
         return directionType;
     }
 
-    private List<String> aggregationIdStopPlaceCodes(RouteAggregation routeAggregation) {
+    private List<RouteAggregation.StopPlace> aggregationIdStopPlaces(RouteAggregation routeAggregation) {
         if ( routeAggregation == null ) {
             return null;
         }
@@ -252,10 +249,39 @@ public class AggregationMapperImpl implements AggregationMapper {
         if ( id == null ) {
             return null;
         }
-        List<String> stopPlaceCodes = id.stopPlaceCodes;
-        if ( stopPlaceCodes == null ) {
+        List<RouteAggregation.StopPlace> stopPlaces = id.stopPlaces;
+        if ( stopPlaces == null ) {
             return null;
         }
-        return stopPlaceCodes;
+        return stopPlaces;
+    }
+
+    protected ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace stopPlaceToStopPlace(RouteAggregation.StopPlace stopPlace) {
+        if ( stopPlace == null ) {
+            return null;
+        }
+
+        String code = null;
+        String name = null;
+
+        code = stopPlace.code();
+        name = stopPlace.name();
+
+        ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace stopPlace1 = new ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace( code, name );
+
+        return stopPlace1;
+    }
+
+    protected List<ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace> stopPlaceListToStopPlaceList(List<RouteAggregation.StopPlace> list) {
+        if ( list == null ) {
+            return null;
+        }
+
+        List<ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace> list1 = new ArrayList<ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace>( list.size() );
+        for ( RouteAggregation.StopPlace stopPlace : list ) {
+            list1.add( stopPlaceToStopPlace( stopPlace ) );
+        }
+
+        return list1;
     }
 }

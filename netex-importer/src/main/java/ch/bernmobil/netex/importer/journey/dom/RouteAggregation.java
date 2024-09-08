@@ -19,11 +19,11 @@ public class RouteAggregation {
 		public String operatorCode;
 		public String lineCode;
 		public String directionType;
-		public List<String> stopPlaceCodes = new ArrayList<>();
+		public List<StopPlace> stopPlaces = new ArrayList<>();
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(calendarDay, operatorCode, lineCode, directionType, stopPlaceCodes);
+			return Objects.hash(calendarDay, operatorCode, lineCode, directionType, stopPlaces);
 		}
 
 		@Override
@@ -38,7 +38,9 @@ public class RouteAggregation {
 					&& Objects.equals(operatorCode, other.operatorCode)
 					&& Objects.equals(lineCode, other.lineCode)
 					&& Objects.equals(directionType, other.directionType)
-					&& Objects.equals(stopPlaceCodes, other.stopPlaceCodes);
+					&& Objects.equals(stopPlaces, other.stopPlaces);
 		}
 	}
+
+	public record StopPlace(String code, String name) {}
 }

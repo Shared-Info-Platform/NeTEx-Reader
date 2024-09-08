@@ -11,11 +11,13 @@ public class RouteAggregation {
 	public String operatorCode;
 	public String lineCode;
 	public String directionType;
-	public List<String> stopPlaceCodes = new ArrayList<>();
+	public List<StopPlace> stopPlaces = new ArrayList<>();
 	public long journeys;
 
 	@BsonId
 	public String getId() {
-		return calendarDay + "_" + operatorCode + "_" + lineCode + "_" + directionType + "_" + stopPlaceCodes.hashCode();
+		return calendarDay + "_" + operatorCode + "_" + lineCode + "_" + directionType + "_" + stopPlaces.hashCode();
 	}
+
+	public record StopPlace(String code, String name) {}
 }

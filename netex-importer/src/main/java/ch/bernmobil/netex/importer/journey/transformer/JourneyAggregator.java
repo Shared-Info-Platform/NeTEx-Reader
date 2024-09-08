@@ -13,6 +13,7 @@ import ch.bernmobil.netex.importer.journey.dom.CallAggregation;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
 import ch.bernmobil.netex.importer.journey.dom.RouteAggregation;
+import ch.bernmobil.netex.importer.journey.dom.RouteAggregation.StopPlace;
 
 /**
  * Aggregates the number of journeys and calls for each day, operator, and line (and stopPlace, but only for calls).
@@ -129,7 +130,15 @@ public class JourneyAggregator {
 		result.operatorCode = journey.operatorCode;
 		result.lineCode = journey.lineCode;
 		result.directionType = journey.directionType;
-		result.stopPlaceCodes = journey.calls.stream().map(call -> call.stopPlaceCode).filter(Objects::nonNull).toList();
+		result.stopPlaces = journey.calls.stream().map(this::createStopPlace).filter(Objects::nonNull).toList();
 		return result;
+	}
+
+	private StopPlace createStopPlace(Call call) {
+		if (call.stopPlaceCode != null) {
+			return new StopPlace(call.stopPlaceCode, call.stopPlaceName);
+		} else {
+			return null;
+		}
 	}
 }

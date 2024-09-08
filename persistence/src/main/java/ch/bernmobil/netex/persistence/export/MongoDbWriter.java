@@ -26,6 +26,7 @@ import ch.bernmobil.netex.persistence.dom.CallWithJourney;
 import ch.bernmobil.netex.persistence.dom.JourneyAggregation;
 import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
+import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
 
 /**
  * Opens collections in a MongoDB, creates indexes (if necessary) for these collections, transforms journeys
@@ -257,8 +258,8 @@ public class MongoDbWriter {
 			set.put("operatorCode", new BsonString(routeAggregation.operatorCode));
 			set.put("lineCode", new BsonString(routeAggregation.lineCode));
 			set.put("directionType", new BsonString(routeAggregation.directionType));
-			final List<BsonString> stopPlaceCodes = routeAggregation.stopPlaceCodes.stream().map(BsonString::new).toList();
-			set.put("stopPlaceCodes", new BsonArray(stopPlaceCodes));
+			final List<BsonDocument> stopPlaces = routeAggregation.stopPlaces.stream().map(this::createStopDocument).toList();
+			set.put("stopPlaces", new BsonArray(stopPlaces));
 			final BsonDocument update = new BsonDocument();
 			update.put("$set", set);
 			update.put("$inc", new BsonDocument("journeys", new BsonInt64(routeAggregation.journeys)));
@@ -276,6 +277,13 @@ public class MongoDbWriter {
 		if (updates.size() > 0) {
 			routeAggregationCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 		}
+	}
+
+	private BsonDocument createStopDocument(StopPlace stopPlace) {
+		final BsonDocument result = new BsonDocument();
+		result.put("code", new BsonString(stopPlace.code()));
+		result.put("name", new BsonString(stopPlace.name()));
+		return result;
 	}
 
 	public void close() {
