@@ -40,6 +40,6 @@ public class Journey {
 	public List<Call> calls = new ArrayList<>();
 
 	public LocalDate getCalendarDay() {
-		return calls.get(0).departure.time.withZoneSameInstant(ZoneOffset.UTC).toLocalDate();
+		return calls.get(0).departure.time.atZone(ZoneOffset.UTC).toLocalDate();
 	}
 }

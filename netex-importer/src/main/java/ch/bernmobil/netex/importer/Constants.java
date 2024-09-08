@@ -11,5 +11,5 @@ public class Constants {
 
 	public static final int MAX_NUMBER_OF_AGGREGATIONS_IN_MEMORY = 250_000;
 
-	public static final ZoneId ZONE_ID = ZoneId.of("CET");
+	public static final ZoneId ZONE_ID = ZoneId.of("Europe/Zurich");
 }

@@ -1,6 +1,6 @@
 package ch.bernmobil.netex.persistence.dom;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,9 +15,9 @@ public class JourneyWithCalls {
 	public String sjyid; // optional
 	public String operatingDay; // required
 	public String calendarDay; // required
-	public ZonedDateTime departureTime; // required
+	public Instant departureTime; // required
 	public String departureStopPlaceCode; // optional
-	public ZonedDateTime arrivalTime; // required
+	public Instant arrivalTime; // required
 	public String arrivalStopPlaceCode; // optional
 
 	public String transportMode; // optional (from ServiceJourney or fallback from Line)

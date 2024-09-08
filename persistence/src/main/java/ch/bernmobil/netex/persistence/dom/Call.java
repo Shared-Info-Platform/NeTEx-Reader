@@ -1,6 +1,6 @@
 package ch.bernmobil.netex.persistence.dom;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 public class Call {
 
@@ -21,13 +21,13 @@ public class Call {
 	public Departure departure; // optional
 
 	public static class Arrival {
-		public ZonedDateTime time; // required
+		public Instant time; // required
 		public boolean forAlighting; // required
 		public boolean isFlexible; // required
 	}
 
 	public static class Departure {
-		public ZonedDateTime time; // required
+		public Instant time; // required
 		public boolean forBoarding; // required
 		public boolean isFlexible; // required
 	}

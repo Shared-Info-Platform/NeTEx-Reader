@@ -1,8 +1,8 @@
 package ch.bernmobil.netex.importer.journey.dom;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 
 public class Call {
 
@@ -23,18 +23,18 @@ public class Call {
 	public Departure departure; // optional
 
 	public static class Arrival {
-		public ZonedDateTime time; // required
+		public Instant time; // required
 		public boolean forAlighting; // required
 		public boolean isFlexible; // required
 	}
 
 	public static class Departure {
-		public ZonedDateTime time; // required
+		public Instant time; // required
 		public boolean forBoarding; // required
 		public boolean isFlexible; // required
 	}
 
 	public LocalDate getCalendarDay() {
-		return (departure != null ? departure.time : arrival.time).withZoneSameInstant(ZoneOffset.UTC).toLocalDate();
+		return (departure != null ? departure.time : arrival.time).atZone(ZoneOffset.UTC).toLocalDate();
 	}
 }

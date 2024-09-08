@@ -1,5 +1,6 @@
 package ch.bernmobil.netex.importer.journey.transformer;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -123,10 +124,10 @@ public class JourneyTransformer {
 	 * changes). A day offset of 1 is simply considered as 24 additional hours (like in GTFS where there can be times
 	 * like "26:00:00").
 	 */
-	private static ZonedDateTime createTime(LocalTime time, ZonedDateTime noonMinus12Hours, int dayOffset) {
+	private static Instant createTime(LocalTime time, ZonedDateTime noonMinus12Hours, int dayOffset) {
 		final int hours = time.getHour() + (dayOffset * 24);
 		final int minutes = time.getMinute();
 		final int seconds = time.getSecond();
-		return noonMinus12Hours.plusHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+		return noonMinus12Hours.plusHours(hours).plusMinutes(minutes).plusSeconds(seconds).toInstant();
 	}
 }
