@@ -11,7 +11,7 @@ public class Route {
 	private DirectionType directionType;
 	private List<StopPlace> stopPlaces = new ArrayList<>();
 	private long numberOfJourneys;
-	private BigDecimal percentage;
+	private BigDecimal percentagePerDirection;
 
 	public String getOperatorCode() {
 		return operatorCode;
@@ -53,12 +53,12 @@ public class Route {
 		this.numberOfJourneys = numberOfJourneys;
 	}
 
-	public BigDecimal getPercentage() {
-		return percentage;
+	public BigDecimal getPercentagePerDirection() {
+		return percentagePerDirection;
 	}
 
-	public void setPercentage(BigDecimal percentage) {
-		this.percentage = percentage;
+	public void setPercentagePerDirection(BigDecimal percentagePerDirection) {
+		this.percentagePerDirection = percentagePerDirection;
 	}
 
 	public enum DirectionType {

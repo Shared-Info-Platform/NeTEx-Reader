@@ -8,7 +8,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -33,19 +35,27 @@ public class RouteService {
 		this.defaultRepository = new RouteAggregationRepository(client, properties.getDatabaseName());
 	}
 
-	public List<Route> findRoutes(String operatorCode, String lineCode, Optional<String> directionType, Optional<LocalDate> calendarDay,
+	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<String> directionType, Optional<LocalDate> calendarDay,
 			Optional<Integer> previewDays, BigDecimal threshold, Optional<String> databaseName) {
 		final List<String> directionTypes = directionType.map(List::of).orElse(getDefaultDirectionTypes());
 		final List<String> calendarDays = getCalendarDays(calendarDay.orElse(LocalDate.now()), previewDays.orElse(0));
 
 		final RouteAggregationRepository repository = databaseName.map(name -> new RouteAggregationRepository(client, name)).orElse(defaultRepository);
 		final List<RouteAggregation> aggregations = repository.findRouteAggregations(operatorCode, lineCode, directionTypes, calendarDays);
+		final Map<DirectionType, List<RouteAggregation>> aggregationsByDirection = groupRouteAggregationsByDirectionType(aggregations);
 
-		final List<Route> routes = groupRouteAggregations(aggregations).values().stream().map(this::createRoute).collect(Collectors.toCollection(() -> new ArrayList<>()));
+		final Map<DirectionType, List<Route>> result = new TreeMap<>(); // use tree map to sort inbound > outbound
+		for (final Entry<DirectionType, List<RouteAggregation>> entry : aggregationsByDirection.entrySet()) {
+			final List<Route> routes = groupRouteAggregationsByRoute(entry.getValue()).values().stream().map(this::createRoute).collect(Collectors.toCollection(() -> new ArrayList<>()));
+			result.put(entry.getKey(), cutOffAfterThreshold(routes, threshold));
+		}
+		return result;
+	}
 
+	private List<Route> cutOffAfterThreshold(List<Route> routes, BigDecimal threshold) {
 		// calculate percentage of journeys compared to total
 		final BigDecimal totalNumberOfJourneys = BigDecimal.valueOf(routes.stream().mapToLong(Route::getNumberOfJourneys).sum());
-		routes.stream().forEach(route -> route.setPercentage(getPercentageOfTotal(route.getNumberOfJourneys(), totalNumberOfJourneys)));
+		routes.stream().forEach(route -> route.setPercentagePerDirection(getPercentageOfTotal(route.getNumberOfJourneys(), totalNumberOfJourneys)));
 
 		// sort by descending number of journeys and return all routes up to the threshold
 		routes.sort(Comparator.comparing(Route::getNumberOfJourneys, Comparator.reverseOrder()));
@@ -82,7 +92,17 @@ public class RouteService {
 		return calendarDays.stream().map(LocalDate::toString).toList();
 	}
 
-	private Map<RouteId, List<RouteAggregation>> groupRouteAggregations(List<RouteAggregation> aggregations) {
+	private Map<DirectionType, List<RouteAggregation>> groupRouteAggregationsByDirectionType(List<RouteAggregation> aggregations) {
+		final Map<DirectionType, List<RouteAggregation>> result = new HashMap<>();
+		for (final RouteAggregation aggregation : aggregations) {
+			final DirectionType directionType = DirectionType.valueOf(aggregation.directionType);
+			final List<RouteAggregation> list = result.computeIfAbsent(directionType, key -> new ArrayList<>());
+			list.add(aggregation);
+		}
+		return result;
+	}
+
+	private Map<RouteId, List<RouteAggregation>> groupRouteAggregationsByRoute(List<RouteAggregation> aggregations) {
 		final Map<RouteId, List<RouteAggregation>> result = new HashMap<>();
 		for (final RouteAggregation aggregation : aggregations) {
 			final RouteId id = RouteId.of(aggregation);

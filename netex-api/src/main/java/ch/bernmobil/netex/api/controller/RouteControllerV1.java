@@ -3,6 +3,7 @@ package ch.bernmobil.netex.api.controller;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.bernmobil.netex.api.model.Route;
+import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.api.service.RouteService;
 
 @RestController
@@ -28,7 +30,7 @@ public class RouteControllerV1 {
             method = RequestMethod.GET,
             produces = { "application/json" }
     )
-    public List<Route> findRoutes(
+    public Map<DirectionType, List<Route>> findRoutesByDirection(
     		@RequestParam(required = true) String operatorCode,
     		@RequestParam(required = true) String lineCode,
     		@RequestParam(required = false) String directionType,
@@ -36,7 +38,7 @@ public class RouteControllerV1 {
     		@RequestParam(required = false) Integer previewDays,
     		@RequestParam(required = false, defaultValue = "90") BigDecimal threshold,
     		@RequestParam(required = false) String databaseName) {
-    	return routeService.findRoutes(operatorCode, lineCode, Optional.ofNullable(directionType), Optional.ofNullable(calendarDay),
+    	return routeService.findRoutesByDirection(operatorCode, lineCode, Optional.ofNullable(directionType), Optional.ofNullable(calendarDay),
     			Optional.ofNullable(previewDays), threshold, Optional.ofNullable(databaseName));
     }
 }
