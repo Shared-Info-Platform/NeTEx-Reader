@@ -13,7 +13,9 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.mongodb.client.MongoClient;
 
@@ -22,25 +24,26 @@ import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.api.model.Route.StopPlace;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
+import ch.bernmobil.netex.persistence.search.Helper;
 import ch.bernmobil.netex.persistence.search.RouteAggregationRepository;
 
 @Service
 public class RouteService {
 
 	private final MongoClient client;
-	private final RouteAggregationRepository defaultRepository;
+	private final NetexApiProperties properties;
 
 	public RouteService(MongoClient client, NetexApiProperties properties) {
 		this.client = client;
-		this.defaultRepository = new RouteAggregationRepository(client, properties.getDatabaseName());
+		this.properties = properties;
 	}
 
-	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<String> directionType, Optional<LocalDate> calendarDay,
+	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<DirectionType> directionType, Optional<LocalDate> calendarDay,
 			Optional<Integer> previewDays, BigDecimal threshold, Optional<String> databaseName) {
-		final List<String> directionTypes = directionType.map(List::of).orElse(getDefaultDirectionTypes());
+		final List<String> directionTypes = directionType.map(DirectionType::name).map(List::of).orElse(getDefaultDirectionTypes());
 		final List<String> calendarDays = getCalendarDays(calendarDay.orElse(LocalDate.now()), previewDays.orElse(0));
 
-		final RouteAggregationRepository repository = databaseName.map(name -> new RouteAggregationRepository(client, name)).orElse(defaultRepository);
+		final RouteAggregationRepository repository = getRepository(databaseName);
 		final List<RouteAggregation> aggregations = repository.findRouteAggregations(operatorCode, lineCode, directionTypes, calendarDays);
 		final Map<DirectionType, List<RouteAggregation>> aggregationsByDirection = groupRouteAggregationsByDirectionType(aggregations);
 
@@ -92,6 +95,15 @@ public class RouteService {
 		return calendarDays.stream().map(LocalDate::toString).toList();
 	}
 
+	private RouteAggregationRepository getRepository(Optional<String> optionalDatabaseName) {
+		final String databaseName = optionalDatabaseName.orElse(properties.getDatabaseName());
+		if (Helper.doesDatabaseExist(client, databaseName)) {
+			return new RouteAggregationRepository(client, databaseName);
+		} else {
+			throw new NotFoundException("no database found with name " + databaseName);
+		}
+	}
+
 	private Map<DirectionType, List<RouteAggregation>> groupRouteAggregationsByDirectionType(List<RouteAggregation> aggregations) {
 		final Map<DirectionType, List<RouteAggregation>> result = new HashMap<>();
 		for (final RouteAggregation aggregation : aggregations) {
@@ -138,4 +150,12 @@ public class RouteService {
 			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.directionType, stopPlaceCodes);
 		}
 	}
+
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    public class NotFoundException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+		public NotFoundException(String message) {
+            super(message);
+        }
+    }
 }
