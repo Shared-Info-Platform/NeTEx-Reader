@@ -15,6 +15,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>netex-api</module>
         <module>netex-importer</module>
         <module>persistence</module>
     </modules>

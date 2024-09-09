@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>ch.bernmobil.sip.netex</groupId>
+		<artifactId>sip-netex-root</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>sip-netex-api</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>ch.bernmobil.sip.netex</groupId>
+			<artifactId>sip-netex-persistence</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.43.4</version>
+				<configuration>
+					<jib>true</jib>
+					<images>
+						<image>
+							<name>harbor.bernmobil.ch/sip/netex-api:${build.number}</name>
+							<build>
+								<from>eclipse-temurin:17-jre</from>
+								<assembly>
+									<descriptorRef>artifact</descriptorRef>
+								</assembly>
+								<entryPoint>
+									<exec>
+										<arg>java</arg>
+										<arg>-XX:+ExitOnOutOfMemoryError</arg>
+										<arg>-jar</arg>
+										<arg>/maven/${project.artifactId}-${project.version}.${project.packaging}</arg>
+									</exec>
+								</entryPoint>
+							</build>
+						</image>
+					</images>
+					<authConfig>
+						<push>
+							<username>${env.REGISTRY_USERNAME}</username>
+							<password>${env.REGISTRY_PASSWORD}</password>
+						</push>
+					</authConfig>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
