@@ -17,25 +17,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.mongodb.client.MongoClient;
-
 import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.api.model.Route.StopPlace;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
-import ch.bernmobil.netex.persistence.search.Helper;
 import ch.bernmobil.netex.persistence.search.RouteAggregationRepository;
 
 @Service
 public class RouteService {
 
-	private final MongoClient client;
 	private final NetexApiProperties properties;
+	private final RepositoryFactory repositoryFactory;
 
-	public RouteService(MongoClient client, NetexApiProperties properties) {
-		this.client = client;
+	public RouteService(NetexApiProperties properties, RepositoryFactory repositoryFactory) {
 		this.properties = properties;
+		this.repositoryFactory = repositoryFactory;
 	}
 
 	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<DirectionType> directionType, Optional<LocalDate> calendarDay,
@@ -97,8 +94,9 @@ public class RouteService {
 
 	private RouteAggregationRepository getRepository(Optional<String> optionalDatabaseName) {
 		final String databaseName = optionalDatabaseName.orElse(properties.getDatabaseName());
-		if (Helper.doesDatabaseExist(client, databaseName)) {
-			return new RouteAggregationRepository(client, databaseName);
+		final RouteAggregationRepository repository = repositoryFactory.createRepository(databaseName);
+		if (repository != null) {
+			return repository;
 		} else {
 			throw new NotFoundException("no database found with name " + databaseName);
 		}

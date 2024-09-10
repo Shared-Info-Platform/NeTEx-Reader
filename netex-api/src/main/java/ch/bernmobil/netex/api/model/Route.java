@@ -75,6 +75,6 @@ public class Route {
 	}
 
 	@Schema(description = "A stop place, defined by a code and a human readable name.")
-	public record StopPlace(String code, String name) {
+	public static record StopPlace(String code, String name) {
 	}
 }
