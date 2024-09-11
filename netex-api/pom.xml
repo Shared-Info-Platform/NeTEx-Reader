@@ -54,9 +54,7 @@
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.43.4</version>
 				<configuration>
-					<jib>true</jib>
 					<images>
 						<image>
 							<name>harbor.bernmobil.ch/sip/netex-api:${build.number}</name>
@@ -76,12 +74,6 @@
 							</build>
 						</image>
 					</images>
-					<authConfig>
-						<push>
-							<username>${env.REGISTRY_USERNAME}</username>
-							<password>${env.REGISTRY_PASSWORD}</password>
-						</push>
-					</authConfig>
 				</configuration>
 			</plugin>
 		</plugins>

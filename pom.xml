@@ -75,6 +75,25 @@
     </dependencyManagement>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>io.fabric8</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<version>0.43.4</version>
+					<configuration>
+						<jib>true</jib>
+						<authConfig>
+							<push>
+								<username>${env.REGISTRY_USERNAME}</username>
+								<password>${env.REGISTRY_PASSWORD}</password>
+							</push>
+						</authConfig>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
