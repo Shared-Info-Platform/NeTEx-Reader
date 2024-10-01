@@ -25,6 +25,7 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         JourneyWithCalls journeyWithCalls = new JourneyWithCalls();
 
+        journeyWithCalls.id = journey.id;
         journeyWithCalls.sjyid = journey.sjyid;
         if ( journey.operatingDay != null ) {
             journeyWithCalls.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
@@ -59,7 +60,6 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyWithCalls.directionType = journey.directionType;
         journeyWithCalls.calls = callListToCallList( journey.calls );
 
-        journeyWithCalls.id = journey.id + "_" + journey.operatingDay;
         journeyWithCalls.departureTime = journey.calls.get(0).departure.time;
         journeyWithCalls.departureStopPlaceCode = journey.calls.get(0).stopPlaceCode;
         journeyWithCalls.arrivalTime = journey.calls.get(journey.calls.size() - 1).arrival.time;
@@ -77,7 +77,7 @@ public class JourneyMapperImpl implements JourneyMapper {
         CallWithJourney callWithJourney = new CallWithJourney();
 
         if ( call != null ) {
-            callWithJourney.originalId = call.id;
+            callWithJourney.id = call.id;
             if ( call.getCalendarDay() != null ) {
                 callWithJourney.calendarDay = DateTimeFormatter.ISO_LOCAL_DATE.format( call.getCalendarDay() );
             }
@@ -90,6 +90,7 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.destinationDisplayName = call.destinationDisplayName;
             callWithJourney.arrival = arrivalToArrival( call.arrival );
             callWithJourney.departure = departureToDeparture( call.departure );
+            callWithJourney.originalId = call.originalId;
         }
         if ( journey != null ) {
             callWithJourney.sjyid = journey.sjyid;
@@ -122,7 +123,6 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.lineShortName = journey.lineShortName;
             callWithJourney.directionType = journey.directionType;
         }
-        callWithJourney.id = journey.id + "_" + journey.operatingDay + "_" + call.order;
 
         return callWithJourney;
     }

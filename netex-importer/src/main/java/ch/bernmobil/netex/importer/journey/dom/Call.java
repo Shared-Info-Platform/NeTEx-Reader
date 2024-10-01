@@ -8,6 +8,8 @@ public class Call {
 
 	public String id; // required
 	public int order; // required
+	public String originalId; // required
+
 	public boolean requestStop; // required
 	public String stopUse; // optional
 

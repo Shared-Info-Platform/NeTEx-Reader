@@ -30,7 +30,7 @@ public class JourneyTransformer {
 
 	private static Journey transform(NetexServiceJourney journey, LocalDate date) {
 		final Journey result = new Journey();
-		result.id = journey.id;
+		result.id = journey.id + "_" + date;
 		result.sjyid = journey.sjyid;
 		result.operatingDay = date;
 		result.transportMode = (journey.transportMode != null ? journey.transportMode : (journey.line != null ? journey.line.transportMode : null));
@@ -81,15 +81,17 @@ public class JourneyTransformer {
 
 		final ZonedDateTime noon = ZonedDateTime.of(date, LocalTime.of(12, 0), Constants.ZONE_ID);
 		final ZonedDateTime noonMinus12Hours = noon.minusHours(12);
-		result.calls = journey.calls.stream().map(call -> transform(call, noonMinus12Hours)).toList();
+		result.calls = journey.calls.stream().map(call -> transform(call, noonMinus12Hours, result.id)).toList();
 
 		return result;
 	}
 
-	private static Call transform(NetexCall call, ZonedDateTime noonMinus12Hours) {
+	private static Call transform(NetexCall call, ZonedDateTime noonMinus12Hours, String journeyId) {
 		final Call result = new Call();
-		result.id = call.id;
+		result.id = journeyId + "_" + call.order;
 		result.order = call.order;
+		result.originalId = call.id;
+
 		result.requestStop = call.requestStop;
 		result.stopUse = call.stopUse;
 
