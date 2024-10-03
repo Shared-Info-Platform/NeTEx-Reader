@@ -82,6 +82,7 @@ public class JourneyMapperImpl implements JourneyMapper {
                 callWithJourney.calendarDay = DateTimeFormatter.ISO_LOCAL_DATE.format( call.getCalendarDay() );
             }
             callWithJourney.order = call.order;
+            callWithJourney.originalId = call.originalId;
             callWithJourney.requestStop = call.requestStop;
             callWithJourney.stopUse = call.stopUse;
             callWithJourney.stopPlaceCode = call.stopPlaceCode;
@@ -90,7 +91,6 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.destinationDisplayName = call.destinationDisplayName;
             callWithJourney.arrival = arrivalToArrival( call.arrival );
             callWithJourney.departure = departureToDeparture( call.departure );
-            callWithJourney.originalId = call.originalId;
         }
         if ( journey != null ) {
             callWithJourney.sjyid = journey.sjyid;
@@ -164,6 +164,7 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         call1.id = call.id;
         call1.order = call.order;
+        call1.originalId = call.originalId;
         call1.requestStop = call.requestStop;
         call1.stopUse = call.stopUse;
         call1.stopPlaceCode = call.stopPlaceCode;
