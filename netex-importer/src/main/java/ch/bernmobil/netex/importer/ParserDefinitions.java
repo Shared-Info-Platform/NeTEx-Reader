@@ -322,6 +322,7 @@ public class ParserDefinitions {
 						.withChild("DepartureTime", new TextParser())
 						.withChild("DepartureDayOffset", new TextParser())
 						.withChild("VehicleTypeRef", createRefParser())
+						.withChild("OperatorRef", createRefParser())
 						.withChild("LineRef", createRefParser())
 						.withChild("DirectionType", new TextParser())
 						.withChild("trainNumbers", new ElementParser()
@@ -353,6 +354,13 @@ public class ParserDefinitions {
 									.withChild("ForBoarding", new TextParser())
 									.withChild("IsFlexible", new TextParser())
 									.withChild("CheckConstraint", null) // ignore
+									.withChild("DynamicStopAssignment", new ElementParser() // ???
+										.withAttribute("id")
+										.withAttribute("version")
+										.withAttribute("order")
+										.withChild("ScheduledStopPointRef", createRefParser())
+										.withChild("StopPlaceRef", createRefParser())
+									)
 								)
 								.withChild("DestinationDisplayRef", createRefParser())
 								.withChild("noticeAssignments", new ElementParser()

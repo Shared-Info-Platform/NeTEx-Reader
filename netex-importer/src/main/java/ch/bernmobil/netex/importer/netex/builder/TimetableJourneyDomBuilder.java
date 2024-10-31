@@ -73,8 +73,8 @@ public class TimetableJourneyDomBuilder {
 			final ObjectTree facilities = extensions.optionalChild("facilities");
 			if (facilities != null) {
 				result.serviceFacilitySets = facilities.children("Facility").stream()
-						.map(facility -> facility.child("ServiceFacilitySetRef"))
-						.filter(Objects::nonNull)
+						.map(facility -> facility.children("ServiceFacilitySetRef"))
+						.flatMap(List::stream)
 						.map(serviceFacilitySetRef -> serviceFacilitySetRef.text("ref"))
 						.map(serviceFacilitySetId -> {
 							final NetexServiceFacilitySet serviceFacilitySet = state.getServiceFacilitySets().get(serviceFacilitySetId);
