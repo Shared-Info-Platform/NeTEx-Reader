@@ -70,6 +70,7 @@ public class MongoDbWriter {
 		{
 			final Map<String, Integer> index = new LinkedHashMap<>();
 			index.put("departureTime", 1);
+			index.put("arrivalTime", 1);
 			journeyCollection.createIndex(new Document(index));
 		}
 
