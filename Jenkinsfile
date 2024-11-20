@@ -31,7 +31,7 @@ pipeline {
 		stage('Update Helm Chart') {
 			when { expression { params.push_docker_image == true } }
 			steps {
-				build job: 'z_IaC/update_netex_version', parameters: [string(name: 'minor_version', value: env.BUILD_NUMBER)], wait: true
+				build job: 'z_IaC/update_helmchart_appversion', parameters: [string(name: 'chart_name', value: 'netex'), string(name: 'minor_version', value: env.BUILD_NUMBER)], wait: true
 			}
 		}
 	}
