@@ -104,6 +104,7 @@ public class ParserDefinitions {
 				.withChild("organisations", new ElementParser()
 					.withChild("Operator", new ElementParser()
 						.withAttribute("id")
+						.withChild("keyList", createKeyListParser())
 						.withChild("PrivateCode", new TextParser())
 						.withChild("Name", new TextParser())
 						.withChild("ShortName", new TextParser())
