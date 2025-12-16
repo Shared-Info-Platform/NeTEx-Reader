@@ -5,8 +5,8 @@
 	<parent>
 		<groupId>ch.bernmobil.sip.netex</groupId>
 		<artifactId>sip-netex-root</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
+		<version>${revision}</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>sip-netex-api</artifactId>
@@ -21,13 +21,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
-    		<groupId>org.springdoc</groupId>
-    		<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-    		<version>2.2.0</version>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.2.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -43,39 +41,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-
-			<plugin>
-				<groupId>io.fabric8</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<configuration>
-					<images>
-						<image>
-							<name>harbor.bernmobil.ch/sip/netex-api:${build.number}</name>
-							<build>
-								<from>eclipse-temurin:17-jre</from>
-								<assembly>
-									<descriptorRef>artifact</descriptorRef>
-								</assembly>
-								<entryPoint>
-									<exec>
-										<arg>java</arg>
-										<arg>-XX:+ExitOnOutOfMemoryError</arg>
-										<arg>-jar</arg>
-										<arg>/maven/${project.artifactId}-${project.version}.${project.packaging}</arg>
-									</exec>
-								</entryPoint>
-							</build>
-						</image>
-					</images>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

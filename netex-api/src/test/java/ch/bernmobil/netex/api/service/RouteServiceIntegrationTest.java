@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.model.Filters;
 
+import ch.bernmobil.netex.api.NetexApiConfig;
 import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
@@ -25,7 +26,7 @@ import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
 import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 
-@SpringBootTest
+@SpringBootTest(classes = NetexApiConfig.class)
 @ActiveProfiles("test")
 public class RouteServiceIntegrationTest {
 

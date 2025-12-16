@@ -5,15 +5,11 @@
 	<parent>
 		<groupId>ch.bernmobil.sip.netex</groupId>
 		<artifactId>sip-netex-root</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
+		<version>${revision}</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>sip-netex-importer</artifactId>
-
-	<properties>
-		<build.number>test</build.number>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -37,14 +33,6 @@
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>info.picocli</groupId>
-			<artifactId>picocli</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.lingala.zip4j</groupId>
-			<artifactId>zip4j</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -52,39 +40,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-
-			<plugin>
-				<groupId>io.fabric8</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<configuration>
-					<images>
-						<image>
-							<name>harbor.bernmobil.ch/sip/netex-reader:${build.number}</name>
-							<build>
-								<from>eclipse-temurin:17-jre</from>
-								<assembly>
-									<descriptorRef>artifact</descriptorRef>
-								</assembly>
-								<entryPoint>
-									<exec>
-										<arg>java</arg>
-										<arg>-XX:+ExitOnOutOfMemoryError</arg>
-										<arg>-jar</arg>
-										<arg>/maven/${project.artifactId}-${project.version}.${project.packaging}</arg>
-									</exec>
-								</entryPoint>
-							</build>
-						</image>
-					</images>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
