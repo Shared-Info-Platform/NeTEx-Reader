@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ElementParser implements Parser {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ElementParser.class);
+	private static final Logger logger = LoggerFactory.getLogger(ElementParser.class);
 
 	private final boolean isRoot;
 	private final Set<String> attributes = new HashSet<>();
@@ -89,7 +89,7 @@ public class ElementParser implements Parser {
 					final String childName = reader.getLocalName();
 					if (!childParsers.containsKey(childName)) {
 						// child is unknown, log a warning
-						LOGGER.warn("unexpected child element " + childName);
+						logger.warn("unexpected child element " + childName);
 					}
 					// look for a parser for this child
 					final Parser parser = childParsers.get(childName);
@@ -138,7 +138,7 @@ public class ElementParser implements Parser {
 					break;
 				default:
 					// found unexpected content
-					LOGGER.info("unexpected event type {}", eventType);
+					logger.info("unexpected event type {}", eventType);
 					break;
 			}
 		}

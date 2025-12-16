@@ -16,7 +16,7 @@ import ch.bernmobil.netex.importer.netex.dom.NetexAvailabilityCondition;
  */
 public class ServiceCalendarDomBuilder {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCalendarDomBuilder.class);
+	private static final Logger logger = LoggerFactory.getLogger(ServiceCalendarDomBuilder.class);
 
 	public static void buildDom(Frame serviceCalendarFrame, ImportState state) {
 		final CompositeFrameHeader header = serviceCalendarFrame.compositeFrameHeader;
@@ -43,7 +43,7 @@ public class ServiceCalendarDomBuilder {
 		// validate length of validDayBits, its length (if defined) should equal numberOfDays
 		if (validDayBits != null && validDayBits.length() > numberOfDays) {
 			// this shouldn't happen (bug in the data), but we can use it anyway
-			LOGGER.warn("ValidDayBits in {} has length {} instead of {}", result.id, validDayBits.length(), numberOfDays);
+			logger.warn("ValidDayBits in {} has length {} instead of {}", result.id, validDayBits.length(), numberOfDays);
 		} else if (validDayBits != null && validDayBits.length() < numberOfDays) {
 			// this also shouln't happen but we cannot use it in this case
 			throw new IllegalArgumentException("ValidDayBits in " + result.id + " has length " + validDayBits.length() + " instead of " + numberOfDays);

@@ -21,7 +21,7 @@ import ch.bernmobil.netex.importer.xml.MultilingualStringParser.MultilingualStri
  */
 public class ServiceDomBuilder {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceDomBuilder.class);
+	private static final Logger logger = LoggerFactory.getLogger(ServiceDomBuilder.class);
 
 	public static void buildDom(Frame serviceFrame, ImportState state) {
 		final ObjectTree lines = serviceFrame.frameTree.optionalChild("lines");
@@ -75,7 +75,7 @@ public class ServiceDomBuilder {
 					.toList();
 			if (transportSubmodes.size() >= 1) {
 				if (transportSubmodes.size() > 1) {
-					LOGGER.warn("more than one submode defined for line {}: {}", result.id, transportSubmodes);
+					logger.warn("more than one submode defined for line {}: {}", result.id, transportSubmodes);
 				}
 				result.transportSubmode = transportSubmodes.get(0);
 			}

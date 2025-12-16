@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TextParser implements Parser {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(TextParser.class);
+	private static final Logger logger = LoggerFactory.getLogger(TextParser.class);
 
 	@Override
 	public Object parse(final XMLStreamReader2 reader) throws XMLStreamException {
@@ -46,7 +46,7 @@ public class TextParser implements Parser {
 					throw new IllegalStateException("expected text but found child element " + reader.getLocalName());
 				default:
 					// found unexpected content
-					LOGGER.info("unexpected event type {}", eventType);
+					logger.info("unexpected event type {}", eventType);
 					break;
 			}
 		}
