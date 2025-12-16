@@ -26,7 +26,7 @@ import picocli.CommandLine.Option;
 		 version = "1.0")
 public class Cli implements Runnable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Cli.class);
+	private static final Logger logger = LoggerFactory.getLogger(Cli.class);
 
 	@Option(names = {"-f", "--file"},
 			paramLabel = "<FILE>",
@@ -104,7 +104,7 @@ public class Cli implements Runnable {
 				importer.importDirectory(directory);
 			}
 		} catch (Throwable t) {
-			LOGGER.error("import failed", t);
+			logger.error("import failed", t);
 			System.exit(1);
 		}
 	}
@@ -121,10 +121,10 @@ public class Cli implements Runnable {
 				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
 		if (nonNullOptions.isEmpty()) {
-			LOGGER.error("no source for netex files defined");
+			logger.error("no source for netex files defined");
 			return false;
 		} else if (nonNullOptions.size() > 1) {
-			LOGGER.error("multiple sources for netex files defined {}", nonNullOptions.keySet());
+			logger.error("multiple sources for netex files defined {}", nonNullOptions.keySet());
 			return false;
 		} else {
 			return true;
@@ -149,7 +149,7 @@ public class Cli implements Runnable {
 	 */
 	private File extractZipFileToTemporarySubfolder(File zipFile) throws IOException {
 		final Path tempSubfolder = createTemporarySubfolder();
-		LOGGER.info("extracting {} to {}", zipFile, tempSubfolder);
+		logger.info("extracting {} to {}", zipFile, tempSubfolder);
 		try (final ZipFile zip = new ZipFile(zipFile)) {
 			zip.extractAll(tempSubfolder.toString());
 		}

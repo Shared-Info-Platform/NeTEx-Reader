@@ -52,7 +52,7 @@ import ch.bernmobil.netex.persistence.export.MongoDbWriter;
  */
 public class Importer {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);
+	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
 
 	private final MongoDbWriter mongoDbWriter;
 	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Constants.NUMBER_OF_THREADS);
@@ -82,7 +82,7 @@ public class Importer {
 
 			// if the files don't contain the necessary tokens to distinguish them, just use all files for both categories
 			if (filesForCommonEntities.isEmpty() || filesForServiceJourneys.isEmpty()) {
-				LOGGER.warn("could not determine which files contain common objects and which contain journeys - "
+				logger.warn("could not determine which files contain common objects and which contain journeys - "
 						+ "this import will read all files and use a lot of memory!");
 				filesForCommonEntities.addAll(xmlFiles);
 				filesForServiceJourneys.addAll(xmlFiles);
@@ -109,18 +109,18 @@ public class Importer {
 		importCommonEntities(filesForCommonEntities, state);
 		importServiceJourneys(filesForServiceJourneys, state);
 
-		LOGGER.info("reading XML done, wait for output to be written");
+		logger.info("reading XML done, wait for output to be written");
 		// tell the executor to shut down. it will process all queued journeys first, then quit
 		executor.shutdown();
 		// block the current function until the executor has quit
 		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
-		LOGGER.info("write aggregations");
+		logger.info("write aggregations");
 		mongoDbWriter.writeJourneyAggregations(aggregator.getJourneyAggregations().stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
 		mongoDbWriter.writeCallAggregations(aggregator.getCallAggregations().stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
 		mongoDbWriter.writeRouteAggregations(aggregator.getRouteAggregations().stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
 
-		LOGGER.info("done");
+		logger.info("done");
 		mongoDbWriter.close();
 	}
 
@@ -175,7 +175,7 @@ public class Importer {
 			.map(ZonedDateTime::toLocalDate)
 			.distinct()
 			.toList();
-		LOGGER.info("Import data with PublicationTimestamp {}", publicationTimestamps);
+		logger.info("Import data with PublicationTimestamp {}", publicationTimestamps);
 
 		// search all relevant NeTEx frames in all parsed object trees
 		final List<Frame> resourceFrames = trees.stream()
@@ -201,26 +201,26 @@ public class Importer {
 
 		for (final Frame resourceFrame : resourceFrames) {
 			ResourceDomBuilder.buildDom(resourceFrame, state);
-			LOGGER.info("operators: {}", state.getOperators().size());
-			LOGGER.info("responsibility sets: {}", state.getResponsibilitySets().size());
-			LOGGER.info("type of notices: {}", state.getTypeOfNotices().size());
-			LOGGER.info("type of product categories: {}", state.getTypeOfProductCategories().size());
-			LOGGER.info("vehicle types: {}", state.getVehicleTypes().size());
+			logger.info("operators: {}", state.getOperators().size());
+			logger.info("responsibility sets: {}", state.getResponsibilitySets().size());
+			logger.info("type of notices: {}", state.getTypeOfNotices().size());
+			logger.info("type of product categories: {}", state.getTypeOfProductCategories().size());
+			logger.info("vehicle types: {}", state.getVehicleTypes().size());
 		}
 
 		for (final Frame siteFrame : siteFrames) {
 			SiteDomBuilder.buildDom(siteFrame, state);
-			LOGGER.info("stop places: {}", state.getStopPlaces().size());
-			LOGGER.info("quays: {}", state.getQuays().size());
+			logger.info("stop places: {}", state.getStopPlaces().size());
+			logger.info("quays: {}", state.getQuays().size());
 		}
 
 		for (final Frame serviceFrame : serviceFrames) {
 			ServiceDomBuilder.buildDom(serviceFrame, state);
-			LOGGER.info("lines: {}", state.getLines().size());
-			LOGGER.info("destination displays: {}", state.getDestinationDisplays().size());
-			LOGGER.info("scheduled stop points: {}", state.getScheduledStopPoints().size());
-			LOGGER.info("passenger stop assignments: {}", state.getPassengerStopAssignments().size());
-			LOGGER.info("notices: {}", state.getNotices().size());
+			logger.info("lines: {}", state.getLines().size());
+			logger.info("destination displays: {}", state.getDestinationDisplays().size());
+			logger.info("scheduled stop points: {}", state.getScheduledStopPoints().size());
+			logger.info("passenger stop assignments: {}", state.getPassengerStopAssignments().size());
+			logger.info("notices: {}", state.getNotices().size());
 
 			// TODO: there seems to be a bug in the data - PassengerStopAssignments for quays does not reference ScheduledStopPoint for quays but instead the generic (quay-less) entity
 //				for (ScheduledStopPoint s : state.getScheduledStopPoints().values()) {
@@ -232,12 +232,12 @@ public class Importer {
 
 		for (final Frame serviceCalendarFrame : serviceCalendarFrames) {
 			ServiceCalendarDomBuilder.buildDom(serviceCalendarFrame, state);
-			LOGGER.info("availability conditions: {}", state.getAvailabilityConditions().size());
+			logger.info("availability conditions: {}", state.getAvailabilityConditions().size());
 		}
 
 		for (final Frame timetableFrame : timetableFrames) {
 			TimetableCommonDomBuilder.buildDom(timetableFrame, state);
-			LOGGER.info("service facility sets: {}", state.getServiceFacilitySets().size());
+			logger.info("service facility sets: {}", state.getServiceFacilitySets().size());
 		}
 	}
 
@@ -274,7 +274,7 @@ public class Importer {
 				// clear vehicle numbers because they are not needed for the next file
 				state.getTrainNumbers().clear();
 			} catch (RuntimeException e) {
-				LOGGER.error("failed to import journeys from " + file, e);
+				logger.error("failed to import journeys from " + file, e);
 			}
 		}
 	}
@@ -302,7 +302,7 @@ public class Importer {
 			try {
 				transformAndExport(journey);
 			} catch (Throwable t) {
-				LOGGER.error("failed to transform and export journey " + journey.id, t);
+				logger.error("failed to transform and export journey " + journey.id, t);
 			}
 		});
 	}
@@ -322,8 +322,8 @@ public class Importer {
 			mongoDbWriter.writeJourneys(mappedJourneys);
 			mongoDbWriter.writeCalls(mappedCalls);
 		} catch (MongoException e) {
-			LOGGER.error("exporting journey to MongoDB failed", e);
-			LOGGER.error("stop import");
+			logger.error("exporting journey to MongoDB failed", e);
+			logger.error("stop import");
 			System.exit(1);
 		}
 
@@ -371,12 +371,12 @@ public class Importer {
 		}
 
 		public void logImports() {
-			LOGGER.info("Imported {} journeys and {} calls ({} and {} respectively when multiplied by valid days)",
+			logger.info("Imported {} journeys and {} calls ({} and {} respectively when multiplied by valid days)",
 					importedJourneys, importedCalls, importedJourneysTimesDays, importedCallsTimesDays);
 		}
 
 		public void logExports() {
-			LOGGER.info("Exported {} journeys", exportedJourneys);
+			logger.info("Exported {} journeys", exportedJourneys);
 		}
 	}
 }

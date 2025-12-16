@@ -28,7 +28,7 @@ import ch.bernmobil.netex.importer.netex.dom.NetexVehicleType;
  */
 public class ImportState {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Importer.class);
+	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
 
 	private final Map<String, NetexOperator> operators = new HashMap<>();
 	private final Map<String, NetexResponsibilitySet> responsibilitySets = new HashMap<>();
@@ -48,7 +48,7 @@ public class ImportState {
 
 	public void addOperator(NetexOperator operator) {
 		if (operators.put(operator.id, operator) != null) {
-			LOGGER.warn("duplicate entry for {}", operator.id);
+			logger.warn("duplicate entry for {}", operator.id);
 		}
 	}
 
@@ -58,7 +58,7 @@ public class ImportState {
 
 	public void addResponsibilitySet(NetexResponsibilitySet responsibilitySet) {
 		if (responsibilitySets.put(responsibilitySet.id, responsibilitySet) != null) {
-			LOGGER.warn("duplicate entry for {}", responsibilitySet.id);
+			logger.warn("duplicate entry for {}", responsibilitySet.id);
 		}
 	}
 
@@ -68,7 +68,7 @@ public class ImportState {
 
 	public void addTypeOfNotice(NetexTypeOfNotice typeOfNotice) {
 		if (typeOfNotices.put(typeOfNotice.id, typeOfNotice) != null) {
-			LOGGER.warn("duplicate entry for {}", typeOfNotice.id);
+			logger.warn("duplicate entry for {}", typeOfNotice.id);
 		}
 	}
 
@@ -78,7 +78,7 @@ public class ImportState {
 
 	public void addTypeOfProductCategory(NetexTypeOfProductCategory typeOfProductCategory) {
 		if (typeOfProductCategories.put(typeOfProductCategory.id, typeOfProductCategory) != null) {
-			LOGGER.warn("duplicate entry for {}", typeOfProductCategory.id);
+			logger.warn("duplicate entry for {}", typeOfProductCategory.id);
 		}
 	}
 
@@ -88,7 +88,7 @@ public class ImportState {
 
 	public void addVehicleType(NetexVehicleType vehicleType) {
 		if (vehicleTypes.put(vehicleType.id, vehicleType) != null) {
-			LOGGER.warn("duplicate entry for {}", vehicleType.id);
+			logger.warn("duplicate entry for {}", vehicleType.id);
 		}
 	}
 
@@ -98,11 +98,11 @@ public class ImportState {
 
 	public void addStopPlace(NetexStopPlace stopPlace) {
 		if (stopPlaces.put(stopPlace.id, stopPlace) != null) {
-			LOGGER.warn("duplicate entry for {}", stopPlace.id);
+			logger.warn("duplicate entry for {}", stopPlace.id);
 		}
 		for (final NetexQuay quay : stopPlace.quays) {
 			if (quays.put(quay.id, quay) != null) {
-				LOGGER.warn("duplicate entry for {}", quay.id);
+				logger.warn("duplicate entry for {}", quay.id);
 			}
 		}
 	}
@@ -117,7 +117,7 @@ public class ImportState {
 
 	public void addLine(NetexLine line) {
 		if (lines.put(line.id, line) != null) {
-			LOGGER.warn("duplicate entry for {}", line.id);
+			logger.warn("duplicate entry for {}", line.id);
 		}
 	}
 
@@ -127,7 +127,7 @@ public class ImportState {
 
 	public void addDestinationDisplay(NetexDestinationDisplay destinationDisplay) {
 		if (destinationDisplays.put(destinationDisplay.id, destinationDisplay) != null) {
-			LOGGER.warn("duplicate entry for {}", destinationDisplay.id);
+			logger.warn("duplicate entry for {}", destinationDisplay.id);
 		}
 	}
 
@@ -137,7 +137,7 @@ public class ImportState {
 
 	public void addPassengerStopAssignment(NetexPassengerStopAssignment passengerStopAssignment) {
 		if (passengerStopAssignments.put(passengerStopAssignment.id, passengerStopAssignment) != null) {
-			LOGGER.warn("duplicate entry for {}", passengerStopAssignment.id);
+			logger.warn("duplicate entry for {}", passengerStopAssignment.id);
 		}
 	}
 
@@ -147,7 +147,7 @@ public class ImportState {
 
 	public void addScheduledStopPoint(NetexScheduledStopPoint scheduledStopPoint) {
 		if (scheduledStopPoints.put(scheduledStopPoint.id, scheduledStopPoint) != null) {
-			LOGGER.warn("duplicate entry for {}", scheduledStopPoint.id);
+			logger.warn("duplicate entry for {}", scheduledStopPoint.id);
 		}
 	}
 
@@ -157,7 +157,7 @@ public class ImportState {
 
 	public void addNotice(NetexNotice notice) {
 		if (notices.put(notice.id, notice) != null) {
-			LOGGER.warn("duplicate entry for {}", notice.id);
+			logger.warn("duplicate entry for {}", notice.id);
 		}
 	}
 
@@ -167,7 +167,7 @@ public class ImportState {
 
 	public void addAvailabilityCondition(NetexAvailabilityCondition availabilityCondition) {
 		if (availabilityConditions.put(availabilityCondition.id, availabilityCondition) != null) {
-			LOGGER.warn("duplicate entry for {}", availabilityCondition.id);
+			logger.warn("duplicate entry for {}", availabilityCondition.id);
 		}
 	}
 
@@ -177,7 +177,7 @@ public class ImportState {
 
 	public void addServiceFacilitySet(NetexServiceFacilitySet serviceFacilitySet) {
 		if (serviceFacilitySets.put(serviceFacilitySet.id, serviceFacilitySet) != null) {
-			LOGGER.warn("duplicate entry for {}", serviceFacilitySet.id);
+			logger.warn("duplicate entry for {}", serviceFacilitySet.id);
 		}
 	}
 
@@ -187,7 +187,7 @@ public class ImportState {
 
 	public void addTrainNumber(NetexTrainNumber trainNumber) {
 		if (trainNumbers.put(trainNumber.id, trainNumber) != null) {
-			LOGGER.warn("duplicate entry for {}", trainNumber.id);
+			logger.warn("duplicate entry for {}", trainNumber.id);
 		}
 	}
 
