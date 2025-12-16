@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.importer;
+package ch.bernmobil.netex.application.cli;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,14 +11,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import javax.xml.stream.XMLStreamException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 import net.lingala.zip4j.ZipFile;
-import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -26,9 +24,9 @@ import picocli.CommandLine.Option;
 		 mixinStandardHelpOptions = true,
 		 sortOptions = false,
 		 version = "1.0")
-public class Main implements Runnable {
+public class Cli implements Runnable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Cli.class);
 
 	@Option(names = {"-f", "--file"},
 			paramLabel = "<FILE>",
@@ -177,9 +175,5 @@ public class Main implements Runnable {
 		} else {
 			return new File(System.getProperty("java.io.tmpdir"));
 		}
-	}
-
-	public static void main(String[] args) throws XMLStreamException, InterruptedException {
-		new CommandLine(new Main()).execute(args);
 	}
 }

@@ -2,39 +2,55 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.0</version>
-        <relativePath/>
-    </parent>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.3.0</version>
+		<relativePath/>
+	</parent>
 
-    <groupId>ch.bernmobil.sip.netex</groupId>
-    <artifactId>sip-netex-root</artifactId>
-    <version>${revision}</version>
-    <packaging>pom</packaging>
+	<groupId>ch.bernmobil.sip.netex</groupId>
+	<artifactId>sip-netex-root</artifactId>
+	<version>${revision}</version>
+	<packaging>pom</packaging>
 
-    <modules>
-        <module>netex-api</module>
-        <module>netex-importer</module>
-        <module>persistence</module>
-    </modules>
+	<modules>
+		<module>netex-application</module>
+		<module>netex-api</module>
+		<module>netex-importer</module>
+		<module>persistence</module>
+	</modules>
 
-    <properties>
-        <java.version>17</java.version>
-        <revision>1.0-SNAPSHOT</revision>
+	<properties>
+		<java.version>17</java.version>
+		<revision>1.0-SNAPSHOT</revision>
 		<org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
-    </properties>
+	</properties>
 
-    <!-- central version management for all dependencies -->
-    <dependencyManagement>
-        <dependencies>
+	<!-- central version management for all dependencies -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>ch.bernmobil.sip.netex</groupId>
+				<artifactId>sip-netex-application</artifactId>
+				<version>${revision}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.bernmobil.sip.netex</groupId>
+				<artifactId>sip-netex-api</artifactId>
+				<version>${revision}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.bernmobil.sip.netex</groupId>
+				<artifactId>sip-netex-importer</artifactId>
+				<version>${revision}</version>
+			</dependency>
 			<dependency>
 				<groupId>ch.bernmobil.sip.netex</groupId>
 				<artifactId>sip-netex-persistence</artifactId>
 				<version>${revision}</version>
 			</dependency>
-	
+
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter</artifactId>
@@ -71,8 +87,8 @@
 				<artifactId>zip4j</artifactId>
 				<version>2.11.5</version>
 			</dependency>
-        </dependencies>
-    </dependencyManagement>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<pluginManagement>

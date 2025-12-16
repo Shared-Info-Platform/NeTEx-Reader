@@ -5,16 +5,16 @@
 	<parent>
 		<groupId>ch.bernmobil.sip.netex</groupId>
 		<artifactId>sip-netex-root</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
+		<version>${revision}</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-    <artifactId>sip-netex-persistence</artifactId>
+	<artifactId>sip-netex-persistence</artifactId>
 
-    <dependencies>
+	<dependencies>
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
 		</dependency>
-    </dependencies>
+	</dependencies>
 </project>
