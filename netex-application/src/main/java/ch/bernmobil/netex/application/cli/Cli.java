@@ -1,11 +1,7 @@
 package ch.bernmobil.netex.application.cli;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,9 +10,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.persistence.export.MongoDbWriter;
-import net.lingala.zip4j.ZipFile;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -87,15 +83,16 @@ public class Cli implements Runnable {
 				return;
 			}
 
+			final Downloader downloader = new Downloader(temporaryFilesDirectory);
 			final MongoDbWriter mongoDbWriter = new MongoDbWriter(connectionString, databaseName);
 			final Importer importer = new Importer(mongoDbWriter);
 
 			if (url != null) {
-				zipFile = downloadFileFromUrlToTemporaryDirectory(url);
+				zipFile = downloader.downloadFileFromUrlToTemporaryDirectory(url);
 			}
 
 			if (zipFile != null) {
-				directory = extractZipFileToTemporarySubfolder(zipFile);
+				directory = downloader.extractZipFileToTemporarySubfolder(zipFile);
 			}
 
 			if (file != null) {
@@ -128,52 +125,6 @@ public class Cli implements Runnable {
 			return false;
 		} else {
 			return true;
-		}
-	}
-
-	/**
-	 * Downloads a file from an URL, stores it in a temporary directory and returns the file.
-	 */
-	private File downloadFileFromUrlToTemporaryDirectory(URL url) throws IOException {
-		final String fileName = "netex-" + System.currentTimeMillis() + ".tmp";
-		final File tempDirectory = getTemporaryDirectory();
-		final File tempFile = new File(tempDirectory, fileName);
-		try (final InputStream inputStream = url.openStream()) {
-			Files.copy(inputStream, tempFile.toPath());
-		}
-		return tempFile;
-	}
-
-	/**
-	 * Extracts a zip file to a temporary directory and returns the directory.
-	 */
-	private File extractZipFileToTemporarySubfolder(File zipFile) throws IOException {
-		final Path tempSubfolder = createTemporarySubfolder();
-		logger.info("extracting {} to {}", zipFile, tempSubfolder);
-		try (final ZipFile zip = new ZipFile(zipFile)) {
-			zip.extractAll(tempSubfolder.toString());
-		}
-		return tempSubfolder.toFile();
-	}
-
-	/**
-	 * Creates a subfolder in the temp directory.
-	 */
-	private Path createTemporarySubfolder() throws IOException {
-		final String subfolderName = "netex-" + System.currentTimeMillis();
-		final File tempDirectory = getTemporaryDirectory();
-		final File tempSubfolder = new File(tempDirectory, subfolderName);
-		return Files.createDirectory(tempSubfolder.toPath());
-	}
-
-	/**
-	 * Returns the user-defined temporary directory (if defined) or the system default.
-	 */
-	private File getTemporaryDirectory() {
-		if (temporaryFilesDirectory != null) {
-			return temporaryFilesDirectory;
-		} else {
-			return new File(System.getProperty("java.io.tmpdir"));
 		}
 	}
 }
