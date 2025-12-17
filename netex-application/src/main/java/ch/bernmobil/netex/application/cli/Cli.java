@@ -1,7 +1,7 @@
 package ch.bernmobil.netex.application.cli;
 
 import java.io.File;
-import java.net.URL;
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.bernmobil.netex.application.helper.Downloader;
+import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 import picocli.CommandLine.Command;
@@ -50,7 +51,7 @@ public class Cli implements Runnable {
 			defaultValue = "${NETEX_URL}",
 			description = "URL to a *.zip file that contains *.xml files with netex data. "
 					+ "Can also be defined with environment variable NETEX_URL.")
-	private URL url;
+	private URI url;
 
 	@Option(names = {"-t", "--temporary-directory"},
 			paramLabel = "<DIRECTORY>",
@@ -88,7 +89,12 @@ public class Cli implements Runnable {
 			final Importer importer = new Importer(mongoDbWriter);
 
 			if (url != null) {
-				zipFile = downloader.downloadFileFromUrlToTemporaryDirectory(url);
+				final NetexFile netexFile = downloader.downloadFileFromUrlToTemporaryDirectory(url);
+				if (netexFile != null) {
+					zipFile = netexFile.file();
+				} else {
+					logger.warn("no file downloaded");
+				}
 			}
 
 			if (zipFile != null) {
