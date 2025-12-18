@@ -34,15 +34,13 @@ import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
  */
 public class MongoDbWriter {
 
-	private MongoClient mongoClient;
 	private MongoCollection<JourneyWithCalls> journeyCollection;
 	private MongoCollection<CallWithJourney> callCollection;
 	private MongoCollection<JourneyAggregation> journeyAggregationCollection;
 	private MongoCollection<CallAggregation> callAggregationCollection;
 	private MongoCollection<RouteAggregation> routeAggregationCollection;
 
-	public MongoDbWriter(String connectionString, String databaseName) {
-		mongoClient = MongoDbClientHelper.createClient(connectionString);
+	public MongoDbWriter(MongoClient mongoClient, String databaseName) {
 		final MongoDatabase database = mongoClient.getDatabase(databaseName);
 
 		// Journeys
@@ -290,9 +288,5 @@ public class MongoDbWriter {
 		result.put("code", new BsonString(stopPlace.code()));
 		result.put("name", new BsonString(stopPlace.name()));
 		return result;
-	}
-
-	public void close() {
-		mongoClient.close();
 	}
 }
