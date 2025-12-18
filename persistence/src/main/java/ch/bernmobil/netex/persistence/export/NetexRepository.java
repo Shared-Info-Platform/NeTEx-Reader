@@ -32,7 +32,7 @@ import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
  * Opens collections in a MongoDB, creates indexes (if necessary) for these collections, transforms journeys
  * to the model needed by the different collections and writes them to the database.
  */
-public class MongoDbWriter {
+public class NetexRepository {
 
 	private MongoCollection<JourneyWithCalls> journeyCollection;
 	private MongoCollection<CallWithJourney> callCollection;
@@ -40,7 +40,7 @@ public class MongoDbWriter {
 	private MongoCollection<CallAggregation> callAggregationCollection;
 	private MongoCollection<RouteAggregation> routeAggregationCollection;
 
-	public MongoDbWriter(MongoClient mongoClient, String databaseName) {
+	public NetexRepository(MongoClient mongoClient, String databaseName) {
 		final MongoDatabase database = mongoClient.getDatabase(databaseName);
 
 		// Journeys

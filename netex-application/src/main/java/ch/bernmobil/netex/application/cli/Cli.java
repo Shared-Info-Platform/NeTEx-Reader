@@ -17,7 +17,7 @@ import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.export.MongoDbClientHelper;
-import ch.bernmobil.netex.persistence.export.MongoDbWriter;
+import ch.bernmobil.netex.persistence.export.NetexRepository;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -90,9 +90,9 @@ public class Cli implements Runnable {
 
 			final Downloader downloader = new Downloader(temporaryFilesDirectory);
 			final MongoClient mongoClient = MongoDbClientHelper.createClient(connectionString);
-			final MongoDbWriter mongoDbWriter = new MongoDbWriter(mongoClient, databaseName);
+			final NetexRepository netexRepository = new NetexRepository(mongoClient, databaseName);
 			final ImporterProperties properties = new ImporterProperties();
-			final Importer importer = new Importer(properties, mongoDbWriter);
+			final Importer importer = new Importer(properties, netexRepository);
 
 			if (url != null) {
 				final NetexFile netexFile = downloader.downloadFileFromUrlToTemporaryDirectory(url);
