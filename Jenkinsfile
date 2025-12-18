@@ -1,5 +1,5 @@
 pipeline {
-	agent { label "java17" }
+	agent { label "java21-bookworm" }
 	options {
 		skipStagesAfterUnstable()
 	}

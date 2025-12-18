@@ -25,7 +25,7 @@ import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
-import ch.bernmobil.netex.persistence.export.MongoDbWriter;
+import ch.bernmobil.netex.persistence.export.NetexRepository;
 
 @SpringBootTest(classes = { NetexApiConfig.class, PersistenceConfig.class })
 @ActiveProfiles("test")
@@ -53,8 +53,8 @@ public class RouteServiceIntegrationTest {
 		aggregations.add(createRouteAggregation("xxxxxxxx", "line", "inbound", "2024-09-09", 1, List.of("1", "2")));
 		aggregations.add(createRouteAggregation("operator", "xxxx", "inbound", "2024-09-09", 1, List.of("1", "2")));
 
-		final MongoDbWriter writer = new MongoDbWriter(mongoClient, properties.getDatabaseName());
-		writer.writeRouteAggregations(aggregations);
+		final NetexRepository netexRepository = new NetexRepository(mongoClient, properties.getDatabaseName());
+		netexRepository.writeRouteAggregations(aggregations);
 
 		final RouteService routeService = new RouteService(properties, new RepositoryFactory(mongoClient));
 		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),

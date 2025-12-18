@@ -45,7 +45,7 @@ import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 import ch.bernmobil.netex.importer.xml.Parser;
 import ch.bernmobil.netex.persistence.dom.CallWithJourney;
 import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
-import ch.bernmobil.netex.persistence.export.MongoDbWriter;
+import ch.bernmobil.netex.persistence.export.NetexRepository;
 
 /**
  * This class imports journeys from NeTEx files that are located in a given directory.
@@ -55,14 +55,14 @@ public class Importer {
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
 
 	private final ImporterProperties properties;
-	private final MongoDbWriter mongoDbWriter;
+	private final NetexRepository netexRepository;
 	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Constants.NUMBER_OF_THREADS);
 	private final JourneyAggregator aggregator = new JourneyAggregator();
 	private final Statistics statistics = new Statistics();
 
-	public Importer(ImporterProperties properties, MongoDbWriter mongoDbWriter) {
+	public Importer(ImporterProperties properties, NetexRepository netexRepository) {
 		this.properties = properties;
-		this.mongoDbWriter = mongoDbWriter;
+		this.netexRepository = netexRepository;
 	}
 
 	public void importFile(File file) throws XMLStreamException, InterruptedException {
@@ -101,7 +101,7 @@ public class Importer {
 		}
 
 		// check if database is empty
-		if (!mongoDbWriter.isDatabaseEmpty()) {
+		if (!netexRepository.isDatabaseEmpty()) {
 			throw new IllegalStateException("database is not empty");
 		}
 
@@ -118,9 +118,9 @@ public class Importer {
 		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
 		logger.info("write aggregations");
-		mongoDbWriter.writeJourneyAggregations(aggregator.getJourneyAggregations().stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
-		mongoDbWriter.writeCallAggregations(aggregator.getCallAggregations().stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
-		mongoDbWriter.writeRouteAggregations(aggregator.getRouteAggregations().stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
+		netexRepository.writeJourneyAggregations(aggregator.getJourneyAggregations().stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
+		netexRepository.writeCallAggregations(aggregator.getCallAggregations().stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
+		netexRepository.writeRouteAggregations(aggregator.getRouteAggregations().stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
 
 		logger.info("done");
 	}
@@ -320,9 +320,9 @@ public class Importer {
 		}
 
 		try {
-			mongoDbWriter.writeJourneys(mappedJourneys);
+			netexRepository.writeJourneys(mappedJourneys);
 			if (properties.isWriteCalls()) {
-				mongoDbWriter.writeCalls(mappedCalls);
+				netexRepository.writeCalls(mappedCalls);
 			}
 		} catch (MongoException e) {
 			logger.error("exporting journey to MongoDB failed", e);
@@ -339,15 +339,15 @@ public class Importer {
 		// flush aggregations to mongoDB every now and then to avoid using too much memory
 		final List<JourneyAggregation> journeyAggregations = aggregator.resetJourneyAggregationsIfNecessary();
 		if (journeyAggregations != null) {
-			mongoDbWriter.writeJourneyAggregations(journeyAggregations.stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
+			netexRepository.writeJourneyAggregations(journeyAggregations.stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
 		}
 		final List<CallAggregation> callAggregations = aggregator.resetCallAggregationsIfNecessary();
 		if (callAggregations != null) {
-			mongoDbWriter.writeCallAggregations(callAggregations.stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
+			netexRepository.writeCallAggregations(callAggregations.stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
 		}
 		final List<RouteAggregation> routeAggregations = aggregator.resetRouteAggregationsIfNecessary();
 		if (routeAggregations != null) {
-			mongoDbWriter.writeRouteAggregations(routeAggregations.stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
+			netexRepository.writeRouteAggregations(routeAggregations.stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
 		}
 	}
 
