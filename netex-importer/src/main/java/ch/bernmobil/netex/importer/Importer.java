@@ -54,12 +54,14 @@ public class Importer {
 
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
 
+	private final ImporterProperties properties;
 	private final MongoDbWriter mongoDbWriter;
 	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Constants.NUMBER_OF_THREADS);
 	private final JourneyAggregator aggregator = new JourneyAggregator();
 	private final Statistics statistics = new Statistics();
 
-	public Importer(MongoDbWriter mongoDbWriter) {
+	public Importer(ImporterProperties properties, MongoDbWriter mongoDbWriter) {
+		this.properties = properties;
 		this.mongoDbWriter = mongoDbWriter;
 	}
 
@@ -308,7 +310,7 @@ public class Importer {
 	}
 
 	private void transformAndExport(NetexServiceJourney journey) {
-		final List<Journey> results = JourneyTransformer.transform(journey);
+		final List<Journey> results = JourneyTransformer.transform(journey, properties);
 		aggregateValues(results);
 
 		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();
@@ -320,7 +322,9 @@ public class Importer {
 
 		try {
 			mongoDbWriter.writeJourneys(mappedJourneys);
-			mongoDbWriter.writeCalls(mappedCalls);
+			if (properties.isWriteCalls()) {
+				mongoDbWriter.writeCalls(mappedCalls);
+			}
 		} catch (MongoException e) {
 			logger.error("exporting journey to MongoDB failed", e);
 			logger.error("stop import");
