@@ -10,10 +10,13 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.client.MongoClient;
+
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
+import ch.bernmobil.netex.persistence.export.MongoDbClientHelper;
 import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -86,7 +89,8 @@ public class Cli implements Runnable {
 			}
 
 			final Downloader downloader = new Downloader(temporaryFilesDirectory);
-			final MongoDbWriter mongoDbWriter = new MongoDbWriter(connectionString, databaseName);
+			final MongoClient mongoClient = MongoDbClientHelper.createClient(connectionString);
+			final MongoDbWriter mongoDbWriter = new MongoDbWriter(mongoClient, databaseName);
 			final ImporterProperties properties = new ImporterProperties();
 			final Importer importer = new Importer(properties, mongoDbWriter);
 
@@ -108,6 +112,8 @@ public class Cli implements Runnable {
 			} else if (directory != null) {
 				importer.importDirectory(directory);
 			}
+
+			mongoClient.close();
 		} catch (Throwable t) {
 			logger.error("import failed", t);
 			System.exit(1);

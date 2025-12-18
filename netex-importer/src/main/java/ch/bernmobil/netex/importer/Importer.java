@@ -123,7 +123,6 @@ public class Importer {
 		mongoDbWriter.writeRouteAggregations(aggregator.getRouteAggregations().stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
 
 		logger.info("done");
-		mongoDbWriter.close();
 	}
 
 	/**

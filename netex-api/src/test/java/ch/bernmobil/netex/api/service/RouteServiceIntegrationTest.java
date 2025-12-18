@@ -22,11 +22,12 @@ import ch.bernmobil.netex.api.NetexApiConfig;
 import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
+import ch.bernmobil.netex.persistence.PersistenceConfig;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
 import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 
-@SpringBootTest(classes = NetexApiConfig.class)
+@SpringBootTest(classes = { NetexApiConfig.class, PersistenceConfig.class })
 @ActiveProfiles("test")
 public class RouteServiceIntegrationTest {
 
@@ -52,9 +53,8 @@ public class RouteServiceIntegrationTest {
 		aggregations.add(createRouteAggregation("xxxxxxxx", "line", "inbound", "2024-09-09", 1, List.of("1", "2")));
 		aggregations.add(createRouteAggregation("operator", "xxxx", "inbound", "2024-09-09", 1, List.of("1", "2")));
 
-		final MongoDbWriter writer = new MongoDbWriter(properties.getMongoConnectionString(), properties.getDatabaseName());
+		final MongoDbWriter writer = new MongoDbWriter(mongoClient, properties.getDatabaseName());
 		writer.writeRouteAggregations(aggregations);
-		writer.close();
 
 		final RouteService routeService = new RouteService(properties, new RepositoryFactory(mongoClient));
 		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),

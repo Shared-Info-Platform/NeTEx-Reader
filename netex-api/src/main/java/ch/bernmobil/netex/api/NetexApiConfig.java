@@ -9,7 +9,6 @@ import com.mongodb.client.MongoClient;
 import ch.bernmobil.netex.api.controller.RouteControllerV1;
 import ch.bernmobil.netex.api.service.RepositoryFactory;
 import ch.bernmobil.netex.api.service.RouteService;
-import ch.bernmobil.netex.persistence.export.MongoDbClientHelper;
 
 @Configuration
 @EnableConfigurationProperties(NetexApiProperties.class)
@@ -34,10 +33,5 @@ public class NetexApiConfig {
 	@Bean
 	public RepositoryFactory createRepositoryFactory(MongoClient client) {
 		return new RepositoryFactory(client);
-	}
-
-	@Bean
-	public MongoClient createMongoClient() {
-		return MongoDbClientHelper.createClient(properties.getMongoConnectionString());
 	}
 }
