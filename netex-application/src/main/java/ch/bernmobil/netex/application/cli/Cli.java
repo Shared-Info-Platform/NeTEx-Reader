@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.importer.Importer;
+import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.export.MongoDbWriter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -86,7 +87,8 @@ public class Cli implements Runnable {
 
 			final Downloader downloader = new Downloader(temporaryFilesDirectory);
 			final MongoDbWriter mongoDbWriter = new MongoDbWriter(connectionString, databaseName);
-			final Importer importer = new Importer(mongoDbWriter);
+			final ImporterProperties properties = new ImporterProperties();
+			final Importer importer = new Importer(properties, mongoDbWriter);
 
 			if (url != null) {
 				final NetexFile netexFile = downloader.downloadFileFromUrlToTemporaryDirectory(url);
