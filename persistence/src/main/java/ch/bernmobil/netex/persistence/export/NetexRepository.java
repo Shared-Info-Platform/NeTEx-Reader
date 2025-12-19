@@ -98,7 +98,7 @@ public class NetexRepository {
 			final Map<String, Integer> index = new LinkedHashMap<>();
 			index.put("sjyid", 1);
 			index.put("calendarDay", 1);
-			journeyCollection.createIndex(new Document(index));
+			callCollection.createIndex(new Document(index));
 		}
 
 		// Journey Aggregations
