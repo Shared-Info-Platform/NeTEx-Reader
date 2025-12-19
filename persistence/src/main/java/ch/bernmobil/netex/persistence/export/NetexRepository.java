@@ -1,5 +1,6 @@
 package ch.bernmobil.netex.persistence.export;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -16,6 +17,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
@@ -140,15 +142,6 @@ public class NetexRepository {
 			index.put("calendarDay", 1);
 			routeAggregationCollection.createIndex(new Document(index));
 		}
-	}
-
-	public boolean isDatabaseEmpty() {
-		final long numDocuments = journeyCollection.estimatedDocumentCount ()
-				+ callCollection.estimatedDocumentCount ()
-				+ journeyAggregationCollection.estimatedDocumentCount ()
-				+ callAggregationCollection.estimatedDocumentCount ()
-				+ routeAggregationCollection.estimatedDocumentCount ();
-		return numDocuments == 0;
 	}
 
 	public void writeJourneys(final List<JourneyWithCalls> journeys) {
@@ -288,5 +281,38 @@ public class NetexRepository {
 		result.put("code", new BsonString(stopPlace.code()));
 		result.put("name", new BsonString(stopPlace.name()));
 		return result;
+	}
+
+	public boolean isDatabaseEmpty() {
+		final long numDocuments = journeyCollection.estimatedDocumentCount ()
+				+ callCollection.estimatedDocumentCount ()
+				+ journeyAggregationCollection.estimatedDocumentCount ()
+				+ callAggregationCollection.estimatedDocumentCount ()
+				+ routeAggregationCollection.estimatedDocumentCount ();
+		return numDocuments == 0;
+	}
+
+	public boolean containsDataForCalendarDay(LocalDate date) {
+		if (journeyCollection.countDocuments(Filters.eq("calendarDay", date.toString())) > 0) {
+			return true;
+		} else if (callCollection.countDocuments(Filters.eq("calendarDay", date.toString())) > 0) {
+			return true;
+		} else if (journeyAggregationCollection.countDocuments(Filters.eq("calendarDay", date.toString())) > 0) {
+			return true;
+		} else if (callAggregationCollection.countDocuments(Filters.eq("calendarDay", date.toString())) > 0) {
+			return true;
+		} else if (routeAggregationCollection.countDocuments(Filters.eq("calendarDay", date.toString())) > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public void deleteDataForCalendarDay(LocalDate date) {
+		journeyCollection.deleteMany(Filters.eq("calendarDay", date.toString()));
+		callCollection.deleteMany(Filters.eq("calendarDay", date.toString()));
+		journeyAggregationCollection.deleteMany(Filters.eq("calendarDay", date.toString()));
+		callAggregationCollection.deleteMany(Filters.eq("calendarDay", date.toString()));
+		routeAggregationCollection.deleteMany(Filters.eq("calendarDay", date.toString()));
 	}
 }

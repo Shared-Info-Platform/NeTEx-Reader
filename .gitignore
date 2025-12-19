@@ -5,6 +5,7 @@
 
 **/target/*
 **/logs/*
+**/tmp/*
 
 # add option to not ignore all generated-sources
 !**/target/generated-sources/

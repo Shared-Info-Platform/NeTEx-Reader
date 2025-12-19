@@ -94,6 +94,11 @@ public class Cli implements Runnable {
 			final ImporterProperties properties = new ImporterProperties();
 			final Importer importer = new Importer(properties, netexRepository);
 
+			// check if database is empty
+			if (!netexRepository.isDatabaseEmpty()) {
+				throw new IllegalStateException("database is not empty");
+			}
+
 			if (url != null) {
 				final NetexFile netexFile = downloader.downloadFileFromUrlToTemporaryDirectory(url);
 				if (netexFile != null) {
