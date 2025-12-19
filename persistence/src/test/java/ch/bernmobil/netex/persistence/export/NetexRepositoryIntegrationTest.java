@@ -386,11 +386,43 @@ public class NetexRepositoryIntegrationTest {
 
 	@Test
 	public void testCanDeleteDataForCalendarDay() {
+		insertDataForDeleteTests();
+
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
+
+		repository.deleteDataForCalendarDay(LocalDate.of(2025, 12, 2));
+
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
+	}
+
+	@Test
+	public void testCanDeleteDataUpToCalendarDay() {
+		insertDataForDeleteTests();
+
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
+
+		repository.deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 2));
+
 		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
 		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isFalse();
 		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isFalse();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
 		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
+	}
+
+	private void insertDataForDeleteTests() {
 		{
 			final JourneyWithCalls journey1 = createJourney(1);
 			final JourneyWithCalls journey2 = createJourney(2);
@@ -436,18 +468,5 @@ public class NetexRepositoryIntegrationTest {
 			aggregation3.calendarDay = LocalDate.of(2025, 12, 3).toString();
 			repository.writeRouteAggregations(List.of(aggregation1, aggregation2, aggregation3));
 		}
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isTrue();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isTrue();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
-
-		repository.deleteDataForCalendarDay(LocalDate.of(2025, 12, 2));
-
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isTrue();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isFalse();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
-		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
 	}
 }

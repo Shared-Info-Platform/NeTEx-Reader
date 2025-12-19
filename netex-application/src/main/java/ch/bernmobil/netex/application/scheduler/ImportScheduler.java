@@ -6,9 +6,11 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +19,7 @@ import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.FileSystemUtils;
 
 import com.mongodb.client.MongoClient;
 
@@ -27,6 +30,7 @@ import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.dom.ImportVersion;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.search.Helper;
 import jakarta.annotation.PostConstruct;
 
 public class ImportScheduler {
@@ -61,6 +65,8 @@ public class ImportScheduler {
 	public void runPeriodicImportTasks() {
 		downloadNewVersionsIfNecessary();
 		importDataIfNecessary();
+		cleanupIfNecessary();
+		logger.info("done");
 	}
 
 	private void downloadNewVersionsIfNecessary() {
@@ -118,7 +124,7 @@ public class ImportScheduler {
 
 	private void importDataIfNecessary() {
 		for (final String timetable : properties.getUriPerTimetable().keySet()) {
-			final List<ImportVersion> versions = importVersionRepository.getAllImportVersions(timetable);
+			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable);
 			for (final ImportVersion version : versions) {
 				final ImporterProperties importerProperties = createPropertiesIfImportIsNecessary(version);
 				if (importerProperties != null) {
@@ -213,6 +219,99 @@ public class ImportScheduler {
 		}
 		version.complete = true;
 		importVersionRepository.insertOrUpdate(version);
+	}
+
+	/**
+	 * Cleanup does the following things:
+	 *  - removes old data from all versions (including those of other schema versions)
+	 *  - removes versions of older schema versions that have no data anymore
+	 *  - removes versions of the current schema that aren't needed anymore
+	 *  - removes leftover databases, directories, and files that don't belong to any known version
+	 */
+	private void cleanupIfNecessary() {
+		// delete old data from all versions (including those with other schema versions - assuming that they have at least a 'calendarDay'
+		// field).
+		final LocalDate cleanupThreshold = LocalDate.now(clock).minusDays(properties.getImportDaysInPast()).minusDays(1);
+		logger.info("delete data up to {}", cleanupThreshold);
+		for (final ImportVersion version : importVersionRepository.getAllImportVersions()) {
+			final NetexRepository netexRepository = new NetexRepository(mongoClient, version.databaseName);
+			netexRepository.deleteDataUpToCalendarDay(cleanupThreshold);
+
+			if (version.firstDate != null && !cleanupThreshold.isBefore(version.firstDate)) {
+				version.firstDate = cleanupThreshold.plusDays(1); // first available date is one day after cleanup threshold
+				importVersionRepository.insertOrUpdate(version);
+			}
+
+			// if the version belongs to an older schema version then delete it completely if the database is empty after old data was
+			// deleted
+			if (version.schemaVersion < ImportVersion.CURRENT_SCHEMA_VERSION && netexRepository.isDatabaseEmpty()) {
+				deleteVersion(version);
+			}
+		}
+
+		// delete all versions per timetable that are not needed anymore (includes only those with current schema version)
+		for (final String timetable : properties.getUriPerTimetable().keySet()) {
+			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable);
+			for (int i = 0; i < versions.size(); ++i) {
+				final ImportVersion version = versions.get(i);
+				if (i >= properties.getMaxVersionsToKeep() && !version.force && !version.keep) {
+					deleteVersion(version);
+				}
+			}
+		}
+
+		// find other databases/files/directories that are not referenced anywhere
+		if (properties.isDeleteUnknownResources()) {
+			final Set<String> knownDatabases = new HashSet<>();
+			final Set<String> knownZipFiles = new HashSet<>();
+			final Set<String> knownDirectories = new HashSet<>();
+			for (final ImportVersion version : importVersionRepository.getAllImportVersions()) {
+				knownDatabases.add(version.databaseName);
+				knownZipFiles.add(version.zipFile);
+				knownDirectories.add(version.directory);
+			}
+			for (final String database : Helper.iterableToList(mongoClient.listDatabaseNames())) {
+				if (database.startsWith(properties.getImportDatabasePrefix()) && !knownDatabases.contains(database)) {
+					logger.warn("deleting database {} that is not referenced by any import version", database);
+					mongoClient.getDatabase(database).drop();
+				}
+			}
+			for (final File file : properties.getTemporaryFilesDirectory().listFiles()) {
+				if (!knownZipFiles.contains(file.getAbsolutePath()) && !knownDirectories.contains(file.getAbsolutePath())) {
+					if (file.isFile()) {
+						logger.warn("deleting file {} that is not referenced by any import version", file);
+						deleteFile(file);
+					} else if (file.isDirectory()) {
+						logger.warn("deleting directory {} that is not referenced by any import version", file);
+						deleteDirectory(file);
+					}
+				}
+			}
+		}
+	}
+
+	private void deleteVersion(ImportVersion importVersion) {
+		logger.info("remove version {} of {}", importVersion.version, importVersion.timetable);
+		mongoClient.getDatabase(importVersion.databaseName).drop();
+		if (importVersion.zipFile != null) {
+			deleteFile(new File(importVersion.zipFile));
+		}
+		if (importVersion.directory != null) {
+			deleteDirectory(new File(importVersion.directory));
+		}
+		importVersionRepository.deleteImportVersion(importVersion);
+	}
+
+	private void deleteFile(File file) {
+		if (!file.delete()) {
+			logger.error("could not delete file {}", file);
+		}
+	}
+
+	private void deleteDirectory(File directory) {
+		if (!FileSystemUtils.deleteRecursively(directory)) {
+			logger.error("could not delete directory {}", directory);
+		}
 	}
 
 	/**

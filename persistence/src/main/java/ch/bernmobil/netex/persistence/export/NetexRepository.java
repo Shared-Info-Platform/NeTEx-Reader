@@ -315,4 +315,12 @@ public class NetexRepository {
 		callAggregationCollection.deleteMany(Filters.eq("calendarDay", date.toString()));
 		routeAggregationCollection.deleteMany(Filters.eq("calendarDay", date.toString()));
 	}
+
+	public void deleteDataUpToCalendarDay(LocalDate date) {
+		journeyCollection.deleteMany(Filters.lte("calendarDay", date.toString()));
+		callCollection.deleteMany(Filters.lte("calendarDay", date.toString()));
+		journeyAggregationCollection.deleteMany(Filters.lte("calendarDay", date.toString()));
+		callAggregationCollection.deleteMany(Filters.lte("calendarDay", date.toString()));
+		routeAggregationCollection.deleteMany(Filters.lte("calendarDay", date.toString()));
+	}
 }
