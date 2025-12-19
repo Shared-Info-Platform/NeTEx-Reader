@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Import;
 
 import ch.bernmobil.netex.api.NetexApiConfig;
 import ch.bernmobil.netex.application.cli.Cli;
+import ch.bernmobil.netex.application.scheduler.ImportSchedulerConfig;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -15,7 +16,7 @@ import picocli.CommandLine;
 @OpenAPIDefinition(info = @Info(description = "API to access data that was imported by the NeTEx-Reader", title = "NeTEx API", version = "1.0"))
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@Import({ NetexApiConfig.class, PersistenceConfig.class })
+@Import({ NetexApiConfig.class, PersistenceConfig.class, ImportSchedulerConfig.class })
 public class NetexApplication {
 
 	public static void main(String[] args) {

@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.FileSystemUtils;
 
 import net.lingala.zip4j.ZipFile;
 
@@ -65,7 +66,17 @@ public class Downloader {
 
 		// Store content as file
 		final File tempDirectory = getTemporaryDirectory();
+		if (!tempDirectory.exists()) {
+			Files.createDirectories(tempDirectory.toPath());
+		}
 		final File tempFile = new File(tempDirectory, filename);
+		if (tempFile.exists()) {
+			logger.warn("file {} already exists, trying to delete it", tempFile);
+			if (!tempFile.delete()) {
+				throw new IOException("could not delete file " + tempFile);
+			}
+		}
+
 		try (final InputStream inputStream = response.body()) {
 			Files.copy(inputStream, tempFile.toPath());
 		}
@@ -77,7 +88,7 @@ public class Downloader {
 	 * Extracts a zip file to a temporary directory and returns the directory.
 	 */
 	public File extractZipFileToTemporarySubfolder(File zipFile) throws IOException {
-		final Path tempSubfolder = createTemporarySubfolder();
+		final Path tempSubfolder = createTemporarySubfolder(zipFile.getName().replaceAll("\\.zip", ""));
 		logger.info("extracting {} to {}", zipFile, tempSubfolder);
 		try (final ZipFile zip = new ZipFile(zipFile)) {
 			zip.extractAll(tempSubfolder.toString());
@@ -88,11 +99,16 @@ public class Downloader {
 	/**
 	 * Creates a subfolder in the temp directory.
 	 */
-	private Path createTemporarySubfolder() throws IOException {
-		final String subfolderName = "netex-" + System.currentTimeMillis();
+	private Path createTemporarySubfolder(String subfolderName) throws IOException {
 		final File tempDirectory = getTemporaryDirectory();
 		final File tempSubfolder = new File(tempDirectory, subfolderName);
-		return Files.createDirectory(tempSubfolder.toPath());
+		if (tempSubfolder.exists()) {
+			logger.warn("directory {} already exists, trying to delete it", tempSubfolder);
+			if (!FileSystemUtils.deleteRecursively(tempSubfolder)) {
+				throw new IOException("could not delete directory " + tempSubfolder);
+			}
+		}
+		return Files.createDirectories(tempSubfolder.toPath());
 	}
 
 	/**

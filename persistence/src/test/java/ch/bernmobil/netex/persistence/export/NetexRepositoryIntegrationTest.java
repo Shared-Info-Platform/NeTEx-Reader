@@ -348,4 +348,106 @@ public class NetexRepositoryIntegrationTest {
 		repository.writeRouteAggregations(List.of(createRouteAggregation(1, 1)));
 		assertThat(repository.isDatabaseEmpty()).isFalse();
 	}
+
+	@Test
+	public void testDatabaseContainsDataForCalendarDayWhenJourneyInserted() {
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isFalse();
+		repository.writeJourneys(List.of(createJourney(1)));
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isTrue();
+	}
+
+	@Test
+	public void testDatabaseContainsDataForCalendarDayWhenCallsInserted() {
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isFalse();
+		repository.writeCalls(List.of(createCall(1)));
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isTrue();
+	}
+
+	@Test
+	public void testDatabaseContainsDataForCalendarDayWhenJourneyAggregationInserted() {
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isFalse();
+		repository.writeJourneyAggregations(List.of(createJourneyAggregation(1, 1)));
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isTrue();
+	}
+
+	@Test
+	public void testDatabaseContainsDataForCalendarDayWhenCallAggregationInserted() {
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isFalse();
+		repository.writeCallAggregations(List.of(createCallAggregation(1, 1)));
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isTrue();
+	}
+
+	@Test
+	public void testDatabaseContainsDataForCalendarDayWhenRouteAggregationInserted() {
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isFalse();
+		repository.writeRouteAggregations(List.of(createRouteAggregation(1, 1)));
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 28))).isTrue();
+	}
+
+	@Test
+	public void testCanDeleteDataForCalendarDay() {
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
+		{
+			final JourneyWithCalls journey1 = createJourney(1);
+			final JourneyWithCalls journey2 = createJourney(2);
+			final JourneyWithCalls journey3 = createJourney(3);
+			journey1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+			journey2.calendarDay = LocalDate.of(2025, 12, 2).toString();
+			journey3.calendarDay = LocalDate.of(2025, 12, 3).toString();
+			repository.writeJourneys(List.of(journey1, journey2, journey3));
+		}
+		{
+			final CallWithJourney call1 = createCall(1);
+			final CallWithJourney call2 = createCall(2);
+			final CallWithJourney call3 = createCall(3);
+			call1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+			call2.calendarDay = LocalDate.of(2025, 12, 2).toString();
+			call3.calendarDay = LocalDate.of(2025, 12, 3).toString();
+			repository.writeCalls(List.of(call1, call2, call3));
+		}
+		{
+			final JourneyAggregation aggregation1 = createJourneyAggregation(1, 1);
+			final JourneyAggregation aggregation2 = createJourneyAggregation(1, 1);
+			final JourneyAggregation aggregation3 = createJourneyAggregation(1, 1);
+			aggregation1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+			aggregation2.calendarDay = LocalDate.of(2025, 12, 2).toString();
+			aggregation3.calendarDay = LocalDate.of(2025, 12, 3).toString();
+			repository.writeJourneyAggregations(List.of(aggregation1, aggregation2, aggregation3));
+		}
+		{
+			final CallAggregation aggregation1 = createCallAggregation(1, 1);
+			final CallAggregation aggregation2 = createCallAggregation(1, 1);
+			final CallAggregation aggregation3 = createCallAggregation(1, 1);
+			aggregation1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+			aggregation2.calendarDay = LocalDate.of(2025, 12, 2).toString();
+			aggregation3.calendarDay = LocalDate.of(2025, 12, 3).toString();
+			repository.writeCallAggregations(List.of(aggregation1, aggregation2, aggregation3));
+		}
+		{
+			final RouteAggregation aggregation1 = createRouteAggregation(1, 1);
+			final RouteAggregation aggregation2 = createRouteAggregation(1, 1);
+			final RouteAggregation aggregation3 = createRouteAggregation(1, 1);
+			aggregation1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+			aggregation2.calendarDay = LocalDate.of(2025, 12, 2).toString();
+			aggregation3.calendarDay = LocalDate.of(2025, 12, 3).toString();
+			repository.writeRouteAggregations(List.of(aggregation1, aggregation2, aggregation3));
+		}
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
+
+		repository.deleteDataForCalendarDay(LocalDate.of(2025, 12, 2));
+
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 11, 30))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 1))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 2))).isFalse();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 3))).isTrue();
+		assertThat(repository.containsDataForCalendarDay(LocalDate.of(2025, 12, 4))).isFalse();
+	}
 }
