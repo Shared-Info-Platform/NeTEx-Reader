@@ -89,12 +89,29 @@ public class ImportVersionRepositoryIntegrationTest {
 	}
 
 	@Test
+	public void testCanDeleteVersion() {
+		insertVersion("2025", "version1", 1);
+		insertVersion("2025", "version2", 2);
+		insertVersion("2025", "version3", 3);
+
+		assertThat(repository.getImportVersion("2025", "version1")).isPresent();
+		assertThat(repository.getImportVersion("2025", "version2")).isPresent();
+		assertThat(repository.getImportVersion("2025", "version3")).isPresent();
+
+		repository.deleteImportVersion(repository.getImportVersion("2025", "version2").get());
+
+		assertThat(repository.getImportVersion("2025", "version1")).isPresent();
+		assertThat(repository.getImportVersion("2025", "version2")).isNotPresent();
+		assertThat(repository.getImportVersion("2025", "version3")).isPresent();
+	}
+
+	@Test
 	public void testCanGetAllVersionsForTimetable_orderedByDescendingCreatedAt() {
 		insertVersion("2025", "version1", 1);
 		insertVersion("2025", "version2", 2);
 		insertVersion("2025", "version3", 3);
 
-		final List<ImportVersion> result = repository.getAllImportVersions("2025");
+		final List<ImportVersion> result = repository.getImportVersions("2025");
 		assertThat(result).hasSize(3);
 		assertThat(result.get(0).version).isEqualTo("version3");
 		assertThat(result.get(1).version).isEqualTo("version2");
@@ -121,7 +138,7 @@ public class ImportVersionRepositoryIntegrationTest {
 	}
 
 	@Test
-	public void testIgnoresVersionWithDifferentSchemaVersion() {
+	public void testHandlesVersionWithDifferentSchemaVersionCorrectly() {
 		insertVersion("2025", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
 		insertVersion("2025", "version2", 2, ImportVersion.CURRENT_SCHEMA_VERSION);
 		insertVersion("2025", "version3", 3, ImportVersion.CURRENT_SCHEMA_VERSION);
@@ -129,11 +146,11 @@ public class ImportVersionRepositoryIntegrationTest {
 		insertVersion("2025", "version2", 5, ImportVersion.CURRENT_SCHEMA_VERSION + 1);
 		insertVersion("2025", "version3", 6, ImportVersion.CURRENT_SCHEMA_VERSION + 1);
 
-		// specific version
+		// ignores different schema versions when specific version is queried
 		assertThat(repository.getImportVersion("2025", "version2").get().createdAt).isEqualTo(Instant.ofEpochSecond(2));
 
-		// all versions for timetable
-		final List<ImportVersion> result = repository.getAllImportVersions("2025");
+		// ignores different schema versions when all versions for timetable are queried
+		final List<ImportVersion> result = repository.getImportVersions("2025");
 		assertThat(result).hasSize(3);
 		assertThat(result.get(0).version).isEqualTo("version3");
 		assertThat(result.get(0).createdAt).isEqualTo(Instant.ofEpochSecond(3));
@@ -142,8 +159,18 @@ public class ImportVersionRepositoryIntegrationTest {
 		assertThat(result.get(2).version).isEqualTo("version1");
 		assertThat(result.get(2).createdAt).isEqualTo(Instant.ofEpochSecond(1));
 
-		// last version
+		// ignores different schema version when last version is queried
 		assertThat(repository.getLastImportVersion("2025").get().createdAt).isEqualTo(Instant.ofEpochSecond(3));
+
+		// returns different schema versions when all versions are queried
+		assertThat(repository.getAllImportVersions()).hasSize(6);
+
+		// deletes version of correct schema version
+		repository.deleteImportVersion(repository.getImportVersion("2025", "version2").get());
+
+		assertThat(repository.getImportVersion("2025", "version2")).isNotPresent();
+		assertThat(repository.getImportVersions("2025")).hasSize(2);
+		assertThat(repository.getAllImportVersions()).hasSize(5);
 	}
 
 	private void insertVersion(String timetable, String version, int createdAt) {

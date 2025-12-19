@@ -44,8 +44,29 @@ public class ImportSchedulerProperties {
 	 */
 	private boolean writeCallsCollection = false;
 
+	/**
+	 * The prefix that will be used for databases that contain netex data. It should be a distinct prefix that is not used by any other
+	 * database in the system because the prefix will also be used to find and delete unreferenced leftover databases.
+	 */
 	private String importDatabasePrefix = "netex-autoimport";
-	private File temporaryFilesDirectory;
+
+	/**
+	 * The directory where zip files with netex data will be downloaded and extracted to. It should be a directory that contains no other
+	 * files or directories because files/directories that are not referenced by any known import version will be deleted periodically.
+	 */
+	private File temporaryFilesDirectory = new File("tmp");
+
+	/**
+	 * If there are more import versions for one timetable than the number specified in this property then they are deleted (except when
+	 * they are forcibly active or marked to be kept).
+	 */
+	private int maxVersionsToKeep = 3;
+
+	/**
+	 * Whether databases and files/directories that are not referenced by any known import version should be deleted (see comments to
+	 * {@link #importDatabasePrefix} and {@link #temporaryFilesDirectory}).
+	 */
+	private boolean deleteUnknownResources = true;
 
 	public String getImportCronExpression() {
 		return importCronExpression;
@@ -109,5 +130,21 @@ public class ImportSchedulerProperties {
 
 	public void setTemporaryFilesDirectory(File temporaryFilesDirectory) {
 		this.temporaryFilesDirectory = temporaryFilesDirectory;
+	}
+
+	public int getMaxVersionsToKeep() {
+		return maxVersionsToKeep;
+	}
+
+	public void setMaxVersionsToKeep(int maxVersionsToKeep) {
+		this.maxVersionsToKeep = maxVersionsToKeep;
+	}
+
+	public boolean isDeleteUnknownResources() {
+		return deleteUnknownResources;
+	}
+
+	public void setDeleteUnknownResources(boolean deleteUnknownResources) {
+		this.deleteUnknownResources = deleteUnknownResources;
 	}
 }

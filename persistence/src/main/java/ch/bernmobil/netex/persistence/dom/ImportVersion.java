@@ -38,6 +38,8 @@ public class ImportVersion {
 	public LocalDate lastDate;
 
 	public boolean complete;
+	public boolean force;
+	public boolean keep;
 
 	@BsonProperty(FIELDNAME_SCHEMA_VERSION)
 	public long schemaVersion = CURRENT_SCHEMA_VERSION;

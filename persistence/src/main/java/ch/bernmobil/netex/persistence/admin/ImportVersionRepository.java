@@ -50,6 +50,11 @@ public class ImportVersionRepository {
 		importVersionCollection.replaceOne(filter, importVersion, new ReplaceOptions().upsert(true));
 	}
 
+	public void deleteImportVersion(ImportVersion importVersion) {
+		final Bson filter = Filters.eq(importVersion.getId());
+		importVersionCollection.deleteOne(filter);
+	}
+
 	public Optional<ImportVersion> getImportVersion(String timetable, String version) {
 		final Bson filter = Filters.and(Filters.eq(ImportVersion.FIELDNAME_SCHEMA_VERSION, ImportVersion.CURRENT_SCHEMA_VERSION),
 										Filters.eq(ImportVersion.FIELDNAME_TIMETABLE, timetable),
@@ -64,10 +69,17 @@ public class ImportVersionRepository {
 		return Optional.ofNullable(importVersionCollection.find(filter).sort(sort).limit(1).first());
 	}
 
-	public List<ImportVersion> getAllImportVersions(String timetable) {
+	public List<ImportVersion> getImportVersions(String timetable) {
 		final Bson filter = Filters.and(Filters.eq(ImportVersion.FIELDNAME_SCHEMA_VERSION, ImportVersion.CURRENT_SCHEMA_VERSION),
 										Filters.eq(ImportVersion.FIELDNAME_TIMETABLE, timetable));
 		final Bson sort = Sorts.descending(ImportVersion.FIELDNAME_CREATED_AT);
 		return Helper.iterableToList(importVersionCollection.find(filter).sort(sort));
+	}
+
+	/**
+	 * This also includes versions for a different schema version.
+	 */
+	public List<ImportVersion> getAllImportVersions() {
+		return Helper.iterableToList(importVersionCollection.find());
 	}
 }
