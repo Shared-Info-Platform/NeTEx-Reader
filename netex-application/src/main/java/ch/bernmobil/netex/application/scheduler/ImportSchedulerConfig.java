@@ -1,7 +1,6 @@
 package ch.bernmobil.netex.application.scheduler;
 
 import java.time.Clock;
-
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,5 +37,10 @@ public class ImportSchedulerConfig {
 	@Bean
 	public Clock clock() {
 		return Clock.systemDefaultZone();
+	}
+
+	@Bean
+	public CustomInfoContributor customInfoContributor(ImportVersionRepository importVersionRepository) {
+		return new CustomInfoContributor(importVersionRepository);
 	}
 }
