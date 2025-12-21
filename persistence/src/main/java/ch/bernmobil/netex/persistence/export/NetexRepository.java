@@ -74,6 +74,11 @@ public class NetexRepository {
 			index.put("arrivalTime", 1);
 			journeyCollection.createIndex(new Document(index));
 		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("calendarDay", 1);
+			journeyCollection.createIndex(new Document(index));
+		}
 
 		// Calls
 		callCollection = database.getCollection("Calls", CallWithJourney.class);
@@ -103,6 +108,11 @@ public class NetexRepository {
 			index.put("calendarDay", 1);
 			callCollection.createIndex(new Document(index));
 		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("calendarDay", 1);
+			callCollection.createIndex(new Document(index));
+		}
 
 		// Journey Aggregations
 		journeyAggregationCollection = database.getCollection("JourneyAggregations", JourneyAggregation.class);
@@ -110,6 +120,11 @@ public class NetexRepository {
 			final Map<String, Integer> index = new LinkedHashMap<>();
 			index.put("operatorCode", 1);
 			index.put("lineCode", 1);
+			index.put("calendarDay", 1);
+			journeyAggregationCollection.createIndex(new Document(index));
+		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
 			index.put("calendarDay", 1);
 			journeyAggregationCollection.createIndex(new Document(index));
 		}
@@ -132,6 +147,11 @@ public class NetexRepository {
 			index.put("stopPlaceCode", 1);
 			callAggregationCollection.createIndex(new Document(index));
 		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
+			index.put("calendarDay", 1);
+			callAggregationCollection.createIndex(new Document(index));
+		}
 
 		// Route Aggregations
 		routeAggregationCollection = database.getCollection("RouteAggregations", RouteAggregation.class);
@@ -140,6 +160,11 @@ public class NetexRepository {
 			index.put("operatorCode", 1);
 			index.put("lineCode", 1);
 			index.put("directionType", 1);
+			index.put("calendarDay", 1);
+			routeAggregationCollection.createIndex(new Document(index));
+		}
+		{
+			final Map<String, Integer> index = new LinkedHashMap<>();
 			index.put("calendarDay", 1);
 			routeAggregationCollection.createIndex(new Document(index));
 		}
