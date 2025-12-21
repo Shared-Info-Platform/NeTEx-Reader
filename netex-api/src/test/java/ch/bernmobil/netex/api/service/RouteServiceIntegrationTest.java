@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,9 +37,12 @@ public class RouteServiceIntegrationTest {
 	@Autowired
 	private MongoClient mongoClient;
 
-	@AfterEach
+	@Autowired
+	private RouteService routeService;
+
+	@BeforeEach
 	public void cleanup() {
-		mongoClient.getDatabase(properties.getDatabaseName()).getCollection("RouteAggregations").deleteMany(Filters.empty());
+		mongoClient.getDatabase(properties.getApiDatabaseName()).getCollection("RouteAggregations").deleteMany(Filters.empty());
 	}
 
 	@Test
@@ -53,10 +56,9 @@ public class RouteServiceIntegrationTest {
 		aggregations.add(createRouteAggregation("xxxxxxxx", "line", "inbound", "2024-09-09", 1, List.of("1", "2")));
 		aggregations.add(createRouteAggregation("operator", "xxxx", "inbound", "2024-09-09", 1, List.of("1", "2")));
 
-		final NetexRepository netexRepository = new NetexRepository(mongoClient, properties.getDatabaseName());
+		final NetexRepository netexRepository = new NetexRepository(mongoClient, properties.getApiDatabaseName());
 		netexRepository.writeRouteAggregations(aggregations);
 
-		final RouteService routeService = new RouteService(properties, new RepositoryFactory(mongoClient));
 		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
 				Optional.of(LocalDate.of(2024, 9, 9)), Optional.of(2), BigDecimal.valueOf(90), Optional.empty());
 

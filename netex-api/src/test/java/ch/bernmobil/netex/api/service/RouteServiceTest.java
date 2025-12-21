@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,6 +23,8 @@ import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.api.service.RouteService.NotFoundException;
+import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.dom.ImportVersion;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
 import ch.bernmobil.netex.persistence.search.RouteAggregationRepository;
@@ -29,20 +32,26 @@ import ch.bernmobil.netex.persistence.search.RouteAggregationRepository;
 public class RouteServiceTest {
 
 	private RouteService routeService;
-	private NetexApiProperties properties = new NetexApiProperties();
+	private NetexApiProperties properties;
 	private RepositoryFactory repositoryFactory;
 	private RouteAggregationRepository repository;
 	private List<RouteAggregation> aggregations = new ArrayList<>();
+	private ImportVersionRepository importVersionRepository;
 
 	@BeforeEach
 	public void setup () {
+		properties = new NetexApiProperties();
+		properties.setApiDatabaseName("test");
+
 		repository = Mockito.mock(RouteAggregationRepository.class);
 		Mockito.when(repository.findRouteAggregations(anyString(), anyString(), anyCollection(), anyCollection())).thenReturn(aggregations);
 
 		repositoryFactory = Mockito.mock(RepositoryFactory.class);
-		Mockito.when(repositoryFactory.createRepository(properties.getDatabaseName())).thenReturn(repository);
+		Mockito.when(repositoryFactory.createRepository(properties.getApiDatabaseName())).thenReturn(repository);
 
-		routeService = new RouteService(properties, repositoryFactory);
+		importVersionRepository = Mockito.mock(ImportVersionRepository.class);
+
+		routeService = new RouteService(properties, repositoryFactory, importVersionRepository);
 	}
 
 	@Test
@@ -99,25 +108,79 @@ public class RouteServiceTest {
 	}
 
 	@Test
-	public void testUsesDataFromCorrectDatabase() {
-		Mockito.when(repositoryFactory.createRepository("database")).thenReturn(repository);
+	public void testUsesDataFromCorrectDatabase_whenFixedDatabaseIsDefinedInRequest() {
+		Mockito.when(repositoryFactory.createRepository("some-database")).thenReturn(repository);
+
 		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.empty(), Optional.empty(),
-				BigDecimal.valueOf(90), Optional.of("database"));
-		verify(repositoryFactory).createRepository("database");
+				BigDecimal.valueOf(90), Optional.of("some-database"));
+		verify(repositoryFactory).createRepository("some-database");
 	}
 
 	@Test
-	public void testThrowsWhenDatabaseDoesNotExist() {
+	public void testUsesDataFromCorrectDatabase_whenFixedDatabaseIsDefinedInProperties() {
+		Mockito.when(repositoryFactory.createRepository("some-database")).thenReturn(repository);
+		properties.setApiDatabaseName("some-database");
+
+		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.empty(), Optional.empty(),
+				BigDecimal.valueOf(90), Optional.empty());
+		verify(repositoryFactory).createRepository("some-database");
+	}
+
+	@Test
+	public void testThrowsWhenDatabaseDefinedInRequestDoesNotExist() {
 		assertThatExceptionOfType(NotFoundException.class)
 				.isThrownBy(() -> routeService.findRoutesByDirection("operator", "line", Optional.empty(),
-						Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.of("database")));
+						Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.of("some-database")));
+	}
+
+	@Test
+	public void testThrowsWhenDatabaseDefinedInPropertiesDoesNotExist() {
+		properties.setApiDatabaseName("some-database");
+		assertThatExceptionOfType(NotFoundException.class)
+				.isThrownBy(() -> routeService.findRoutesByDirection("operator", "line", Optional.empty(),
+						Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty()));
+	}
+
+	@Test
+	public void testUsesDataFromCorrectDatabase_whenDatabaseOfActiveVersionIsUsed_andThereIsOneActiveVersion() {
+		Mockito.when(repositoryFactory.createRepository("some-db")).thenReturn(repository);
+
+		properties.setApiDatabaseName(null);
+
+		final ImportVersion version = new ImportVersion();
+		version.databaseName = "some-db";
+		Mockito.when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version));
+
+		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.empty(), Optional.empty(),
+				BigDecimal.valueOf(90), Optional.empty());
+		verify(repositoryFactory).createRepository("some-db");
+	}
+
+	@Test
+	public void testUsesDataFromCorrectDatabase_whenDatabaseOfActiveVersionIsUsed_andThereAreTwoActiveVersions() {
+		Mockito.when(repositoryFactory.createRepository("some-db-1")).thenReturn(repository);
+		Mockito.when(repositoryFactory.createRepository("some-db-2")).thenReturn(repository);
+
+		properties.setApiDatabaseName(null);
+
+		final ImportVersion version1 = new ImportVersion();
+		version1.databaseName = "some-db-1";
+		final ImportVersion version2 = new ImportVersion();
+		version2.databaseName = "some-db-2";
+		Mockito.when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
+
+		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.empty(), Optional.empty(),
+				BigDecimal.valueOf(90), Optional.empty());
+		verify(repositoryFactory).createRepository("some-db-1");
+		verify(repositoryFactory).createRepository("some-db-2");
+		verifyNoMoreInteractions(repositoryFactory);
 	}
 
 	@Test
 	public void testFallsBackToDefaultDatabaseWhenNoneProvided() {
 		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.empty(), Optional.empty(),
 				null, Optional.empty());
-		verify(repositoryFactory).createRepository(properties.getDatabaseName());
+		verify(repositoryFactory).createRepository(properties.getApiDatabaseName());
 	}
 
 	@Test
@@ -201,6 +264,53 @@ public class RouteServiceTest {
 			assertThat(route.getNumberOfJourneys()).isEqualTo(3);
 			assertThat(route.getStopPlaces()).hasSize(2);
 		}
+	}
+
+	@Test
+	public void testCombinesMultipleRouteAggregationsFromDifferentActiveVersionsInOneRoute() {
+		// setup two active versions with a repository each
+		properties.setApiDatabaseName(null);
+
+		final ImportVersion version1 = new ImportVersion();
+		version1.databaseName = "some-db-1";
+		final ImportVersion version2 = new ImportVersion();
+		version2.databaseName = "some-db-2";
+		Mockito.when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
+
+		final List<RouteAggregation> aggregations1 = new ArrayList<>();
+		final List<RouteAggregation> aggregations2 = new ArrayList<>();
+
+		final RouteAggregationRepository repository1 = Mockito.mock(RouteAggregationRepository.class);
+		Mockito.when(repository1.findRouteAggregations(anyString(), anyString(), anyCollection(), anyCollection())).thenReturn(aggregations1);
+		final RouteAggregationRepository repository2 = Mockito.mock(RouteAggregationRepository.class);
+		Mockito.when(repository2.findRouteAggregations(anyString(), anyString(), anyCollection(), anyCollection())).thenReturn(aggregations2);
+
+		Mockito.when(repositoryFactory.createRepository("some-db-1")).thenReturn(repository1);
+		Mockito.when(repositoryFactory.createRepository("some-db-2")).thenReturn(repository2);
+
+		// have two aggregations in one and a third in the other repository
+		aggregations1.add(createRouteAggregation("operator", "line", "inbound", "2024-09-09", 1, List.of("1", "2")));
+		aggregations1.add(createRouteAggregation("operator", "line", "inbound", "2024-09-10", 2, List.of("1", "2")));
+		aggregations2.add(createRouteAggregation("operator", "line", "inbound", "2024-09-11", 3, List.of("1", "2")));
+
+		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line",
+				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
+
+		assertThat(result).isNotNull();
+		assertThat(result).hasSize(1);
+		assertThat(result).containsKey(DirectionType.inbound);
+		assertThat(result.get(DirectionType.inbound)).hasSize(1);
+
+		final Route route = result.get(DirectionType.inbound).get(0);
+		assertThat(route.getOperatorCode()).isEqualTo("operator");
+		assertThat(route.getLineCode()).isEqualTo("line");
+		assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
+		assertThat(route.getNumberOfJourneys()).isEqualTo(6);
+		assertThat(route.getStopPlaces()).hasSize(2);
+		assertThat(route.getStopPlaces().get(0).code()).isEqualTo("1");
+		assertThat(route.getStopPlaces().get(0).name()).isEqualTo("1");
+		assertThat(route.getStopPlaces().get(1).code()).isEqualTo("2");
+		assertThat(route.getStopPlaces().get(1).name()).isEqualTo("2");
 	}
 
 	@Test

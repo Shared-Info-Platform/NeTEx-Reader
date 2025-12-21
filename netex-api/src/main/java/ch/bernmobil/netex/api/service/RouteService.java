@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,8 @@ import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.api.model.Route.StopPlace;
+import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.dom.ImportVersion;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 import ch.bernmobil.netex.persistence.search.RouteAggregationRepository;
 
@@ -29,10 +32,12 @@ public class RouteService {
 
 	private final NetexApiProperties properties;
 	private final RepositoryFactory repositoryFactory;
+	private final ImportVersionRepository importVersionRepository;
 
-	public RouteService(NetexApiProperties properties, RepositoryFactory repositoryFactory) {
+	public RouteService(NetexApiProperties properties, RepositoryFactory repositoryFactory, ImportVersionRepository importVersionRepository) {
 		this.properties = properties;
 		this.repositoryFactory = repositoryFactory;
+		this.importVersionRepository = importVersionRepository;
 	}
 
 	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<DirectionType> directionType, Optional<LocalDate> calendarDay,
@@ -40,8 +45,11 @@ public class RouteService {
 		final List<String> directionTypes = directionType.map(DirectionType::name).map(List::of).orElse(getDefaultDirectionTypes());
 		final List<String> calendarDays = getCalendarDays(calendarDay.orElse(LocalDate.now()), previewDays.orElse(0));
 
-		final RouteAggregationRepository repository = getRepository(databaseName);
-		final List<RouteAggregation> aggregations = repository.findRouteAggregations(operatorCode, lineCode, directionTypes, calendarDays);
+		final List<RouteAggregationRepository> repositories = getRepositories(databaseName);
+		final List<RouteAggregation> aggregations = new ArrayList<>();
+		for (final RouteAggregationRepository repository : repositories) {
+			aggregations.addAll(repository.findRouteAggregations(operatorCode, lineCode, directionTypes, calendarDays));
+		}
 		final Map<DirectionType, List<RouteAggregation>> aggregationsByDirection = groupRouteAggregationsByDirectionType(aggregations);
 
 		final Map<DirectionType, List<Route>> result = new TreeMap<>(); // use tree map to sort inbound > outbound
@@ -92,8 +100,17 @@ public class RouteService {
 		return calendarDays.stream().map(LocalDate::toString).toList();
 	}
 
-	private RouteAggregationRepository getRepository(Optional<String> optionalDatabaseName) {
-		final String databaseName = optionalDatabaseName.orElse(properties.getDatabaseName());
+	private List<RouteAggregationRepository> getRepositories(Optional<String> optionalDatabaseName) {
+		final String fixedDatabaseName = optionalDatabaseName.orElse(properties.getApiDatabaseName());
+		if (fixedDatabaseName != null) {
+			return List.of(createRepository(fixedDatabaseName));
+		} else {
+			final Collection<ImportVersion> activeVersions = importVersionRepository.getActiveImportVersions();
+			return activeVersions.stream().map(version -> createRepository(version.databaseName)).toList();
+		}
+	}
+
+	private RouteAggregationRepository createRepository(String databaseName) {
 		final RouteAggregationRepository repository = repositoryFactory.createRepository(databaseName);
 		if (repository != null) {
 			return repository;

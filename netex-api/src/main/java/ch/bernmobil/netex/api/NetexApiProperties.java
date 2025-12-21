@@ -5,13 +5,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties
 public class NetexApiProperties {
 
-	private String databaseName = "netex";
+	private String apiDatabaseName;
 
-	public String getDatabaseName() {
-		return databaseName;
+	public String getApiDatabaseName() {
+		return apiDatabaseName;
 	}
 
-	public void setDatabaseName(String databaseName) {
-		this.databaseName = databaseName;
+	public void setApiDatabaseName(String apiDatabaseName) {
+		this.apiDatabaseName = apiDatabaseName;
 	}
 }
