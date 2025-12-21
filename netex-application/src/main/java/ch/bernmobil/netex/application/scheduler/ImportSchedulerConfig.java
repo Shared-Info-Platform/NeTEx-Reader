@@ -11,6 +11,7 @@ import com.mongodb.client.MongoClient;
 
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.export.NetexRepository;
 
 @Configuration
 @EnableConfigurationProperties(ImportSchedulerProperties.class)
@@ -24,9 +25,9 @@ public class ImportSchedulerConfig {
 	}
 
 	@Bean
-	public ImportScheduler importScheduler(Downloader downloader, ImportVersionRepository importVersionRepository, MongoClient mongoClient,
-			Clock clock) {
-		return new ImportScheduler(properties, downloader, importVersionRepository, mongoClient, clock);
+	public ImportScheduler importScheduler(Downloader downloader, ImportVersionRepository importVersionRepository,
+			NetexRepository historyNetexRepository, MongoClient mongoClient, Clock clock) {
+		return new ImportScheduler(properties, downloader, importVersionRepository, historyNetexRepository, mongoClient, clock);
 	}
 
 	@Bean

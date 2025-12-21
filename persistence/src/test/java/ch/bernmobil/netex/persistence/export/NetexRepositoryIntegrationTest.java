@@ -385,6 +385,94 @@ public class NetexRepositoryIntegrationTest {
 	}
 
 	@Test
+	public void testCanGetJourneysForCalendarDay() {
+		final JourneyWithCalls journey1 = createJourney(1);
+		final JourneyWithCalls journey2 = createJourney(2);
+		final JourneyWithCalls journey3 = createJourney(3);
+		journey1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		journey2.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		journey3.calendarDay = LocalDate.of(2025, 12, 2).toString(); // other date
+
+		repository.writeJourneys(List.of(journey1, journey2, journey3));
+
+		assertThat(repository.getJourneysForCalendarDay(LocalDate.of(2025, 12, 1))).extracting(j -> j.id).containsExactlyInAnyOrder("id1",
+				"id2");
+		assertThat(repository.getJourneysForCalendarDay(LocalDate.of(2025, 12, 2))).extracting(j -> j.id).containsExactlyInAnyOrder("id3");
+		assertThat(repository.getJourneysForCalendarDay(LocalDate.of(2025, 12, 3))).isEmpty();
+	}
+
+	@Test
+	public void testCanGetCallsForCalendarDay() {
+		final CallWithJourney call1 = createCall(1);
+		final CallWithJourney call2 = createCall(2);
+		final CallWithJourney call3 = createCall(3);
+		call1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		call2.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		call3.calendarDay = LocalDate.of(2025, 12, 2).toString(); // other date
+
+		repository.writeCalls(List.of(call1, call2, call3));
+
+		assertThat(repository.getCallsForCalendarDay(LocalDate.of(2025, 12, 1))).extracting(c -> c.id).containsExactlyInAnyOrder("id1",
+				"id2");
+		assertThat(repository.getCallsForCalendarDay(LocalDate.of(2025, 12, 2))).extracting(c -> c.id).containsExactlyInAnyOrder("id3");
+		assertThat(repository.getCallsForCalendarDay(LocalDate.of(2025, 12, 3))).isEmpty();
+	}
+
+	@Test
+	public void testCanGetJourneyAggregationsForCalendarDay() {
+		final JourneyAggregation aggregation1 = createJourneyAggregation(1, 1);
+		final JourneyAggregation aggregation2 = createJourneyAggregation(2, 1);
+		final JourneyAggregation aggregation3 = createJourneyAggregation(3, 1);
+		aggregation1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		aggregation2.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		aggregation3.calendarDay = LocalDate.of(2025, 12, 2).toString(); // other date
+
+		repository.writeJourneyAggregations(List.of(aggregation1, aggregation2, aggregation3));
+
+		assertThat(repository.getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 1))).extracting(a -> a.lineCode)
+				.containsExactlyInAnyOrder("line1", "line2");
+		assertThat(repository.getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 2))).extracting(a -> a.lineCode)
+				.containsExactlyInAnyOrder("line3");
+		assertThat(repository.getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 3))).isEmpty();
+	}
+
+	@Test
+	public void testCanGetCallAggregationsForCalendarDay() {
+		final CallAggregation aggregation1 = createCallAggregation(1, 1);
+		final CallAggregation aggregation2 = createCallAggregation(2, 1);
+		final CallAggregation aggregation3 = createCallAggregation(3, 1);
+		aggregation1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		aggregation2.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		aggregation3.calendarDay = LocalDate.of(2025, 12, 2).toString(); // other date
+
+		repository.writeCallAggregations(List.of(aggregation1, aggregation2, aggregation3));
+
+		assertThat(repository.getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 1))).extracting(a -> a.stopPlaceCode)
+				.containsExactlyInAnyOrder("stop1", "stop2");
+		assertThat(repository.getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 2))).extracting(a -> a.stopPlaceCode)
+				.containsExactlyInAnyOrder("stop3");
+		assertThat(repository.getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 3))).isEmpty();
+	}
+
+	@Test
+	public void testCanGetRouteAggregationsForCalendarDay() {
+		final RouteAggregation aggregation1 = createRouteAggregation(1, 1);
+		final RouteAggregation aggregation2 = createRouteAggregation(2, 1);
+		final RouteAggregation aggregation3 = createRouteAggregation(3, 1);
+		aggregation1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		aggregation2.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		aggregation3.calendarDay = LocalDate.of(2025, 12, 2).toString(); // other date
+
+		repository.writeRouteAggregations(List.of(aggregation1, aggregation2, aggregation3));
+
+		assertThat(repository.getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 1))).extracting(a -> a.stopPlaces.getLast().code())
+				.containsExactlyInAnyOrder("1", "2");
+		assertThat(repository.getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 2))).extracting(a -> a.stopPlaces.getLast().code())
+				.containsExactlyInAnyOrder("3");
+		assertThat(repository.getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 3))).isEmpty();
+	}
+
+	@Test
 	public void testCanDeleteDataForCalendarDay() {
 		insertDataForDeleteTests();
 

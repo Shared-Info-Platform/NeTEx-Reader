@@ -8,6 +8,7 @@ import com.mongodb.client.MongoClient;
 
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.export.MongoDbClientHelper;
+import ch.bernmobil.netex.persistence.export.NetexRepository;
 
 @Configuration
 @EnableConfigurationProperties(PersistenceProperties.class)
@@ -27,5 +28,10 @@ public class PersistenceConfig {
 	@Bean
 	public ImportVersionRepository importVersionRepository(MongoClient mongoClient) {
 		return new ImportVersionRepository(mongoClient, properties.getAdminDatabaseName());
+	}
+
+	@Bean
+	public NetexRepository historyNetexRepository(MongoClient mongoClient) {
+		return new NetexRepository(mongoClient, properties.getHistoryDatabaseName());
 	}
 }
