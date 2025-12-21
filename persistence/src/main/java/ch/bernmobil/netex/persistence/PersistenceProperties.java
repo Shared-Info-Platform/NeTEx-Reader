@@ -7,6 +7,7 @@ public class PersistenceProperties {
 
 	private String mongoConnectionString = "mongodb://localhost:27017/";
 	private String adminDatabaseName = "netex-admin";
+	private String historyDatabaseName = "netex-history";
 
 	public String getMongoConnectionString() {
 		return mongoConnectionString;
@@ -22,5 +23,13 @@ public class PersistenceProperties {
 
 	public void setAdminDatabaseName(String adminDatabaseName) {
 		this.adminDatabaseName = adminDatabaseName;
+	}
+
+	public String getHistoryDatabaseName() {
+		return historyDatabaseName;
+	}
+
+	public void setHistoryDatabaseName(String historyDatabaseName) {
+		this.historyDatabaseName = historyDatabaseName;
 	}
 }

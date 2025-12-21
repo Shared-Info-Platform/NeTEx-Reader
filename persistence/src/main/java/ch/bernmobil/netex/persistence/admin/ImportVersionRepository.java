@@ -1,5 +1,7 @@
 package ch.bernmobil.netex.persistence.admin;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +76,31 @@ public class ImportVersionRepository {
 										Filters.eq(ImportVersion.FIELDNAME_TIMETABLE, timetable));
 		final Bson sort = Sorts.descending(ImportVersion.FIELDNAME_CREATED_AT);
 		return Helper.iterableToList(importVersionCollection.find(filter).sort(sort));
+	}
+
+	/**
+	 * Gets the active version for each timetable. The active version is the last created complete version unless there's a forced version.
+	 */
+	public Collection<ImportVersion> getActiveImportVersions() {
+		// Note: instead of filtering everything in MongoDB we just get all versions and filter in java
+		final Bson filter = Filters.eq(ImportVersion.FIELDNAME_SCHEMA_VERSION, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final Bson sort = Sorts.descending(ImportVersion.FIELDNAME_CREATED_AT);
+		final List<ImportVersion> versions = Helper.iterableToList(importVersionCollection.find(filter).sort(sort));
+
+		final Map<String, ImportVersion> activeVersionPerTimetable = new HashMap<>();
+		for (final ImportVersion version : versions) {
+			if (version.complete) {
+				if (version.force) {
+					activeVersionPerTimetable.put(version.timetable, version);
+				} else if (!activeVersionPerTimetable.containsKey(version.timetable)) {
+					// the versions are ordered by descending createdAt, so the first complete version per timetable is active unless
+					// there's a forced version
+					activeVersionPerTimetable.put(version.timetable, version);
+				}
+			}
+		}
+
+		return activeVersionPerTimetable.values();
 	}
 
 	/**

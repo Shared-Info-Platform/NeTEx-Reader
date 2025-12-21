@@ -6,6 +6,7 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -28,7 +29,9 @@ import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.dom.CallWithJourney;
 import ch.bernmobil.netex.persistence.dom.ImportVersion;
+import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
 import ch.bernmobil.netex.persistence.search.Helper;
 import jakarta.annotation.PostConstruct;
@@ -42,14 +45,16 @@ public class ImportScheduler {
 	private final ImportSchedulerProperties properties;
 	private final Downloader downloader;
 	private final ImportVersionRepository importVersionRepository;
+	private final NetexRepository historyNetexRepository;
 	private final MongoClient mongoClient;
 	private final Clock clock;
 
 	public ImportScheduler(ImportSchedulerProperties properties, Downloader downloader, ImportVersionRepository importVersionRepository,
-			MongoClient mongoClient, Clock clock) {
+			NetexRepository historyNetexRepository, MongoClient mongoClient, Clock clock) {
 		this.properties = properties;
 		this.downloader = downloader;
 		this.importVersionRepository = importVersionRepository;
+		this.historyNetexRepository = historyNetexRepository;
 		this.mongoClient = mongoClient;
 		this.clock = clock;
 	}
@@ -65,6 +70,7 @@ public class ImportScheduler {
 	public void runPeriodicImportTasks() {
 		downloadNewVersionsIfNecessary();
 		importDataIfNecessary();
+		updateHistoryIfNecessary();
 		cleanupIfNecessary();
 		logger.info("done");
 	}
@@ -312,6 +318,51 @@ public class ImportScheduler {
 		if (!FileSystemUtils.deleteRecursively(directory)) {
 			logger.error("could not delete directory {}", directory);
 		}
+	}
+
+	private void updateHistoryIfNecessary() {
+		final LocalDate today = LocalDate.now(clock);
+		if (!historyNetexRepository.containsDataForCalendarDay(today)) {
+			updateHistory(today);
+		}
+	}
+
+	private void updateHistory(LocalDate today) {
+		// copy data from the currently active versions to the history database
+		final Collection<ImportVersion> activeVersions = importVersionRepository.getActiveImportVersions();
+		for (final ImportVersion activeVersion : activeVersions) {
+			try {
+				updateHistory(activeVersion, today);
+			} catch (RuntimeException e) {
+				logger.error("failed to update history database for version " + activeVersion.version + " of " + activeVersion.timetable,
+						e);
+			}
+		}
+
+		// delete old data from history database
+		final LocalDate cleanupThreshold = today.minusDays(properties.getHistoryNumberOfDays());
+		logger.info("delete old data in history database up to {}", cleanupThreshold);
+		historyNetexRepository.deleteDataUpToCalendarDay(cleanupThreshold);
+	}
+
+	private void updateHistory(ImportVersion version, LocalDate today) {
+		logger.info("adding data for {} from version {} of {} to history database", today, version.version, version.timetable);
+		final NetexRepository netexRepository = new NetexRepository(mongoClient, version.databaseName);
+
+		final List<JourneyWithCalls> journeys = netexRepository.getJourneysForCalendarDay(today);
+		final List<CallWithJourney> calls = netexRepository.getCallsForCalendarDay(today);
+
+		// override ids to avoid duplicates between different versions (e.g. if the same journey changes calendar day between two versions
+		// then it might be inserted twice into the history database; also different versions could just use a different numbering system
+		// which could lead to colliding ids).
+		journeys.forEach(journey -> journey.id = journey.id + "_" + version.getId());
+		calls.forEach(call -> call.id = call.id + "_" + version.getId());
+
+		historyNetexRepository.writeJourneys(journeys);
+		historyNetexRepository.writeCalls(calls);
+		historyNetexRepository.writeJourneyAggregations(netexRepository.getJourneyAggregationsForCalendarDay(today));
+		historyNetexRepository.writeCallAggregations(netexRepository.getCallAggregationsForCalendarDay(today));
+		historyNetexRepository.writeRouteAggregations(netexRepository.getRouteAggregationsForCalendarDay(today));
 	}
 
 	/**

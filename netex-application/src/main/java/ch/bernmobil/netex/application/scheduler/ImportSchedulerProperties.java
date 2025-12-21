@@ -68,6 +68,11 @@ public class ImportSchedulerProperties {
 	 */
 	private boolean deleteUnknownResources = true;
 
+	/**
+	 * Defines the number of days that should be stored in the history database.
+	 */
+	private int historyNumberOfDays = 30;
+
 	public String getImportCronExpression() {
 		return importCronExpression;
 	}
@@ -146,5 +151,13 @@ public class ImportSchedulerProperties {
 
 	public void setDeleteUnknownResources(boolean deleteUnknownResources) {
 		this.deleteUnknownResources = deleteUnknownResources;
+	}
+
+	public int getHistoryNumberOfDays() {
+		return historyNumberOfDays;
+	}
+
+	public void setHistoryNumberOfDays(int historyNumberOfDays) {
+		this.historyNumberOfDays = historyNumberOfDays;
 	}
 }

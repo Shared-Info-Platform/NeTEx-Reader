@@ -3,6 +3,7 @@ package ch.bernmobil.netex.persistence.admin;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -162,6 +163,10 @@ public class ImportVersionRepositoryIntegrationTest {
 		// ignores different schema version when last version is queried
 		assertThat(repository.getLastImportVersion("2025").get().createdAt).isEqualTo(Instant.ofEpochSecond(3));
 
+		// ignores different schema version when active version is queried
+		assertThat(repository.getActiveImportVersions()).hasSize(1);
+		assertThat(repository.getActiveImportVersions()).extracting(iv -> iv.createdAt).containsExactly(Instant.ofEpochSecond(3));
+
 		// returns different schema versions when all versions are queried
 		assertThat(repository.getAllImportVersions()).hasSize(6);
 
@@ -173,16 +178,72 @@ public class ImportVersionRepositoryIntegrationTest {
 		assertThat(repository.getAllImportVersions()).hasSize(5);
 	}
 
+	@Test
+	public void testActiveVersionIsTheOneWithHighestCreatedAtPerTimetable_whenAllAreCompleteAndNoneIsForced() {
+		final ImportVersion version1 = createVersion("2025", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version2 = createVersion("2025", "version2", 2, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version3 = createVersion("2025", "version3", 3, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version4 = createVersion("2026", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		repository.insertOrUpdate(version1);
+		repository.insertOrUpdate(version2);
+		repository.insertOrUpdate(version3);
+		repository.insertOrUpdate(version4);
+
+		final Collection<ImportVersion> result = repository.getActiveImportVersions();
+		assertThat(result).hasSize(2);
+		assertThat(result).extracting(ImportVersion::getId).containsExactlyInAnyOrder("1_2025_version3", "1_2026_version1");
+	}
+
+	@Test
+	public void testActiveVersionIsTheOneWithHighestCreatedAtPerTimetableThatIsComplete_whenNoneIsForced() {
+		final ImportVersion version1 = createVersion("2025", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version2 = createVersion("2025", "version2", 2, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version3 = createVersion("2025", "version3", 3, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version4 = createVersion("2026", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		version3.complete = false;
+		version4.complete = false;
+		repository.insertOrUpdate(version1);
+		repository.insertOrUpdate(version2);
+		repository.insertOrUpdate(version3);
+		repository.insertOrUpdate(version4);
+
+		final Collection<ImportVersion> result = repository.getActiveImportVersions();
+		assertThat(result).hasSize(1);
+		assertThat(result).extracting(ImportVersion::getId).containsExactlyInAnyOrder("1_2025_version2");
+	}
+
+	@Test
+	public void testActiveVersionIsTheForcedOne() {
+		final ImportVersion version1 = createVersion("2025", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version2 = createVersion("2025", "version2", 2, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version3 = createVersion("2025", "version3", 3, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version4 = createVersion("2026", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		version2.force = true;
+		repository.insertOrUpdate(version1);
+		repository.insertOrUpdate(version2);
+		repository.insertOrUpdate(version3);
+		repository.insertOrUpdate(version4);
+
+		final Collection<ImportVersion> result = repository.getActiveImportVersions();
+		assertThat(result).hasSize(2);
+		assertThat(result).extracting(ImportVersion::getId).containsExactlyInAnyOrder("1_2025_version2", "1_2026_version1");
+	}
+
 	private void insertVersion(String timetable, String version, int createdAt) {
 		insertVersion(timetable, version, createdAt, ImportVersion.CURRENT_SCHEMA_VERSION);
 	}
 
 	private void insertVersion(String timetable, String version, int createdAt, long schemaVersion) {
+		repository.insertOrUpdate(createVersion(timetable, version, createdAt, schemaVersion));
+	}
+
+	private static ImportVersion createVersion(String timetable, String version, int createdAt, long schemaVersion) {
 		final ImportVersion importVersion = new ImportVersion();
 		importVersion.timetable = timetable;
 		importVersion.version = version;
 		importVersion.createdAt = Instant.ofEpochSecond(createdAt);
 		importVersion.schemaVersion = schemaVersion;
-		repository.insertOrUpdate(importVersion);
+		importVersion.complete = true;
+		return importVersion;
 	}
 }

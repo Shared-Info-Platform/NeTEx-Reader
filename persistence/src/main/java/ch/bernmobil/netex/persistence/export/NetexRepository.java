@@ -29,6 +29,7 @@ import ch.bernmobil.netex.persistence.dom.JourneyAggregation;
 import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
+import ch.bernmobil.netex.persistence.search.Helper;
 
 /**
  * Opens collections in a MongoDB, creates indexes (if necessary) for these collections, transforms journeys
@@ -290,6 +291,26 @@ public class NetexRepository {
 				+ callAggregationCollection.estimatedDocumentCount ()
 				+ routeAggregationCollection.estimatedDocumentCount ();
 		return numDocuments == 0;
+	}
+
+	public List<JourneyWithCalls> getJourneysForCalendarDay(LocalDate date) {
+		return Helper.iterableToList(journeyCollection.find(Filters.eq("calendarDay", date.toString())));
+	}
+
+	public List<CallWithJourney> getCallsForCalendarDay(LocalDate date) {
+		return Helper.iterableToList(callCollection.find(Filters.eq("calendarDay", date.toString())));
+	}
+
+	public List<JourneyAggregation> getJourneyAggregationsForCalendarDay(LocalDate date) {
+		return Helper.iterableToList(journeyAggregationCollection.find(Filters.eq("calendarDay", date.toString())));
+	}
+
+	public List<CallAggregation> getCallAggregationsForCalendarDay(LocalDate date) {
+		return Helper.iterableToList(callAggregationCollection.find(Filters.eq("calendarDay", date.toString())));
+	}
+
+	public List<RouteAggregation> getRouteAggregationsForCalendarDay(LocalDate date) {
+		return Helper.iterableToList(routeAggregationCollection.find(Filters.eq("calendarDay", date.toString())));
 	}
 
 	public boolean containsDataForCalendarDay(LocalDate date) {
