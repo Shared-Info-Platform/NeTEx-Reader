@@ -9,6 +9,7 @@ import com.mongodb.client.MongoClient;
 import ch.bernmobil.netex.api.controller.RouteControllerV1;
 import ch.bernmobil.netex.api.service.RepositoryFactory;
 import ch.bernmobil.netex.api.service.RouteService;
+import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 
 @Configuration
 @EnableConfigurationProperties(NetexApiProperties.class)
@@ -26,8 +27,8 @@ public class NetexApiConfig {
 	}
 
 	@Bean
-	public RouteService createRouteService(RepositoryFactory repositoryFactory) {
-		return new RouteService(properties, repositoryFactory);
+	public RouteService createRouteService(RepositoryFactory repositoryFactory, ImportVersionRepository importVersionRepository) {
+		return new RouteService(properties, repositoryFactory, importVersionRepository);
 	}
 
 	@Bean
