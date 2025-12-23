@@ -57,6 +57,9 @@ public class ImportVersionRepository {
 		importVersionCollection.deleteOne(filter);
 	}
 
+	/**
+	 * Returns the specified version (if it exists).
+	 */
 	public Optional<ImportVersion> getImportVersion(String timetable, String version) {
 		final Bson filter = Filters.and(Filters.eq(ImportVersion.FIELDNAME_SCHEMA_VERSION, ImportVersion.CURRENT_SCHEMA_VERSION),
 										Filters.eq(ImportVersion.FIELDNAME_TIMETABLE, timetable),
@@ -64,6 +67,9 @@ public class ImportVersionRepository {
 		return Optional.ofNullable(importVersionCollection.find(filter).limit(1).first());
 	}
 
+	/**
+	 * Returns the newest version for the given timetable (if one exists).
+	 */
 	public Optional<ImportVersion> getLastImportVersion(String timetable) {
 		final Bson filter = Filters.and(Filters.eq(ImportVersion.FIELDNAME_SCHEMA_VERSION, ImportVersion.CURRENT_SCHEMA_VERSION),
 										Filters.eq(ImportVersion.FIELDNAME_TIMETABLE, timetable));
@@ -71,15 +77,26 @@ public class ImportVersionRepository {
 		return Optional.ofNullable(importVersionCollection.find(filter).sort(sort).limit(1).first());
 	}
 
-	public List<ImportVersion> getImportVersions(String timetable) {
+	/**
+	 * Returns all versions for the given timetable.
+	 */
+	public List<ImportVersion> getImportVersions(String timetable, Order order) {
 		final Bson filter = Filters.and(Filters.eq(ImportVersion.FIELDNAME_SCHEMA_VERSION, ImportVersion.CURRENT_SCHEMA_VERSION),
 										Filters.eq(ImportVersion.FIELDNAME_TIMETABLE, timetable));
-		final Bson sort = Sorts.descending(ImportVersion.FIELDNAME_CREATED_AT);
+		final Bson sort = switch (order) {
+			case OLDEST_FIRST -> Sorts.ascending(ImportVersion.FIELDNAME_CREATED_AT);
+			case NEWEST_FIRST -> Sorts.descending(ImportVersion.FIELDNAME_CREATED_AT);
+		};
 		return Helper.iterableToList(importVersionCollection.find(filter).sort(sort));
 	}
 
+	public static enum Order {
+		OLDEST_FIRST, NEWEST_FIRST
+	}
+
 	/**
-	 * Gets the active version for each timetable. The active version is the last created complete version unless there's a forced version.
+	 * Gets the active version for each timetable. The active version is the newest created complete & valid version unless there's a forced
+	 * version.
 	 */
 	public Collection<ImportVersion> getActiveImportVersions() {
 		// Note: instead of filtering everything in MongoDB we just get all versions and filter in java
@@ -89,12 +106,12 @@ public class ImportVersionRepository {
 
 		final Map<String, ImportVersion> activeVersionPerTimetable = new HashMap<>();
 		for (final ImportVersion version : versions) {
-			if (version.complete) {
+			if (version.complete && version.valid) {
 				if (version.force) {
 					activeVersionPerTimetable.put(version.timetable, version);
 				} else if (!activeVersionPerTimetable.containsKey(version.timetable)) {
-					// the versions are ordered by descending createdAt, so the first complete version per timetable is active unless
-					// there's a forced version
+					// the versions are ordered by descending createdAt, so the first complete & valid version per timetable is active
+					// unless there's a forced version
 					activeVersionPerTimetable.put(version.timetable, version);
 				}
 			}

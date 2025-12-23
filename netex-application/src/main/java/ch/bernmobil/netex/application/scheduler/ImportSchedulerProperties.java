@@ -63,6 +63,16 @@ public class ImportSchedulerProperties {
 	private int maxVersionsToKeep = 3;
 
 	/**
+	 * When a new version is imported then it is validated by comparing it to the previous version- For each imported day the number of
+	 * journeys in the database is evaluated, both for the new and the previous version. Then the ratio between the difference and the
+	 * average of these two numbers is calculated. The new version is valid if the ratio is smaller than the limit defined by this property.
+	 *
+	 * Example: Previous version 100'000 journeys, new version 80'000 journeys => ratio = 20'000 / 90'000 = 0.2222... (i.e. roughly 22%), so
+	 * with a maxRelativeDifference of 0.25 this would still be valid but with a maxRelativeDifference of 0.20 it would be invalid.
+	 */
+	private float maxRelativeDifference = 0.1f;
+
+	/**
 	 * Whether databases and files/directories that are not referenced by any known import version should be deleted (see comments to
 	 * {@link #importDatabasePrefix} and {@link #temporaryFilesDirectory}).
 	 */
@@ -143,6 +153,14 @@ public class ImportSchedulerProperties {
 
 	public void setMaxVersionsToKeep(int maxVersionsToKeep) {
 		this.maxVersionsToKeep = maxVersionsToKeep;
+	}
+
+	public float getMaxRelativeDifference() {
+		return maxRelativeDifference;
+	}
+
+	public void setMaxRelativeDifference(float maxRelativeDifference) {
+		this.maxRelativeDifference = maxRelativeDifference;
 	}
 
 	public boolean isDeleteUnknownResources() {

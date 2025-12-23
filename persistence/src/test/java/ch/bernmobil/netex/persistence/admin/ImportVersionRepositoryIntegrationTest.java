@@ -18,6 +18,7 @@ import com.mongodb.client.model.Filters;
 
 import ch.bernmobil.netex.persistence.PersistenceConfig;
 import ch.bernmobil.netex.persistence.PersistenceProperties;
+import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
 import ch.bernmobil.netex.persistence.dom.ImportVersion;
 
 @SpringBootTest(classes = PersistenceConfig.class)
@@ -107,16 +108,25 @@ public class ImportVersionRepositoryIntegrationTest {
 	}
 
 	@Test
-	public void testCanGetAllVersionsForTimetable_orderedByDescendingCreatedAt() {
+	public void testCanGetAllVersionsForTimetable_withCorrectOrder() {
 		insertVersion("2025", "version1", 1);
 		insertVersion("2025", "version2", 2);
 		insertVersion("2025", "version3", 3);
 
-		final List<ImportVersion> result = repository.getImportVersions("2025");
-		assertThat(result).hasSize(3);
-		assertThat(result.get(0).version).isEqualTo("version3");
-		assertThat(result.get(1).version).isEqualTo("version2");
-		assertThat(result.get(2).version).isEqualTo("version1");
+		{
+			final List<ImportVersion> result = repository.getImportVersions("2025", Order.NEWEST_FIRST);
+			assertThat(result).hasSize(3);
+			assertThat(result.get(0).version).isEqualTo("version3");
+			assertThat(result.get(1).version).isEqualTo("version2");
+			assertThat(result.get(2).version).isEqualTo("version1");
+		}
+		{
+			final List<ImportVersion> result = repository.getImportVersions("2025", Order.OLDEST_FIRST);
+			assertThat(result).hasSize(3);
+			assertThat(result.get(0).version).isEqualTo("version1");
+			assertThat(result.get(1).version).isEqualTo("version2");
+			assertThat(result.get(2).version).isEqualTo("version3");
+		}
 	}
 
 	@Test
@@ -151,7 +161,7 @@ public class ImportVersionRepositoryIntegrationTest {
 		assertThat(repository.getImportVersion("2025", "version2").get().createdAt).isEqualTo(Instant.ofEpochSecond(2));
 
 		// ignores different schema versions when all versions for timetable are queried
-		final List<ImportVersion> result = repository.getImportVersions("2025");
+		final List<ImportVersion> result = repository.getImportVersions("2025", Order.NEWEST_FIRST);
 		assertThat(result).hasSize(3);
 		assertThat(result.get(0).version).isEqualTo("version3");
 		assertThat(result.get(0).createdAt).isEqualTo(Instant.ofEpochSecond(3));
@@ -174,12 +184,12 @@ public class ImportVersionRepositoryIntegrationTest {
 		repository.deleteImportVersion(repository.getImportVersion("2025", "version2").get());
 
 		assertThat(repository.getImportVersion("2025", "version2")).isNotPresent();
-		assertThat(repository.getImportVersions("2025")).hasSize(2);
+		assertThat(repository.getImportVersions("2025", Order.NEWEST_FIRST)).hasSize(2);
 		assertThat(repository.getAllImportVersions()).hasSize(5);
 	}
 
 	@Test
-	public void testActiveVersionIsTheOneWithHighestCreatedAtPerTimetable_whenAllAreCompleteAndNoneIsForced() {
+	public void testActiveVersionIsTheOneWithHighestCreatedAtPerTimetable_whenAllAreCompleteAndValidAndNoneIsForced() {
 		final ImportVersion version1 = createVersion("2025", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
 		final ImportVersion version2 = createVersion("2025", "version2", 2, ImportVersion.CURRENT_SCHEMA_VERSION);
 		final ImportVersion version3 = createVersion("2025", "version3", 3, ImportVersion.CURRENT_SCHEMA_VERSION);
@@ -195,7 +205,7 @@ public class ImportVersionRepositoryIntegrationTest {
 	}
 
 	@Test
-	public void testActiveVersionIsTheOneWithHighestCreatedAtPerTimetableThatIsComplete_whenNoneIsForced() {
+	public void testActiveVersionIsTheOneWithHighestCreatedAtPerTimetableThatIsComplete_whenAllAreValidAndNoneIsForced() {
 		final ImportVersion version1 = createVersion("2025", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
 		final ImportVersion version2 = createVersion("2025", "version2", 2, ImportVersion.CURRENT_SCHEMA_VERSION);
 		final ImportVersion version3 = createVersion("2025", "version3", 3, ImportVersion.CURRENT_SCHEMA_VERSION);
@@ -210,6 +220,25 @@ public class ImportVersionRepositoryIntegrationTest {
 		final Collection<ImportVersion> result = repository.getActiveImportVersions();
 		assertThat(result).hasSize(1);
 		assertThat(result).extracting(ImportVersion::getId).containsExactlyInAnyOrder("1_2025_version2");
+	}
+
+	@Test
+	public void testActiveVersionIsTheOneWithHighestCreatedAtPerTimetableThatIsCompleteAndValid_whenNoneIsForced() {
+		final ImportVersion version1 = createVersion("2025", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version2 = createVersion("2025", "version2", 2, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version3 = createVersion("2025", "version3", 3, ImportVersion.CURRENT_SCHEMA_VERSION);
+		final ImportVersion version4 = createVersion("2026", "version1", 1, ImportVersion.CURRENT_SCHEMA_VERSION);
+		version2.valid = false;
+		version3.complete = false;
+		version4.valid = false;
+		repository.insertOrUpdate(version1);
+		repository.insertOrUpdate(version2);
+		repository.insertOrUpdate(version3);
+		repository.insertOrUpdate(version4);
+
+		final Collection<ImportVersion> result = repository.getActiveImportVersions();
+		assertThat(result).hasSize(1);
+		assertThat(result).extracting(ImportVersion::getId).containsExactlyInAnyOrder("1_2025_version1");
 	}
 
 	@Test
@@ -244,6 +273,7 @@ public class ImportVersionRepositoryIntegrationTest {
 		importVersion.createdAt = Instant.ofEpochSecond(createdAt);
 		importVersion.schemaVersion = schemaVersion;
 		importVersion.complete = true;
+		importVersion.valid = true;
 		return importVersion;
 	}
 }

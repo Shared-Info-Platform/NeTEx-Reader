@@ -37,9 +37,11 @@ public class ImportVersion {
 	public LocalDate firstDate;
 	public LocalDate lastDate;
 
-	public boolean complete;
-	public boolean force;
-	public boolean keep;
+	public boolean complete; // set to true after the initial import
+	public boolean valid; // set to true if the initial import validated successfully
+
+	public boolean force; // if true then this version is forcibly active (instead of the most recent complete & valid one)
+	public boolean keep; // if true then it will not be removed by the cleanup job (but old data will still be purged)
 
 	@BsonProperty(FIELDNAME_SCHEMA_VERSION)
 	public long schemaVersion = CURRENT_SCHEMA_VERSION;
