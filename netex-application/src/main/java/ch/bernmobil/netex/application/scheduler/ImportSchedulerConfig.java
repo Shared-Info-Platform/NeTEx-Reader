@@ -24,14 +24,20 @@ public class ImportSchedulerConfig {
 	}
 
 	@Bean
-	public ImportScheduler importScheduler(Downloader downloader, ImportVersionRepository importVersionRepository,
-			NetexRepository historyNetexRepository, MongoClient mongoClient, Clock clock) {
-		return new ImportScheduler(properties, downloader, importVersionRepository, historyNetexRepository, mongoClient, clock);
+	public ImportScheduler importScheduler(Downloader downloader, ImporterFactory importerFactory,
+			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClient mongoClient, Clock clock) {
+		return new ImportScheduler(properties, downloader, importerFactory, importVersionRepository, historyNetexRepository, mongoClient,
+				clock);
 	}
 
 	@Bean
 	public Downloader downloader() {
 		return new Downloader(properties.getTemporaryFilesDirectory());
+	}
+
+	@Bean
+	public ImporterFactory importerFactory() {
+		return new ImporterFactory();
 	}
 
 	@Bean
