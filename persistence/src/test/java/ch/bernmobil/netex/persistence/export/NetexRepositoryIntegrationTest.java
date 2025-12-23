@@ -385,6 +385,22 @@ public class NetexRepositoryIntegrationTest {
 	}
 
 	@Test
+	public void testCanGetNumberOfJourneysForCalendarDay() {
+		final JourneyWithCalls journey1 = createJourney(1);
+		final JourneyWithCalls journey2 = createJourney(2);
+		final JourneyWithCalls journey3 = createJourney(3);
+		journey1.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		journey2.calendarDay = LocalDate.of(2025, 12, 1).toString();
+		journey3.calendarDay = LocalDate.of(2025, 12, 2).toString(); // other date
+
+		repository.writeJourneys(List.of(journey1, journey2, journey3));
+
+		assertThat(repository.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 1))).isEqualTo(2);
+		assertThat(repository.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 2))).isEqualTo(1);
+		assertThat(repository.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 3))).isEqualTo(0);
+	}
+
+	@Test
 	public void testCanGetJourneysForCalendarDay() {
 		final JourneyWithCalls journey1 = createJourney(1);
 		final JourneyWithCalls journey2 = createJourney(2);

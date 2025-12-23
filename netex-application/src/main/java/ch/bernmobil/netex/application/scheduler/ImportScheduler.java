@@ -29,6 +29,7 @@ import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
 import ch.bernmobil.netex.persistence.dom.CallWithJourney;
 import ch.bernmobil.netex.persistence.dom.ImportVersion;
 import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
@@ -130,7 +131,8 @@ public class ImportScheduler {
 
 	private void importDataIfNecessary() {
 		for (final String timetable : properties.getUriPerTimetable().keySet()) {
-			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable);
+			// import data from older versions first so we can use them as baseline to validate imports of newer versions
+			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable, Order.OLDEST_FIRST);
 			for (final ImportVersion version : versions) {
 				final ImporterProperties importerProperties = createPropertiesIfImportIsNecessary(version);
 				if (importerProperties != null) {
@@ -159,6 +161,8 @@ public class ImportScheduler {
 			result.setFirstCalendarDay(desiredFirstDate);
 			result.setLastCalendarDay(desiredLastDate);
 			return result;
+		} else if (!version.valid) {
+			return null; // don't import data for invalid version
 		} else if (desiredLastDate.isAfter(version.lastDate)) {
 			final ImporterProperties result = new ImporterProperties();
 			result.setWriteCalls(properties.isWriteCallsCollection());
@@ -216,6 +220,11 @@ public class ImportScheduler {
 		final Importer importer = new Importer(importerProperties, netexRepository);
 		importer.importDirectory(new File(version.directory));
 
+		// if it was the initial import then validate the imported data by comparing it to the previous versions.
+		if (!version.complete) {
+			version.valid = validate(version, importerProperties);
+		}
+
 		// update version in admin database
 		if (version.firstDate == null || version.firstDate.isAfter(importerProperties.getFirstCalendarDay())) {
 			version.firstDate = importerProperties.getFirstCalendarDay();
@@ -225,6 +234,58 @@ public class ImportScheduler {
 		}
 		version.complete = true;
 		importVersionRepository.insertOrUpdate(version);
+	}
+
+	private boolean validate(ImportVersion versionToValidate, ImporterProperties importerProperties) {
+		// find the version to validate in the list, then get the next older version for the same timetable that is complete & valid
+		final List<ImportVersion> versions = importVersionRepository.getImportVersions(versionToValidate.timetable, Order.NEWEST_FIRST);
+		for (int i = 0; i < versions.size(); ++i) {
+			if (versions.get(i).version.equals(versionToValidate.version)) {
+				// found the version to validate
+				for (int j = i + 1; j < versions.size(); ++j) {
+					if (versions.get(j).complete && versions.get(j).valid) {
+						return validate(versionToValidate, versions.get(j), importerProperties);
+					}
+				}
+			}
+		}
+
+		// no valid & complete previous version found, cannot validate, assume that this version is valid
+		logger.info("cannot validate version {} of {}, no previous version available", versionToValidate.version,
+				versionToValidate.timetable);
+		return true;
+	}
+
+	private boolean validate(ImportVersion versionToValidate, ImportVersion previousVersion, ImporterProperties importerProperties) {
+		// we assume that the import of the previous version has already happened (for the same dates), i.e. that the order of versions for
+		// the import was OLDEST_FIRST. therefore the current and the previous version should contain data for the same set of dates.
+		// the validation checks that they also contain more or less the same number of journeys for this set of dates.
+
+		final NetexRepository repositoryOfCurrentVersion = new NetexRepository(mongoClient, versionToValidate.databaseName);
+		final NetexRepository repositoryOfPreviousVersion = new NetexRepository(mongoClient, previousVersion.databaseName);
+
+		for (LocalDate date = importerProperties.getFirstCalendarDay(); !date.isAfter(importerProperties.getLastCalendarDay()); date =
+				date.plusDays(1)) {
+			final long journeysInCurrentVersion = repositoryOfCurrentVersion.getNumberOfJourneysForCalendarDay(date);
+			final long journeysInPreviousVersion = repositoryOfPreviousVersion.getNumberOfJourneysForCalendarDay(date);
+
+			final long average = (journeysInCurrentVersion + journeysInPreviousVersion) / 2;
+			final long absoluteDifference = Math.abs(journeysInCurrentVersion - journeysInPreviousVersion);
+			final double relativeDifference = 1.0 * absoluteDifference / average;
+			if (relativeDifference > properties.getMaxRelativeDifference()) {
+				// difference too big, import is not valid
+				logger.error(
+						"new import of version {} of {} is not valid: for date {} there are {} journeys in the new version while "
+								+ "there were {} journeys in the previous version {}",
+						versionToValidate.version, versionToValidate.timetable, date, journeysInCurrentVersion, journeysInPreviousVersion,
+						previousVersion.version);
+				return false;
+			}
+		}
+
+		logger.info("successfully validated version {} of {} against version {}", versionToValidate.version, versionToValidate.timetable,
+				previousVersion.version);
+		return true;
 	}
 
 	/**
@@ -255,12 +316,17 @@ public class ImportScheduler {
 			}
 		}
 
-		// delete all versions per timetable that are not needed anymore (includes only those with current schema version)
+		// delete all versions per timetable that are not needed anymore (includes only those with current schema version).
+		// we need <MaxVersionsToKeep> versions that are complete and valid plus all forced ones and all the should be kept. all other
+		// versions can be deleted.
 		for (final String timetable : properties.getUriPerTimetable().keySet()) {
-			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable);
-			for (int i = 0; i < versions.size(); ++i) {
-				final ImportVersion version = versions.get(i);
-				if (i >= properties.getMaxVersionsToKeep() && !version.force && !version.keep) {
+			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable, Order.NEWEST_FIRST);
+			int completeAndValidVersions = 0;
+			for (final ImportVersion version : versions) {
+				if (version.complete && version.valid) {
+					++completeAndValidVersions;
+				}
+				if (completeAndValidVersions > properties.getMaxVersionsToKeep() && !version.force && !version.keep) {
 					deleteVersion(version);
 				}
 			}

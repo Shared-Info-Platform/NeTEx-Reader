@@ -338,6 +338,10 @@ public class NetexRepository {
 		return Helper.iterableToList(routeAggregationCollection.find(Filters.eq("calendarDay", date.toString())));
 	}
 
+	public long getNumberOfJourneysForCalendarDay(LocalDate date) {
+		return journeyCollection.countDocuments(Filters.eq("calendarDay", date.toString()));
+	}
+
 	public boolean containsDataForCalendarDay(LocalDate date) {
 		if (journeyCollection.countDocuments(Filters.eq("calendarDay", date.toString())) > 0) {
 			return true;
