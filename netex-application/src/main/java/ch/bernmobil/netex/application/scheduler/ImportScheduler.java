@@ -45,15 +45,17 @@ public class ImportScheduler {
 
 	private final ImportSchedulerProperties properties;
 	private final Downloader downloader;
+	private final ImporterFactory importerFactory;
 	private final ImportVersionRepository importVersionRepository;
 	private final NetexRepository historyNetexRepository;
 	private final MongoClient mongoClient;
 	private final Clock clock;
 
-	public ImportScheduler(ImportSchedulerProperties properties, Downloader downloader, ImportVersionRepository importVersionRepository,
-			NetexRepository historyNetexRepository, MongoClient mongoClient, Clock clock) {
+	public ImportScheduler(ImportSchedulerProperties properties, Downloader downloader, ImporterFactory importerFactory,
+			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClient mongoClient, Clock clock) {
 		this.properties = properties;
 		this.downloader = downloader;
+		this.importerFactory = importerFactory;
 		this.importVersionRepository = importVersionRepository;
 		this.historyNetexRepository = historyNetexRepository;
 		this.mongoClient = mongoClient;
@@ -217,7 +219,7 @@ public class ImportScheduler {
 		}
 
 		// import data
-		final Importer importer = new Importer(importerProperties, netexRepository);
+		final Importer importer = importerFactory.createImporter(importerProperties, netexRepository);
 		importer.importDirectory(new File(version.directory));
 
 		// if it was the initial import then validate the imported data by comparing it to the previous versions.
