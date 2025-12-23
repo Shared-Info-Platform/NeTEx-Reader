@@ -41,6 +41,6 @@ public class ImportSchedulerConfig {
 
 	@Bean
 	public CustomInfoContributor customInfoContributor(ImportVersionRepository importVersionRepository) {
-		return new CustomInfoContributor(importVersionRepository);
+		return new CustomInfoContributor(properties, importVersionRepository);
 	}
 }
