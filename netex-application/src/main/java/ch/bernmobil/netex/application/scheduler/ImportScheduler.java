@@ -22,10 +22,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.FileSystemUtils;
 
-import com.mongodb.client.MongoClient;
-
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
+import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
@@ -34,7 +33,6 @@ import ch.bernmobil.netex.persistence.dom.CallWithJourney;
 import ch.bernmobil.netex.persistence.dom.ImportVersion;
 import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
-import ch.bernmobil.netex.persistence.search.Helper;
 import jakarta.annotation.PostConstruct;
 
 public class ImportScheduler {
@@ -48,17 +46,18 @@ public class ImportScheduler {
 	private final ImporterFactory importerFactory;
 	private final ImportVersionRepository importVersionRepository;
 	private final NetexRepository historyNetexRepository;
-	private final MongoClient mongoClient;
+	private final MongoClientWrapper mongoClientWrapper;
 	private final Clock clock;
 
 	public ImportScheduler(ImportSchedulerProperties properties, Downloader downloader, ImporterFactory importerFactory,
-			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClient mongoClient, Clock clock) {
+			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClientWrapper mongoClientWrapper,
+			Clock clock) {
 		this.properties = properties;
 		this.downloader = downloader;
 		this.importerFactory = importerFactory;
 		this.importVersionRepository = importVersionRepository;
 		this.historyNetexRepository = historyNetexRepository;
-		this.mongoClient = mongoClient;
+		this.mongoClientWrapper = mongoClientWrapper;
 		this.clock = clock;
 	}
 
@@ -109,7 +108,7 @@ public class ImportScheduler {
 					throw new IllegalStateException("existing version is complete; abort importing new file");
 				} else {
 					logger.warn("existing version is incomplete; drop it and continue importing new file");
-					mongoClient.getDatabase(existingVersion.databaseName).drop();
+					mongoClientWrapper.dropDatabase(existingVersion.databaseName);
 				}
 			});
 
@@ -185,7 +184,7 @@ public class ImportScheduler {
 
 	private void importData(ImportVersion version, ImporterProperties importerProperties)
 			throws XMLStreamException, InterruptedException, IOException {
-		final NetexRepository netexRepository = new NetexRepository(mongoClient, version.databaseName);
+		final NetexRepository netexRepository = mongoClientWrapper.createNetexRepository(version.databaseName);
 
 		// prepare directory if necessary
 		if (version.directory == null || !new File(version.directory).exists()) {
@@ -263,8 +262,8 @@ public class ImportScheduler {
 		// the import was OLDEST_FIRST. therefore the current and the previous version should contain data for the same set of dates.
 		// the validation checks that they also contain more or less the same number of journeys for this set of dates.
 
-		final NetexRepository repositoryOfCurrentVersion = new NetexRepository(mongoClient, versionToValidate.databaseName);
-		final NetexRepository repositoryOfPreviousVersion = new NetexRepository(mongoClient, previousVersion.databaseName);
+		final NetexRepository repositoryOfCurrentVersion = mongoClientWrapper.createNetexRepository(versionToValidate.databaseName);
+		final NetexRepository repositoryOfPreviousVersion = mongoClientWrapper.createNetexRepository(previousVersion.databaseName);
 
 		for (LocalDate date = importerProperties.getFirstCalendarDay(); !date.isAfter(importerProperties.getLastCalendarDay()); date =
 				date.plusDays(1)) {
@@ -303,7 +302,7 @@ public class ImportScheduler {
 		final LocalDate cleanupThreshold = LocalDate.now(clock).minusDays(properties.getImportDaysInPast()).minusDays(1);
 		logger.info("delete data up to {}", cleanupThreshold);
 		for (final ImportVersion version : importVersionRepository.getAllImportVersions()) {
-			final NetexRepository netexRepository = new NetexRepository(mongoClient, version.databaseName);
+			final NetexRepository netexRepository = mongoClientWrapper.createNetexRepository(version.databaseName);
 			netexRepository.deleteDataUpToCalendarDay(cleanupThreshold);
 
 			if (version.firstDate != null && !cleanupThreshold.isBefore(version.firstDate)) {
@@ -344,10 +343,10 @@ public class ImportScheduler {
 				knownZipFiles.add(version.zipFile);
 				knownDirectories.add(version.directory);
 			}
-			for (final String database : Helper.iterableToList(mongoClient.listDatabaseNames())) {
+			for (final String database : mongoClientWrapper.listDatabaseNames()) {
 				if (database.startsWith(properties.getImportDatabasePrefix()) && !knownDatabases.contains(database)) {
 					logger.warn("deleting database {} that is not referenced by any import version", database);
-					mongoClient.getDatabase(database).drop();
+					mongoClientWrapper.dropDatabase(database);
 				}
 			}
 			for (final File file : properties.getTemporaryFilesDirectory().listFiles()) {
@@ -366,7 +365,7 @@ public class ImportScheduler {
 
 	private void deleteVersion(ImportVersion importVersion) {
 		logger.info("remove version {} of {}", importVersion.version, importVersion.timetable);
-		mongoClient.getDatabase(importVersion.databaseName).drop();
+		mongoClientWrapper.dropDatabase(importVersion.databaseName);
 		if (importVersion.zipFile != null) {
 			deleteFile(new File(importVersion.zipFile));
 		}
@@ -415,7 +414,7 @@ public class ImportScheduler {
 
 	private void updateHistory(ImportVersion version, LocalDate today) {
 		logger.info("adding data for {} from version {} of {} to history database", today, version.version, version.timetable);
-		final NetexRepository netexRepository = new NetexRepository(mongoClient, version.databaseName);
+		final NetexRepository netexRepository = mongoClientWrapper.createNetexRepository(version.databaseName);
 
 		final List<JourneyWithCalls> journeys = netexRepository.getJourneysForCalendarDay(today);
 		final List<CallWithJourney> calls = netexRepository.getCallsForCalendarDay(today);
