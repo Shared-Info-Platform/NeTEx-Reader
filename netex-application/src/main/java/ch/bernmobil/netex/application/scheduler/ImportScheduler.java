@@ -20,10 +20,10 @@ import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.util.FileSystemUtils;
 
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
+import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
@@ -47,17 +47,19 @@ public class ImportScheduler {
 	private final ImportVersionRepository importVersionRepository;
 	private final NetexRepository historyNetexRepository;
 	private final MongoClientWrapper mongoClientWrapper;
+	private final FilesystemWrapper filesystem;
 	private final Clock clock;
 
 	public ImportScheduler(ImportSchedulerProperties properties, Downloader downloader, ImporterFactory importerFactory,
 			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClientWrapper mongoClientWrapper,
-			Clock clock) {
+			FilesystemWrapper filesystem, Clock clock) {
 		this.properties = properties;
 		this.downloader = downloader;
 		this.importerFactory = importerFactory;
 		this.importVersionRepository = importVersionRepository;
 		this.historyNetexRepository = historyNetexRepository;
 		this.mongoClientWrapper = mongoClientWrapper;
+		this.filesystem = filesystem;
 		this.clock = clock;
 	}
 
@@ -70,11 +72,15 @@ public class ImportScheduler {
 
 	@Scheduled(cron = "${importCronExpression:0 0 * * * *}")
 	public void runPeriodicImportTasks() {
-		downloadNewVersionsIfNecessary();
-		importDataIfNecessary();
-		updateHistoryIfNecessary();
-		cleanupIfNecessary();
-		logger.info("done");
+		try {
+			downloadNewVersionsIfNecessary();
+			importDataIfNecessary();
+			updateHistoryIfNecessary();
+			cleanupIfNecessary();
+			logger.info("done");
+		} catch (Throwable t) {
+			logger.error("periodic import task failed", t);
+		}
 	}
 
 	private void downloadNewVersionsIfNecessary() {
@@ -187,7 +193,7 @@ public class ImportScheduler {
 		final NetexRepository netexRepository = mongoClientWrapper.createNetexRepository(version.databaseName);
 
 		// prepare directory if necessary
-		if (version.directory == null || !new File(version.directory).exists()) {
+		if (version.directory == null || !filesystem.exists(new File(version.directory))) {
 			logger.warn("directory for version {} does not exist, trying to extract data", version.version);
 			// set directory to null and update document. we do this in case that extracting the zip file fails mid-operation. in that case
 			// the directory would exist again but it would be incomplete. we can't detect this. so we set the directory to null and only
@@ -196,7 +202,7 @@ public class ImportScheduler {
 			version.directory = null;
 			importVersionRepository.insertOrUpdate(version);
 
-			if (version.zipFile == null || !new File(version.zipFile).exists()) {
+			if (version.zipFile == null || !filesystem.exists(new File(version.zipFile))) {
 				logger.warn("zip file for version {} does not exist, trying to download it", version.version);
 				// set zipFile to null and update document. we do this for the same reason like for the directory a few lines above
 				version.zipFile = null;
@@ -296,7 +302,7 @@ public class ImportScheduler {
 	 *  - removes versions of the current schema that aren't needed anymore
 	 *  - removes leftover databases, directories, and files that don't belong to any known version
 	 */
-	private void cleanupIfNecessary() {
+	private void cleanupIfNecessary() throws IOException {
 		// delete old data from all versions (including those with other schema versions - assuming that they have at least a 'calendarDay'
 		// field).
 		final LocalDate cleanupThreshold = LocalDate.now(clock).minusDays(properties.getImportDaysInPast()).minusDays(1);
@@ -349,42 +355,30 @@ public class ImportScheduler {
 					mongoClientWrapper.dropDatabase(database);
 				}
 			}
-			for (final File file : properties.getTemporaryFilesDirectory().listFiles()) {
+			for (final File file : filesystem.listFiles(properties.getTemporaryFilesDirectory())) {
 				if (!knownZipFiles.contains(file.getAbsolutePath()) && !knownDirectories.contains(file.getAbsolutePath())) {
-					if (file.isFile()) {
+					if (filesystem.isFile(file)) {
 						logger.warn("deleting file {} that is not referenced by any import version", file);
-						deleteFile(file);
-					} else if (file.isDirectory()) {
+						filesystem.deleteFile(file);
+					} else if (filesystem.isDirectory(file)) {
 						logger.warn("deleting directory {} that is not referenced by any import version", file);
-						deleteDirectory(file);
+						filesystem.deleteDirectory(file);
 					}
 				}
 			}
 		}
 	}
 
-	private void deleteVersion(ImportVersion importVersion) {
+	private void deleteVersion(ImportVersion importVersion) throws IOException {
 		logger.info("remove version {} of {}", importVersion.version, importVersion.timetable);
 		mongoClientWrapper.dropDatabase(importVersion.databaseName);
 		if (importVersion.zipFile != null) {
-			deleteFile(new File(importVersion.zipFile));
+			filesystem.deleteFile(new File(importVersion.zipFile));
 		}
 		if (importVersion.directory != null) {
-			deleteDirectory(new File(importVersion.directory));
+			filesystem.deleteDirectory(new File(importVersion.directory));
 		}
 		importVersionRepository.deleteImportVersion(importVersion);
-	}
-
-	private void deleteFile(File file) {
-		if (!file.delete()) {
-			logger.error("could not delete file {}", file);
-		}
-	}
-
-	private void deleteDirectory(File directory) {
-		if (!FileSystemUtils.deleteRecursively(directory)) {
-			logger.error("could not delete directory {}", directory);
-		}
 	}
 
 	private void updateHistoryIfNecessary() {
