@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import com.mongodb.client.MongoClient;
 
 import ch.bernmobil.netex.application.helper.Downloader;
+import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
@@ -27,14 +28,14 @@ public class ImportSchedulerConfig {
 	@Bean
 	public ImportScheduler importScheduler(Downloader downloader, ImporterFactory importerFactory,
 			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClientWrapper mongoClientWrapper,
-			Clock clock) {
+			FilesystemWrapper filesystemWrapper, Clock clock) {
 		return new ImportScheduler(properties, downloader, importerFactory, importVersionRepository, historyNetexRepository,
-				mongoClientWrapper, clock);
+				mongoClientWrapper, filesystemWrapper, clock);
 	}
 
 	@Bean
-	public Downloader downloader() {
-		return new Downloader(properties.getTemporaryFilesDirectory());
+	public Downloader downloader(FilesystemWrapper filesystemWrapper) {
+		return new Downloader(properties.getTemporaryFilesDirectory(), filesystemWrapper);
 	}
 
 	@Bean
@@ -45,6 +46,11 @@ public class ImportSchedulerConfig {
 	@Bean
 	public MongoClientWrapper mongoClientWrapper(MongoClient mongoClient) {
 		return new MongoClientWrapper(mongoClient);
+	}
+
+	@Bean
+	public FilesystemWrapper filesystemWrapper() {
+		return new FilesystemWrapper();
 	}
 
 	@Bean

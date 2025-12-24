@@ -14,6 +14,7 @@ import com.mongodb.client.MongoClient;
 
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
+import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.export.MongoDbClientHelper;
@@ -88,7 +89,7 @@ public class Cli implements Runnable {
 				return;
 			}
 
-			final Downloader downloader = new Downloader(temporaryFilesDirectory);
+			final Downloader downloader = new Downloader(temporaryFilesDirectory, new FilesystemWrapper());
 			final MongoClient mongoClient = MongoDbClientHelper.createClient(connectionString);
 			final NetexRepository netexRepository = new NetexRepository(mongoClient, databaseName);
 			final ImporterProperties properties = new ImporterProperties();

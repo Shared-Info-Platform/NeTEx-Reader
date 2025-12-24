@@ -12,8 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.FileSystemUtils;
-
 import net.lingala.zip4j.ZipFile;
 
 public class Downloader {
@@ -21,9 +19,11 @@ public class Downloader {
 	private static final Logger logger = LoggerFactory.getLogger(Downloader.class);
 
 	private final File temporaryFilesDirectory;
+	private final FilesystemWrapper filesystem;
 
-	public Downloader(File temporaryFilesDirectory) {
+	public Downloader(File temporaryFilesDirectory, FilesystemWrapper filesystem) {
 		this.temporaryFilesDirectory = temporaryFilesDirectory;
+		this.filesystem = filesystem;
 	}
 
 	/**
@@ -66,15 +66,12 @@ public class Downloader {
 
 		// Store content as file
 		final File tempDirectory = getTemporaryDirectory();
-		if (!tempDirectory.exists()) {
-			Files.createDirectories(tempDirectory.toPath());
-		}
+		filesystem.createDirectoriesIfNecessary(tempDirectory);
+
 		final File tempFile = new File(tempDirectory, filename);
-		if (tempFile.exists()) {
+		if (filesystem.exists(tempFile)) {
 			logger.warn("file {} already exists, trying to delete it", tempFile);
-			if (!tempFile.delete()) {
-				throw new IOException("could not delete file " + tempFile);
-			}
+			filesystem.deleteFile(tempFile);
 		}
 
 		try (final InputStream inputStream = response.body()) {
@@ -102,13 +99,11 @@ public class Downloader {
 	private Path createTemporarySubfolder(String subfolderName) throws IOException {
 		final File tempDirectory = getTemporaryDirectory();
 		final File tempSubfolder = new File(tempDirectory, subfolderName);
-		if (tempSubfolder.exists()) {
+		if (filesystem.exists(tempSubfolder)) {
 			logger.warn("directory {} already exists, trying to delete it", tempSubfolder);
-			if (!FileSystemUtils.deleteRecursively(tempSubfolder)) {
-				throw new IOException("could not delete directory " + tempSubfolder);
-			}
+			filesystem.deleteDirectory(tempSubfolder);
 		}
-		return Files.createDirectories(tempSubfolder.toPath());
+		return filesystem.createDirectoriesIfNecessary(tempSubfolder);
 	}
 
 	/**
