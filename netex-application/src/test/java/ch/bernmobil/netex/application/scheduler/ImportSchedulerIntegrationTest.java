@@ -589,6 +589,39 @@ public class ImportSchedulerIntegrationTest {
 				"version2025f", "version2026a");
 	}
 
+	@Test
+	public void whenSchedulerRunsAgainAfterSeveralDays_andTimetableWasRemoved_thenDeletesVersionWhenAllDataWasRemoved()
+			throws IOException, InterruptedException {
+		try {
+			// add additional timetable
+			final URI uri = URI.create("some-uri");
+			properties.getUriPerTimetable().put("some-timetable", uri);
+			mockNewDownload(uri, "some-version");
+
+			// run scheduler to import the current version of all three timetables
+			importScheduler.runPeriodicImportTasks();
+			assertThat(importVersionRepository.getAllImportVersions()).extracting(iv -> iv.timetable)
+					.containsExactlyInAnyOrder("some-timetable", "2025", "2026");
+			assertThat(importVersionRepository.getActiveImportVersions()).hasSize(3);
+		} finally {
+			// revert properties
+			properties.getUriPerTimetable().remove("some-timetable");
+		}
+
+		// advance time four days and run scheduler again, expect that there are still three versions
+		unittestTime.advance(Duration.ofDays(4));
+		importScheduler.runPeriodicImportTasks();
+		assertThat(importVersionRepository.getAllImportVersions()).extracting(iv -> iv.timetable)
+				.containsExactlyInAnyOrder("some-timetable", "2025", "2026");
+		assertThat(importVersionRepository.getActiveImportVersions()).hasSize(3);
+
+		// advance time another day and run scheduler again, expect that the version of the removed timetable is now gone
+		unittestTime.advance(Duration.ofDays(1));
+		importScheduler.runPeriodicImportTasks();
+		assertThat(importVersionRepository.getAllImportVersions()).extracting(iv -> iv.timetable).containsExactlyInAnyOrder("2025", "2026");
+		assertThat(importVersionRepository.getActiveImportVersions()).hasSize(2);
+	}
+
 	private void assertHasData(String version, LocalDate earliestDate, LocalDate latestDate) {
 		final String database =
 				importVersionRepository.getAllImportVersions().stream().filter(importVersion -> importVersion.version.equals(version))
