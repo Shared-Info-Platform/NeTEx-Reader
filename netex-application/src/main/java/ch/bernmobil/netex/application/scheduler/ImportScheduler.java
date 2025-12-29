@@ -316,10 +316,13 @@ public class ImportScheduler {
 				importVersionRepository.insertOrUpdate(version);
 			}
 
-			// if the version belongs to an older schema version then delete it completely if the database is empty after old data was
-			// deleted
-			if (version.schemaVersion < ImportVersion.CURRENT_SCHEMA_VERSION && netexRepository.isDatabaseEmpty()) {
-				deleteVersion(version);
+			// if the version belongs to a timetable that doesn't exist anymore or to an older schema version then delete it completely if
+			// the database is empty after old data was deleted
+			if (netexRepository.isDatabaseEmpty()) {
+				if (!properties.getUriPerTimetable().keySet().contains(version.timetable)
+						|| version.schemaVersion < ImportVersion.CURRENT_SCHEMA_VERSION) {
+					deleteVersion(version);
+				}
 			}
 		}
 

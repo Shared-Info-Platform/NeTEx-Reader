@@ -514,6 +514,38 @@ public class ImportSchedulerTest {
 	}
 
 	@Test
+	public void whenHasImportVersionOfOlderTimetable_thenCleansOldData_andDeletesVersionWhenAllDataIsRemoved() throws IOException {
+		final ImportVersion importVersion = createCompleteImportVersion();
+		importVersion.firstDate = LocalDate.of(2025, 12, 1);
+		importVersion.lastDate = LocalDate.of(2025, 12, 25);
+		importVersion.timetable = "old";
+
+		when(importVersionRepository.getAllImportVersions()).thenReturn(List.of(importVersion));
+
+		importScheduler.runPeriodicImportTasks();
+
+		verify(netexRepository).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 20));
+		verify(importVersionRepository).insertOrUpdate(argThat(update -> update.firstDate.isEqual(LocalDate.of(2025, 12, 21))));
+
+		// expect that version is not deleted
+		verify(importVersionRepository, never()).deleteImportVersion(any());
+		verify(mongoClientWrapper, never()).dropDatabase(any());
+		verify(filesystemWrapper, never()).deleteFile(any());
+		verify(filesystemWrapper, never()).deleteDirectory(any());
+
+		// mock data database is empty
+		when(netexRepository.isDatabaseEmpty()).thenReturn(true);
+
+		importScheduler.runPeriodicImportTasks();
+
+		// expect that version is deleted, including the database and all files
+		verify(importVersionRepository).deleteImportVersion(any());
+		verify(mongoClientWrapper).dropDatabase(any());
+		verify(filesystemWrapper).deleteFile(new File("zipfile"));
+		verify(filesystemWrapper).deleteDirectory(new File("directory"));
+	}
+
+	@Test
 	public void whenHasImportVersionOfOlderSchema_thenCleansOldData_andDeletesVersionWhenAllDataIsRemoved() throws IOException {
 		final ImportVersion importVersion = createCompleteImportVersion();
 		importVersion.firstDate = LocalDate.of(2025, 12, 1);
@@ -521,7 +553,6 @@ public class ImportSchedulerTest {
 		importVersion.schemaVersion = 0;
 
 		when(importVersionRepository.getAllImportVersions()).thenReturn(List.of(importVersion));
-		when(importVersionRepository.getImportVersions(any(), any())).thenReturn(List.of(importVersion));
 
 		importScheduler.runPeriodicImportTasks();
 
