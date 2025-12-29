@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
-@RequestMapping(value = "/routes/v1")
+@RequestMapping(value = "/routes/v1", produces = "application/json")
 public class RouteControllerV1 {
 
 	private final RouteService routeService;
@@ -41,11 +41,7 @@ public class RouteControllerV1 {
                     })
             }
     )
-    @RequestMapping(
-            value = "find",
-            method = RequestMethod.GET,
-            produces = { "application/json" }
-    )
+    @GetMapping("/find")
     public Map<DirectionType, List<Route>> findRoutesByDirection(
     		@Parameter(description = "The operator code (e.g. '11' for SBB)")
     		@RequestParam(required = true) String operatorCode,
