@@ -7,7 +7,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import ch.bernmobil.netex.importer.Constants;
-import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.Call.Arrival;
 import ch.bernmobil.netex.importer.journey.dom.Call.Departure;
@@ -25,21 +24,10 @@ import ch.bernmobil.netex.importer.netex.dom.NetexTrainNumber;
  */
 public class JourneyTransformer {
 
-	public static List<Journey> transform(NetexServiceJourney netexServiceJourney, ImporterProperties properties) {
+	public static List<Journey> transform(NetexServiceJourney netexServiceJourney) {
 		return netexServiceJourney.availabilityCondition.validDays.stream()
 				.map(date -> transform(netexServiceJourney, date))
-				.filter(journey -> isCalendarDayIncludedInProperties(journey, properties))
 				.toList();
-	}
-
-	private static boolean isCalendarDayIncludedInProperties(Journey journey, ImporterProperties properties) {
-		if (properties.getFirstCalendarDay() != null && journey.getCalendarDay().isBefore(properties.getFirstCalendarDay())) {
-			return false;
-		} else if (properties.getLastCalendarDay() != null && journey.getCalendarDay().isAfter(properties.getLastCalendarDay())) {
-			return false;
-		} else {
-			return true;
-		}
 	}
 
 	private static Journey transform(NetexServiceJourney journey, LocalDate date) {
