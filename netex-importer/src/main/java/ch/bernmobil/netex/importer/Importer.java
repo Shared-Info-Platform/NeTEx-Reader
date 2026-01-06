@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -113,9 +114,7 @@ public class Importer {
 		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
 		logger.info("write aggregations");
-		netexRepository.writeJourneyAggregations(aggregator.getJourneyAggregations().stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
-		netexRepository.writeCallAggregations(aggregator.getCallAggregations().stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
-		netexRepository.writeRouteAggregations(aggregator.getRouteAggregations().stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
+		writeAggregations(aggregator.getJourneyAggregations(), aggregator.getCallAggregations(), aggregator.getRouteAggregations());
 
 		logger.info("done");
 	}
@@ -304,21 +303,26 @@ public class Importer {
 	}
 
 	private void transformAndExport(NetexServiceJourney journey) {
-		final List<Journey> results = JourneyTransformer.transform(journey, properties);
+		final List<Journey> results = JourneyTransformer.transform(journey);
 		aggregateValues(results);
 
 		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();
 		final List<CallWithJourney> mappedCalls = new ArrayList<>();
 		for (final Journey result : results) {
-			mappedJourneys.add(JourneyMapper.INSTANCE.mapJourney(result));
-			mappedCalls.addAll(result.calls.stream().map(call -> JourneyMapper.INSTANCE.mapCalls(call, result)).toList());
+			if (isCalendarDayIncludedInProperties(result.getCalendarDay())) {
+				mappedJourneys.add(JourneyMapper.INSTANCE.mapJourney(result));
+			}
+			if (properties.isWriteCalls()) {
+				mappedCalls.addAll(result.calls.stream()
+						.filter(call -> isCalendarDayIncludedInProperties(call.getCalendarDay()))
+						.map(call -> JourneyMapper.INSTANCE.mapCalls(call, result))
+						.toList());
+			}
 		}
 
 		try {
 			netexRepository.writeJourneys(mappedJourneys);
-			if (properties.isWriteCalls()) {
-				netexRepository.writeCalls(mappedCalls);
-			}
+			netexRepository.writeCalls(mappedCalls);
 		} catch (MongoException e) {
 			logger.error("exporting journey to MongoDB failed", e);
 			logger.error("stop import");
@@ -333,16 +337,40 @@ public class Importer {
 
 		// flush aggregations to mongoDB every now and then to avoid using too much memory
 		final List<JourneyAggregation> journeyAggregations = aggregator.resetJourneyAggregationsIfNecessary();
-		if (journeyAggregations != null) {
-			netexRepository.writeJourneyAggregations(journeyAggregations.stream().map(AggregationMapper.INSTANCE::mapJourneyAggregation).toList());
-		}
 		final List<CallAggregation> callAggregations = aggregator.resetCallAggregationsIfNecessary();
-		if (callAggregations != null) {
-			netexRepository.writeCallAggregations(callAggregations.stream().map(AggregationMapper.INSTANCE::mapCallAggregation).toList());
-		}
 		final List<RouteAggregation> routeAggregations = aggregator.resetRouteAggregationsIfNecessary();
+		writeAggregations(journeyAggregations, callAggregations, routeAggregations);
+	}
+
+	private void writeAggregations(Collection<JourneyAggregation> journeyAggregations, Collection<CallAggregation> callAggregations,
+			Collection<RouteAggregation> routeAggregations) {
+		if (journeyAggregations != null) {
+			netexRepository.writeJourneyAggregations(journeyAggregations.stream()
+					.filter(aggregation -> isCalendarDayIncludedInProperties(aggregation.id.calendarDay))
+					.map(AggregationMapper.INSTANCE::mapJourneyAggregation)
+					.toList());
+		}
+		if (callAggregations != null) {
+			netexRepository.writeCallAggregations(callAggregations.stream()
+					.filter(aggregation -> isCalendarDayIncludedInProperties(aggregation.id.calendarDay))
+					.map(AggregationMapper.INSTANCE::mapCallAggregation)
+					.toList());
+		}
 		if (routeAggregations != null) {
-			netexRepository.writeRouteAggregations(routeAggregations.stream().map(AggregationMapper.INSTANCE::mapRouteAggregation).toList());
+			netexRepository.writeRouteAggregations(routeAggregations.stream()
+					.filter(aggregation -> isCalendarDayIncludedInProperties(aggregation.id.calendarDay))
+					.map(AggregationMapper.INSTANCE::mapRouteAggregation)
+					.toList());
+		}
+	}
+
+	private boolean isCalendarDayIncludedInProperties(LocalDate calendarDay) {
+		if (properties.getFirstCalendarDay() != null && calendarDay.isBefore(properties.getFirstCalendarDay())) {
+			return false;
+		} else if (properties.getLastCalendarDay() != null && calendarDay.isAfter(properties.getLastCalendarDay())) {
+			return false;
+		} else {
+			return true;
 		}
 	}
 
