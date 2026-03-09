@@ -3,8 +3,6 @@ package ch.bernmobil.netex.api.service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-
 import org.springframework.stereotype.Service;
 
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
@@ -33,22 +31,14 @@ public class AdminService {
 	}
 
 	public void forceVersion(String timetable, String version, boolean force) {
-		updateFlag(timetable, version, force, (iv, flag) -> iv.force = flag);
-	}
-
-	public void keepVersion(String timetable, String version, boolean keep) {
-		updateFlag(timetable, version, keep, (iv, flag) -> iv.keep = flag);
-	}
-
-	private void updateFlag(String timetable, String version, boolean flag, BiConsumer<ImportVersion, Boolean> setter) {
 		final List<ImportVersion> importVersions = repository.getImportVersions(timetable, Order.NEWEST_FIRST);
 		boolean foundVersion = false;
 		for (final ImportVersion importVersion : importVersions) {
 			if (importVersion.version.equals(version)) {
-				setter.accept(importVersion, flag);
+				importVersion.force = force;
 				foundVersion = true;
 			} else {
-				setter.accept(importVersion, false);
+				importVersion.force = false;
 			}
 		}
 		if (foundVersion) {
@@ -56,6 +46,16 @@ public class AdminService {
 		} else {
 			throw new IllegalArgumentException("could not find version " + version + " for timetable " + timetable);
 		}
+	}
+
+	public void keepVersion(String timetable, String version, boolean keep) {
+		final Optional<ImportVersion> importVersion = repository.getImportVersion(timetable, version);
+		importVersion.ifPresentOrElse(iv -> {
+			iv.keep = keep;
+			repository.insertOrUpdate(iv);
+		}, () -> {
+			throw new IllegalArgumentException("could not find version " + version + " for timetable " + timetable);
+		});
 	}
 
 	public Collection<ImportVersion> getActiveVersions() {

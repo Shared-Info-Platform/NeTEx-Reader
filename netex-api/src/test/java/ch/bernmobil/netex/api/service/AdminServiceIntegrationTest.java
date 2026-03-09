@@ -97,7 +97,7 @@ public class AdminServiceIntegrationTest {
 
 		service.forceVersion("2025", "version3", true);
 		assertThat(service.getVersion("2025", "version1").get().force).isFalse();
-		assertThat(service.getVersion("2025", "version2").get().force).isFalse();
+		assertThat(service.getVersion("2025", "version2").get().force).isFalse(); // becomes false
 		assertThat(service.getVersion("2025", "version3").get().force).isTrue();
 		assertThat(service.getVersion("2026", "version1").get().force).isFalse();
 
@@ -134,7 +134,7 @@ public class AdminServiceIntegrationTest {
 		service.keepVersion("2025", "version1", true);
 		assertThat(service.getVersion("2025", "version1").get().keep).isTrue();
 		assertThat(service.getVersion("2025", "version2").get().keep).isFalse();
-		assertThat(service.getVersion("2025", "version3").get().keep).isFalse();
+		assertThat(service.getVersion("2025", "version3").get().keep).isTrue(); // remains true
 		assertThat(service.getVersion("2026", "version1").get().keep).isTrue();
 	}
 

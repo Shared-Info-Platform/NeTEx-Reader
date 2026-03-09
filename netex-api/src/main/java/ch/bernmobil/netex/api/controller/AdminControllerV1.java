@@ -59,8 +59,7 @@ public class AdminControllerV1 {
 		}
 	}
 
-	@Operation(
-			description = "Modifies the 'keep' flag of a specific import version. Also sets the 'keep' flag of all other import versions of the same timetable to 'false'.")
+	@Operation(description = "Modifies the 'keep' flag of a specific import version.")
 	@PutMapping("/importVersions/timetables/{timetable}/{version}/keep")
 	public ResponseEntity<Void> keepVersion(String timetable, String version, boolean keep) {
 		try {
