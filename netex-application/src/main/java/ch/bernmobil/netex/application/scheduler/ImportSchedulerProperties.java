@@ -40,7 +40,8 @@ public class ImportSchedulerProperties {
 	private int importDaysInFuture = 10;
 
 	/**
-	 * Departures service only needs the Journeys, so with this property the export of calls can be suppressed.
+	 * The departures service only needs data from the Journeys collection, so with this property the export of data into the Calls
+	 * collection can be suppressed.
 	 */
 	private boolean writeCallsCollection = false;
 
@@ -63,7 +64,7 @@ public class ImportSchedulerProperties {
 	private int maxVersionsToKeep = 3;
 
 	/**
-	 * When a new version is imported then it is validated by comparing it to the previous version- For each imported day the number of
+	 * When a new version is imported then it is validated by comparing it to the previous version. For each imported day the number of
 	 * journeys in the database is evaluated, both for the new and the previous version. Then the ratio between the difference and the
 	 * average of these two numbers is calculated. The new version is valid if the ratio is smaller than the limit defined by this property.
 	 *
