@@ -578,6 +578,94 @@ public class ImportSchedulerTest {
 	}
 
 	@Test
+	public void whenHasFewerImportVersionsThanRequired_thenDeletesNoVersion() {
+		final ImportVersion version1 = createCompleteImportVersion();
+		version1.version = "version1";
+		final ImportVersion version2 = createCompleteImportVersion();
+		version2.version = "version2";
+
+		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.NEWEST_FIRST)).thenReturn(List.of(version1, version2));
+
+		importScheduler.runPeriodicImportTasks();
+
+		verify(importVersionRepository, never()).deleteImportVersion(any());
+	}
+
+	@Test
+	public void whenHasExactlyAsManyImportVersionsThanRequired_thenDeletesNoVersion() {
+		final ImportVersion version1 = createCompleteImportVersion();
+		version1.version = "version1";
+		final ImportVersion version2 = createCompleteImportVersion();
+		version2.version = "version2";
+		final ImportVersion version3 = createCompleteImportVersion();
+		version3.version = "version3";
+
+		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.NEWEST_FIRST)).thenReturn(List.of(version1, version2, version3));
+
+		importScheduler.runPeriodicImportTasks();
+
+		verify(importVersionRepository, never()).deleteImportVersion(any());
+	}
+
+	@Test
+	public void whenHasMoreImportVersionsThanRequired_thenDeletesOldestVersion() {
+		final ImportVersion version1 = createCompleteImportVersion();
+		version1.version = "version1";
+		final ImportVersion version2 = createCompleteImportVersion();
+		version2.version = "version2";
+		final ImportVersion version3 = createCompleteImportVersion();
+		version3.version = "version3";
+		final ImportVersion version4 = createCompleteImportVersion();
+		version4.version = "version4";
+
+		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.NEWEST_FIRST)).thenReturn(List.of(version1, version2, version3, version4));
+
+		importScheduler.runPeriodicImportTasks();
+
+		verify(importVersionRepository, times(1)).deleteImportVersion(any());
+		verify(importVersionRepository).deleteImportVersion(argThat(version -> version.version.equals("version4")));
+	}
+
+	@Test
+	public void whenHasExactlyAsManyImportVersionsThanRequired_andOneNewVersionThatIsInvalid_thenDeletesNoVersion() {
+		final ImportVersion version1 = createCompleteImportVersion();
+		version1.version = "version1";
+		version1.valid = false;
+		final ImportVersion version2 = createCompleteImportVersion();
+		version2.version = "version2";
+		final ImportVersion version3 = createCompleteImportVersion();
+		version3.version = "version3";
+		final ImportVersion version4 = createCompleteImportVersion();
+		version4.version = "version4";
+
+		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.NEWEST_FIRST)).thenReturn(List.of(version1, version2, version3, version4));
+
+		importScheduler.runPeriodicImportTasks();
+
+		verify(importVersionRepository, never()).deleteImportVersion(any());
+	}
+
+	@Test
+	public void whenHasExactlyAsManyImportVersionsThanRequired_andOneOldVersionThatIsInvalid_thenDeletesOldVersion() {
+		final ImportVersion version1 = createCompleteImportVersion();
+		version1.version = "version1";
+		final ImportVersion version2 = createCompleteImportVersion();
+		version2.version = "version2";
+		final ImportVersion version3 = createCompleteImportVersion();
+		version3.version = "version3";
+		final ImportVersion version4 = createCompleteImportVersion();
+		version4.version = "version4";
+		version4.valid = false;
+
+		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.NEWEST_FIRST)).thenReturn(List.of(version1, version2, version3, version4));
+
+		importScheduler.runPeriodicImportTasks();
+
+		verify(importVersionRepository, times(1)).deleteImportVersion(any());
+		verify(importVersionRepository).deleteImportVersion(argThat(version -> version.version.equals("version4")));
+	}
+
+	@Test
 	public void whenHasMultipleImportVersions_thenDeletesUnusedOnes() {
 		final ImportVersion version1 = createCompleteImportVersion();
 		version1.version = "version1";
@@ -600,15 +688,22 @@ public class ImportSchedulerTest {
 		final ImportVersion version9 = createCompleteImportVersion();
 		version9.version = "version9";
 		version9.keep = true; // keep
+		final ImportVersion version10 = createCompleteImportVersion();
+		version10.version = "version10";
+		version10.valid = false; // invalid
+		final ImportVersion version11 = createIncompleteImportVersion(); // incomplete
+		version11.version = "version11";
 
 		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.NEWEST_FIRST))
-				.thenReturn(List.of(version1, version2, version3, version4, version5, version6, version7, version8, version9));
+				.thenReturn(List.of(version1, version2, version3, version4, version5, version6, version7, version8, version9, version10, version11));
 
 		importScheduler.runPeriodicImportTasks();
 
-		verify(importVersionRepository, times(2)).deleteImportVersion(any());
+		verify(importVersionRepository, times(4)).deleteImportVersion(any());
 		verify(importVersionRepository).deleteImportVersion(argThat(version -> version.version.equals("version6")));
 		verify(importVersionRepository).deleteImportVersion(argThat(version -> version.version.equals("version8")));
+		verify(importVersionRepository).deleteImportVersion(argThat(version -> version.version.equals("version10")));
+		verify(importVersionRepository).deleteImportVersion(argThat(version -> version.version.equals("version11")));
 	}
 
 	@Test

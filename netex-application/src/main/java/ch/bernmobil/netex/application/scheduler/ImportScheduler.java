@@ -327,17 +327,17 @@ public class ImportScheduler {
 		}
 
 		// delete all versions per timetable that are not needed anymore (includes only those with current schema version).
-		// we need <MaxVersionsToKeep> versions that are complete and valid plus all forced ones and all the should be kept. all other
-		// versions can be deleted.
+		// we need <MaxVersionsToKeep> versions that are complete and valid plus all forced ones plus all that should be kept.
+		// we also keep all incomplete and invalid versions that are younger than the oldest version that is part of
+		// <MaxVersionsToKeep>. all other versions can be deleted.
 		for (final String timetable : properties.getUriPerTimetable().keySet()) {
 			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable, Order.NEWEST_FIRST);
 			int completeAndValidVersions = 0;
 			for (final ImportVersion version : versions) {
-				if (version.complete && version.valid) {
-					++completeAndValidVersions;
-				}
-				if (completeAndValidVersions > properties.getMaxVersionsToKeep() && !version.force && !version.keep) {
+				if (completeAndValidVersions >= properties.getMaxVersionsToKeep() && !version.force && !version.keep) {
 					deleteVersion(version);
+				} else if (version.complete && version.valid) {
+					++completeAndValidVersions;
 				}
 			}
 		}
