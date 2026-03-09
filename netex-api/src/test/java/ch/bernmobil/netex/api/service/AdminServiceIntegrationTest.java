@@ -139,9 +139,49 @@ public class AdminServiceIntegrationTest {
 	}
 
 	@Test
+	public void testUpdatesValidFlag() {
+		final ImportVersion versionA = createVersion("2025", "version1", 1);
+		final ImportVersion versionB = createVersion("2025", "version2", 2);
+		final ImportVersion versionC = createVersion("2025", "version3", 3);
+		final ImportVersion versionD = createVersion("2026", "version1", 4);
+		versionA.valid = false;
+		versionB.valid = false;
+		versionC.valid = false;
+		versionD.valid = false;
+		repository.insertOrUpdate(versionA);
+		repository.insertOrUpdate(versionB);
+		repository.insertOrUpdate(versionC);
+		repository.insertOrUpdate(versionD);
+
+		assertThat(repository.getAllImportVersions()).extracting(iv -> iv.valid).containsOnly(false);
+
+		service.validateVersion("2025", "version2", false);
+		assertThat(repository.getAllImportVersions()).extracting(iv -> iv.valid).containsOnly(false);
+
+		service.validateVersion("2025", "version3", true);
+		assertThat(service.getVersion("2025", "version1").get().valid).isFalse();
+		assertThat(service.getVersion("2025", "version2").get().valid).isFalse();
+		assertThat(service.getVersion("2025", "version3").get().valid).isTrue();
+		assertThat(service.getVersion("2026", "version1").get().valid).isFalse();
+
+		service.validateVersion("2026", "version1", true);
+		assertThat(service.getVersion("2025", "version1").get().valid).isFalse();
+		assertThat(service.getVersion("2025", "version2").get().valid).isFalse();
+		assertThat(service.getVersion("2025", "version3").get().valid).isTrue();
+		assertThat(service.getVersion("2026", "version1").get().valid).isTrue();
+
+		service.validateVersion("2025", "version1", true);
+		assertThat(service.getVersion("2025", "version1").get().valid).isTrue();
+		assertThat(service.getVersion("2025", "version2").get().valid).isFalse();
+		assertThat(service.getVersion("2025", "version3").get().valid).isTrue(); // remains true
+		assertThat(service.getVersion("2026", "version1").get().valid).isTrue();
+	}
+
+	@Test
 	public void testThrowsWhenFlagCannotBeSetBecauseVersionDoesNotExist() {
 		assertThatIllegalArgumentException().isThrownBy(() -> service.forceVersion("2025", "version1", true));
 		assertThatIllegalArgumentException().isThrownBy(() -> service.keepVersion("2025", "version1", true));
+		assertThatIllegalArgumentException().isThrownBy(() -> service.validateVersion("2025", "version1", true));
 	}
 
 	private void insertVersion(String timetable, String version, int createdAt) {

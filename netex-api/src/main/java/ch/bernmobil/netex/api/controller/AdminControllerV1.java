@@ -72,6 +72,19 @@ public class AdminControllerV1 {
 		}
 	}
 
+	@Operation(description = "Modifies the 'valid' flag of a specific import version.")
+	@PutMapping("/importVersions/timetables/{timetable}/{version}/valid")
+	public ResponseEntity<Void> validateVersion(String timetable, String version, boolean valid) {
+		try {
+			logger.info("set 'valid' flag of version {} of timetable {} to {}", version, timetable, valid);
+			adminService.validateVersion(timetable, version, valid);
+			return ResponseEntity.ok().build();
+		} catch (IllegalArgumentException e) {
+			logger.error("failed to update 'valid' flag", e);
+			return ResponseEntity.notFound().build();
+		}
+	}
+
 	@Operation(description = "Returns the active import version for each timetable.")
 	@GetMapping("/importVersions/active")
 	public ResponseEntity<Collection<ImportVersion>> getActiveVersions() {

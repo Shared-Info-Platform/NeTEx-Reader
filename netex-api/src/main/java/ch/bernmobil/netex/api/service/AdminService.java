@@ -58,6 +58,16 @@ public class AdminService {
 		});
 	}
 
+	public void validateVersion(String timetable, String version, boolean valid) {
+		final Optional<ImportVersion> importVersion = repository.getImportVersion(timetable, version);
+		importVersion.ifPresentOrElse(iv -> {
+			iv.valid = valid;
+			repository.insertOrUpdate(iv);
+		}, () -> {
+			throw new IllegalArgumentException("could not find version " + version + " for timetable " + timetable);
+		});
+	}
+
 	public Collection<ImportVersion> getActiveVersions() {
 		return repository.getActiveImportVersions();
 	}
