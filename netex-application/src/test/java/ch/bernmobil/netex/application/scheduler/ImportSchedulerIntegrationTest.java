@@ -34,6 +34,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.model.Filters;
+
 import ch.bernmobil.netex.application.UnittestTime;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
@@ -154,6 +157,9 @@ public class ImportSchedulerIntegrationTest {
 	private Downloader downloader;
 
 	@Autowired
+	private MongoClient mongoClient;
+
+	@Autowired
 	private MongoClientWrapper mongoClientWrapper;
 
 	@Autowired
@@ -162,8 +168,10 @@ public class ImportSchedulerIntegrationTest {
 	@BeforeEach
 	public void setup() throws IOException, InterruptedException {
 		for (final String databaseName : mongoClientWrapper.listDatabaseNames()) {
-			if (databaseName.startsWith("netex-test-")) {
-				mongoClientWrapper.dropDatabase(databaseName);
+			if (databaseName.startsWith("netex-test-autoimport-") || databaseName.equals("netex-test-history")) {
+				new NetexRepository(mongoClient, databaseName).deleteAll();
+			} else if (databaseName.equals("netex-test-admin")) {
+				mongoClient.getDatabase(databaseName).getCollection("ImportVersions").deleteMany(Filters.empty());
 			}
 		}
 
@@ -314,7 +322,7 @@ public class ImportSchedulerIntegrationTest {
 		importScheduler.runPeriodicImportTasks();
 
 		// delete all data of second version
-		mongoClientWrapper.dropDatabase(importVersionRepository.getLastImportVersion(TIMETABLE_2026).get().databaseName);
+		new NetexRepository(mongoClient, importVersionRepository.getLastImportVersion(TIMETABLE_2026).get().databaseName).deleteAll();
 
 		// advance one minute (so that new version gets newer createdAt timestamp) and mock new version, then import again
 		unittestTime.advance(Duration.ofMinutes(1));
@@ -342,7 +350,7 @@ public class ImportSchedulerIntegrationTest {
 		// delete all data of second version and mark it as invalid
 		{
 			final ImportVersion version2026b = importVersionRepository.getLastImportVersion(TIMETABLE_2026).get();
-			mongoClientWrapper.dropDatabase(version2026b.databaseName);
+			new NetexRepository(mongoClient, version2026b.databaseName).deleteAll();
 			version2026b.valid = false;
 			importVersionRepository.insertOrUpdate(version2026b);
 		}
@@ -374,7 +382,7 @@ public class ImportSchedulerIntegrationTest {
 		// delete all data of second version and mark it as incomplete
 		{
 			final ImportVersion version2026b = importVersionRepository.getLastImportVersion(TIMETABLE_2026).get();
-			mongoClientWrapper.dropDatabase(version2026b.databaseName);
+			new NetexRepository(mongoClient, version2026b.databaseName).deleteAll();
 			version2026b.complete = false;
 			version2026b.valid = false;
 			version2026b.firstDate = null;

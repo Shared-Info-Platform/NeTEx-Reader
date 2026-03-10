@@ -45,9 +45,8 @@ public class NetexRepositoryIntegrationTest {
 	@BeforeEach
 	private void setup() {
 		database = mongoClient.getDatabase(DATABASE_NAME);
-		database.drop();
-
 		repository = new NetexRepository(mongoClient, DATABASE_NAME);
+		repository.deleteAll();
 	}
 
 	@Test
