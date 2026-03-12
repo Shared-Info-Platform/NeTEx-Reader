@@ -6,6 +6,9 @@ import java.time.LocalDate;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
+/**
+ * Note: Keep this in sync with ImportVersion in datenpool / departures-generator.
+ */
 public class ImportVersion {
 
 	public static final String FIELDNAME_TIMETABLE = "timetable";
