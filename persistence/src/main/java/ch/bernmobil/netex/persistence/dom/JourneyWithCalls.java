@@ -8,6 +8,9 @@ import java.util.Map;
 
 import org.bson.codecs.pojo.annotations.BsonId;
 
+/**
+ * Note: Keep this in sync with NetexJourney in departures-datenpool.
+ */
 public class JourneyWithCalls {
 
 	@BsonId

@@ -97,6 +97,8 @@ public class ImportVersionRepository {
 	/**
 	 * Gets the active version for each timetable. The active version is the newest created complete & valid version unless there's a forced
 	 * version.
+	 *
+	 * Note: Keep this in sync with ImportVersionRepository in datenpool / departures-generator.
 	 */
 	public Collection<ImportVersion> getActiveImportVersions() {
 		// Note: instead of filtering everything in MongoDB we just get all versions and filter in java

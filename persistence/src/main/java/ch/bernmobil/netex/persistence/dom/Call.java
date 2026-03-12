@@ -2,6 +2,9 @@ package ch.bernmobil.netex.persistence.dom;
 
 import java.time.Instant;
 
+/**
+ * Note: Keep this in sync with NetexCall in departures-datenpool.
+ */
 public class Call {
 
 	public String id; // required
