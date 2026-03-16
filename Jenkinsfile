@@ -23,16 +23,31 @@ pipeline {
 			steps {
 				withCredentials([usernamePassword(credentialsId: 'bernmobil_harbor_robots_credentials', passwordVariable: 'REGISTRY_PASSWORD', usernameVariable: 'REGISTRY_USERNAME')]) {
 					withMaven(maven: '3.9.6') {
-						sh 'mvn package docker:build docker:push -DskipTests=true -Dbuild.number=$BUILD_NUMBER'
+						sh 'mvn package docker:build docker:push -DskipTests=true -Dbuild.number=b$BUILD_NUMBER -Dgit.source=$(git rev-parse --short=7 HEAD)'
 					}
 				}
 			}
 		}
 		stage('Update Helm Chart') {
-			when { expression { params.push_docker_image == true } }
-			steps {
-				build job: 'z_IaC/update_helmchart_appversion', parameters: [string(name: 'chart_name', value: 'netex'), string(name: 'minor_version', value: env.BUILD_NUMBER)], wait: true
-			}
+			when { expression { params.push_docker_image == true } }y
+			steps{
+                script {
+                    withMaven(maven: '3.9.6') {
+    			        def projectVersion = sh(
+    				         script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
+    				         returnStdout: true
+							 ).trim()
+    			        def appVersion = "${projectVersion}-b${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}" 
+
+    			        build job: 'z_IaC/update_helmchart_appversion_final', 
+    			        parameters: [
+    				         string(name: 'chart:name', value: 'netex'),
+    				         string(name: 'app_version', value: appVersion)
+    			        ], 
+    			        wait: true
+                    }    
+                }
+            }
 		}
 	}
 }
