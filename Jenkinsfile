@@ -29,7 +29,7 @@ pipeline {
 			}
 		}
 		stage('Update Helm Chart') {
-			when { expression { params.push_docker_image == true } }y
+			when { expression { params.push_docker_image == true } }
 			steps{
                 script {
                     withMaven(maven: '3.9.6') {
