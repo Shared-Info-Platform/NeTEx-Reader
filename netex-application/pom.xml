@@ -98,7 +98,7 @@
 				<configuration>
 					<images>
 						<image>
-							<name>harbor.bernmobil.ch/sip/netex-reader:${build.number}</name>
+							<name>harbor.bernmobil.ch/sip/netex-reader:${project.version}-${build.number}-${git.source}</name>
 							<build>
 								<from>eclipse-temurin:17-jre</from>
 								<assembly>
