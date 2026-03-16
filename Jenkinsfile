@@ -41,7 +41,7 @@ pipeline {
 
     			        build job: 'z_IaC/update_helmchart_appversion_final', 
     			        parameters: [
-    				         string(name: 'chart:name', value: 'netex'),
+    				         string(name: 'chart_name', value: 'netex'),
     				         string(name: 'app_version', value: appVersion)
     			        ], 
     			        wait: true
