@@ -100,7 +100,7 @@
 						<image>
 							<name>harbor.bernmobil.ch/sip/netex-reader:${project.version}-${build.number}-${git.source}</name>
 							<build>
-								<from>eclipse-temurin:17-jre</from>
+								<from>eclipse-temurin:${java.version}-jre</from>
 								<assembly>
 									<descriptorRef>artifact</descriptorRef>
 								</assembly>

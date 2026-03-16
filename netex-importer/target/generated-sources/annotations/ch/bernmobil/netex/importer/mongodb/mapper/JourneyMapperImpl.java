@@ -13,7 +13,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.3 (Oracle Corporation)"
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.45.0.v20260224-0835, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 public class JourneyMapperImpl implements JourneyMapper {
 
@@ -25,40 +25,40 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         JourneyWithCalls journeyWithCalls = new JourneyWithCalls();
 
-        journeyWithCalls.id = journey.id;
-        journeyWithCalls.sjyid = journey.sjyid;
-        if ( journey.operatingDay != null ) {
-            journeyWithCalls.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
-        }
         if ( journey.getCalendarDay() != null ) {
             journeyWithCalls.calendarDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.getCalendarDay() );
         }
-        journeyWithCalls.transportMode = journey.transportMode;
-        journeyWithCalls.transportSubmode = journey.transportSubmode;
-        journeyWithCalls.serviceAlteration = journey.serviceAlteration;
-        journeyWithCalls.vehicleType = journey.vehicleType;
-        journeyWithCalls.productCategoryName = journey.productCategoryName;
-        journeyWithCalls.productCategoryCode = journey.productCategoryCode;
-        List<String> list = journey.trainNumbers;
-        if ( list != null ) {
-            journeyWithCalls.trainNumbers = new ArrayList<String>( list );
-        }
-        List<String> list1 = journey.serviceFacilities;
-        if ( list1 != null ) {
-            journeyWithCalls.serviceFacilities = new ArrayList<String>( list1 );
-        }
+        journeyWithCalls.calls = callListToCallList( journey.calls );
+        journeyWithCalls.directionType = journey.directionType;
+        journeyWithCalls.id = journey.id;
+        journeyWithCalls.lineCode = journey.lineCode;
+        journeyWithCalls.lineName = journey.lineName;
+        journeyWithCalls.lineShortName = journey.lineShortName;
         Map<String, String> map = journey.notices;
         if ( map != null ) {
             journeyWithCalls.notices = new LinkedHashMap<String, String>( map );
         }
+        if ( journey.operatingDay != null ) {
+            journeyWithCalls.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
+        }
         journeyWithCalls.operatorCode = journey.operatorCode;
         journeyWithCalls.operatorName = journey.operatorName;
         journeyWithCalls.operatorShortName = journey.operatorShortName;
-        journeyWithCalls.lineCode = journey.lineCode;
-        journeyWithCalls.lineName = journey.lineName;
-        journeyWithCalls.lineShortName = journey.lineShortName;
-        journeyWithCalls.directionType = journey.directionType;
-        journeyWithCalls.calls = callListToCallList( journey.calls );
+        journeyWithCalls.productCategoryCode = journey.productCategoryCode;
+        journeyWithCalls.productCategoryName = journey.productCategoryName;
+        journeyWithCalls.serviceAlteration = journey.serviceAlteration;
+        List<String> list1 = journey.serviceFacilities;
+        if ( list1 != null ) {
+            journeyWithCalls.serviceFacilities = new ArrayList<String>( list1 );
+        }
+        journeyWithCalls.sjyid = journey.sjyid;
+        List<String> list2 = journey.trainNumbers;
+        if ( list2 != null ) {
+            journeyWithCalls.trainNumbers = new ArrayList<String>( list2 );
+        }
+        journeyWithCalls.transportMode = journey.transportMode;
+        journeyWithCalls.transportSubmode = journey.transportSubmode;
+        journeyWithCalls.vehicleType = journey.vehicleType;
 
         journeyWithCalls.departureTime = journey.calls.get(0).departure.time;
         journeyWithCalls.departureStopPlaceCode = journey.calls.get(0).stopPlaceCode;
@@ -81,47 +81,47 @@ public class JourneyMapperImpl implements JourneyMapper {
             if ( call.getCalendarDay() != null ) {
                 callWithJourney.calendarDay = DateTimeFormatter.ISO_LOCAL_DATE.format( call.getCalendarDay() );
             }
+            callWithJourney.arrival = arrivalToArrival( call.arrival );
+            callWithJourney.departure = departureToDeparture( call.departure );
+            callWithJourney.destinationDisplayName = call.destinationDisplayName;
             callWithJourney.order = call.order;
             callWithJourney.originalId = call.originalId;
             callWithJourney.requestStop = call.requestStop;
-            callWithJourney.stopUse = call.stopUse;
             callWithJourney.stopPlaceCode = call.stopPlaceCode;
             callWithJourney.stopPlaceName = call.stopPlaceName;
             callWithJourney.stopPointName = call.stopPointName;
-            callWithJourney.destinationDisplayName = call.destinationDisplayName;
-            callWithJourney.arrival = arrivalToArrival( call.arrival );
-            callWithJourney.departure = departureToDeparture( call.departure );
+            callWithJourney.stopUse = call.stopUse;
         }
         if ( journey != null ) {
-            callWithJourney.sjyid = journey.sjyid;
-            if ( journey.operatingDay != null ) {
-                callWithJourney.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
-            }
-            callWithJourney.transportMode = journey.transportMode;
-            callWithJourney.transportSubmode = journey.transportSubmode;
-            callWithJourney.serviceAlteration = journey.serviceAlteration;
-            callWithJourney.vehicleType = journey.vehicleType;
-            callWithJourney.productCategoryName = journey.productCategoryName;
-            callWithJourney.productCategoryCode = journey.productCategoryCode;
-            List<String> list = journey.trainNumbers;
-            if ( list != null ) {
-                callWithJourney.trainNumbers = new ArrayList<String>( list );
-            }
-            List<String> list1 = journey.serviceFacilities;
-            if ( list1 != null ) {
-                callWithJourney.serviceFacilities = new ArrayList<String>( list1 );
-            }
+            callWithJourney.directionType = journey.directionType;
+            callWithJourney.lineCode = journey.lineCode;
+            callWithJourney.lineName = journey.lineName;
+            callWithJourney.lineShortName = journey.lineShortName;
             Map<String, String> map = journey.notices;
             if ( map != null ) {
                 callWithJourney.notices = new LinkedHashMap<String, String>( map );
             }
+            if ( journey.operatingDay != null ) {
+                callWithJourney.operatingDay = DateTimeFormatter.ISO_LOCAL_DATE.format( journey.operatingDay );
+            }
             callWithJourney.operatorCode = journey.operatorCode;
             callWithJourney.operatorName = journey.operatorName;
             callWithJourney.operatorShortName = journey.operatorShortName;
-            callWithJourney.lineCode = journey.lineCode;
-            callWithJourney.lineName = journey.lineName;
-            callWithJourney.lineShortName = journey.lineShortName;
-            callWithJourney.directionType = journey.directionType;
+            callWithJourney.productCategoryCode = journey.productCategoryCode;
+            callWithJourney.productCategoryName = journey.productCategoryName;
+            callWithJourney.serviceAlteration = journey.serviceAlteration;
+            List<String> list = journey.serviceFacilities;
+            if ( list != null ) {
+                callWithJourney.serviceFacilities = new ArrayList<String>( list );
+            }
+            callWithJourney.sjyid = journey.sjyid;
+            List<String> list1 = journey.trainNumbers;
+            if ( list1 != null ) {
+                callWithJourney.trainNumbers = new ArrayList<String>( list1 );
+            }
+            callWithJourney.transportMode = journey.transportMode;
+            callWithJourney.transportSubmode = journey.transportSubmode;
+            callWithJourney.vehicleType = journey.vehicleType;
         }
 
         return callWithJourney;
@@ -134,9 +134,9 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         ch.bernmobil.netex.persistence.dom.Call.Arrival arrival1 = new ch.bernmobil.netex.persistence.dom.Call.Arrival();
 
-        arrival1.time = arrival.time;
         arrival1.forAlighting = arrival.forAlighting;
         arrival1.isFlexible = arrival.isFlexible;
+        arrival1.time = arrival.time;
 
         return arrival1;
     }
@@ -148,9 +148,9 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         ch.bernmobil.netex.persistence.dom.Call.Departure departure1 = new ch.bernmobil.netex.persistence.dom.Call.Departure();
 
-        departure1.time = departure.time;
         departure1.forBoarding = departure.forBoarding;
         departure1.isFlexible = departure.isFlexible;
+        departure1.time = departure.time;
 
         return departure1;
     }
@@ -162,17 +162,17 @@ public class JourneyMapperImpl implements JourneyMapper {
 
         ch.bernmobil.netex.persistence.dom.Call call1 = new ch.bernmobil.netex.persistence.dom.Call();
 
+        call1.arrival = arrivalToArrival( call.arrival );
+        call1.departure = departureToDeparture( call.departure );
+        call1.destinationDisplayName = call.destinationDisplayName;
         call1.id = call.id;
         call1.order = call.order;
         call1.originalId = call.originalId;
         call1.requestStop = call.requestStop;
-        call1.stopUse = call.stopUse;
         call1.stopPlaceCode = call.stopPlaceCode;
         call1.stopPlaceName = call.stopPlaceName;
         call1.stopPointName = call.stopPointName;
-        call1.destinationDisplayName = call.destinationDisplayName;
-        call1.arrival = arrivalToArrival( call.arrival );
-        call1.departure = departureToDeparture( call.departure );
+        call1.stopUse = call.stopUse;
 
         return call1;
     }
