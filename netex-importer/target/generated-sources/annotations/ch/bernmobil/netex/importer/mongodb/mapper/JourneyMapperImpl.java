@@ -13,7 +13,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.3 (Eclipse Adoptium)"
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 public class JourneyMapperImpl implements JourneyMapper {
 
@@ -57,6 +57,7 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyWithCalls.lineCode = journey.lineCode;
         journeyWithCalls.lineName = journey.lineName;
         journeyWithCalls.lineShortName = journey.lineShortName;
+        journeyWithCalls.regionCode = journey.regionCode;
         journeyWithCalls.directionType = journey.directionType;
         journeyWithCalls.calls = callListToCallList( journey.calls );
 
@@ -121,6 +122,7 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.lineCode = journey.lineCode;
             callWithJourney.lineName = journey.lineName;
             callWithJourney.lineShortName = journey.lineShortName;
+            callWithJourney.regionCode = journey.regionCode;
             callWithJourney.directionType = journey.directionType;
         }
 

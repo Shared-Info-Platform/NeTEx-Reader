@@ -42,6 +42,7 @@ public class JourneyWithCalls {
 	public String lineCode; // optional
 	public String lineName; // optional (required when Line is defined)
 	public String lineShortName; // optional
+	public String regionCode; // optional
 
 	// Direction
 	public String directionType; // required

@@ -67,6 +67,9 @@ public class JourneyTransformer {
 			if (notice.text != null && Boolean.TRUE.equals(notice.canBeAdvertised)) {
 				result.notices.put(notice.text, notice.typeOfNotice.name);
 			}
+			if (notice.text != null && notice.typeOfNotice != null && "Region".equals(notice.typeOfNotice.name)) {
+				result.regionCode = notice.text;
+			}
 		}
 
 		if (journey.responsibilitySet != null && journey.responsibilitySet.operator != null) {
