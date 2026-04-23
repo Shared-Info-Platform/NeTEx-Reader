@@ -40,15 +40,15 @@ public class RouteService {
 		this.importVersionRepository = importVersionRepository;
 	}
 
-	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<DirectionType> directionType, Optional<LocalDate> calendarDay,
-			Optional<Integer> previewDays, BigDecimal threshold, Optional<String> databaseName) {
+	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<String> regionCode, Optional<DirectionType> directionType,
+			Optional<LocalDate> calendarDay, Optional<Integer> previewDays, BigDecimal threshold, Optional<String> databaseName) {
 		final List<String> directionTypes = directionType.map(DirectionType::name).map(List::of).orElse(getDefaultDirectionTypes());
 		final List<String> calendarDays = getCalendarDays(calendarDay.orElse(LocalDate.now()), previewDays.orElse(0));
 
 		final List<RouteAggregationRepository> repositories = getRepositories(databaseName);
 		final List<RouteAggregation> aggregations = new ArrayList<>();
 		for (final RouteAggregationRepository repository : repositories) {
-			aggregations.addAll(repository.findRouteAggregations(operatorCode, lineCode, directionTypes, calendarDays));
+			aggregations.addAll(repository.findRouteAggregations(operatorCode, lineCode, regionCode, directionTypes, calendarDays));
 		}
 		final Map<DirectionType, List<RouteAggregation>> aggregationsByDirection = groupRouteAggregationsByDirectionType(aggregations);
 
@@ -145,6 +145,7 @@ public class RouteService {
 		final Route result = new Route();
 		result.setOperatorCode(first.operatorCode);
 		result.setLineCode(first.lineCode);
+		result.setRegionCode(first.regionCode);
 		result.setDirectionType(DirectionType.valueOf(first.directionType));
 		result.setStopPlaces(first.stopPlaces.stream().map(this::createStopPlace).toList());
 		result.setNumberOfJourneys(aggregations.stream().mapToLong(ra -> ra.journeys).sum());
@@ -159,18 +160,18 @@ public class RouteService {
 		return BigDecimal.valueOf(value).divide(total, 5, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
 	}
 
-	private record RouteId(String operatorCode, String lineCode, String directionType, List<String> stopPlaceCodes) {
+	private record RouteId(String operatorCode, String lineCode, String regionCode, String directionType, List<String> stopPlaceCodes) {
 		public static RouteId of(RouteAggregation aggregation) {
 			final List<String> stopPlaceCodes = aggregation.stopPlaces.stream().map(ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace::code).toList();
-			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.directionType, stopPlaceCodes);
+			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.regionCode, aggregation.directionType, stopPlaceCodes);
 		}
 	}
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public class NotFoundException extends RuntimeException {
+	@ResponseStatus(value = HttpStatus.NOT_FOUND)
+	public class NotFoundException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 		public NotFoundException(String message) {
-            super(message);
-        }
-    }
+			super(message);
+		}
+	}
 }

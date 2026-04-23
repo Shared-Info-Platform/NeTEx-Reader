@@ -13,6 +13,8 @@ public class Route {
 	private String operatorCode;
 	@Schema(description = "Identifies the line of this route.")
 	private String lineCode;
+	@Schema(description = "Identifies the region of this route. Required for operators that use the same lineCode for different routes in different regions.")
+	private String regionCode;
 	@Schema(description = "Identifies the direction of this route. There are only two valid direction types.")
 	private DirectionType directionType;
 	@Schema(description = "The stop places that a vehicle on this route passes.")
@@ -36,6 +38,14 @@ public class Route {
 
 	public void setLineCode(String lineCode) {
 		this.lineCode = lineCode;
+	}
+
+	public String getRegionCode() {
+		return regionCode;
+	}
+
+	public void setRegionCode(String regionCode) {
+		this.regionCode = regionCode;
 	}
 
 	public DirectionType getDirectionType() {

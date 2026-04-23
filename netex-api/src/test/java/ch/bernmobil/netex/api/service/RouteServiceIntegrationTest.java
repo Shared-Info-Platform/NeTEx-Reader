@@ -55,12 +55,13 @@ public class RouteServiceIntegrationTest {
 		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "2024-09-09", 5, List.of("4")));
 		aggregations.add(createRouteAggregation("xxxxxxxx", "line", "region", "inbound", "2024-09-09", 1, List.of("1", "2")));
 		aggregations.add(createRouteAggregation("operator", "xxxx", "region", "inbound", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "xxxxxx", "inbound", "2024-09-09", 1, List.of("1", "2")));
 
 		final NetexRepository netexRepository = new NetexRepository(mongoClient, properties.getApiDatabaseName());
 		netexRepository.writeRouteAggregations(aggregations);
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
-				Optional.of(LocalDate.of(2024, 9, 9)), Optional.of(2), BigDecimal.valueOf(90), Optional.empty());
+		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.of("region"),
+				Optional.empty(), Optional.of(LocalDate.of(2024, 9, 9)), Optional.of(2), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(2);
@@ -73,6 +74,7 @@ public class RouteServiceIntegrationTest {
 			final Route route = result.get(DirectionType.inbound).get(0);
 			assertThat(route.getOperatorCode()).isEqualTo("operator");
 			assertThat(route.getLineCode()).isEqualTo("line");
+			assertThat(route.getRegionCode()).isEqualTo("region");
 			assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
 			assertThat(route.getStopPlaces()).hasSize(2);
 			assertThat(route.getNumberOfJourneys()).isEqualTo(6);
@@ -82,6 +84,7 @@ public class RouteServiceIntegrationTest {
 			final Route route = result.get(DirectionType.inbound).get(1);
 			assertThat(route.getOperatorCode()).isEqualTo("operator");
 			assertThat(route.getLineCode()).isEqualTo("line");
+			assertThat(route.getRegionCode()).isEqualTo("region");
 			assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
 			assertThat(route.getStopPlaces()).hasSize(3);
 			assertThat(route.getNumberOfJourneys()).isEqualTo(4);
@@ -91,6 +94,7 @@ public class RouteServiceIntegrationTest {
 			final Route route = result.get(DirectionType.outbound).get(0);
 			assertThat(route.getOperatorCode()).isEqualTo("operator");
 			assertThat(route.getLineCode()).isEqualTo("line");
+			assertThat(route.getRegionCode()).isEqualTo("region");
 			assertThat(route.getDirectionType()).isEqualTo(DirectionType.outbound);
 			assertThat(route.getStopPlaces()).hasSize(1);
 			assertThat(route.getNumberOfJourneys()).isEqualTo(5);
