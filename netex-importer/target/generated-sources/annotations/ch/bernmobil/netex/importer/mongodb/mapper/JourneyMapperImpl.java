@@ -59,6 +59,7 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyWithCalls.lineShortName = journey.lineShortName;
         journeyWithCalls.regionCode = journey.regionCode;
         journeyWithCalls.directionType = journey.directionType;
+        journeyWithCalls.directionId = journey.directionId;
         journeyWithCalls.calls = callListToCallList( journey.calls );
 
         journeyWithCalls.departureTime = journey.calls.get(0).departure.time;
@@ -124,6 +125,7 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.lineShortName = journey.lineShortName;
             callWithJourney.regionCode = journey.regionCode;
             callWithJourney.directionType = journey.directionType;
+            callWithJourney.directionId = journey.directionId;
         }
 
         return callWithJourney;

@@ -28,6 +28,11 @@ public class TimetableJourneyDomBuilder {
 		result.transportMode = tree.optionalText("TransportMode");
 		result.serviceAlteration = tree.optionalText("ServiceAlteration");
 		result.directionType = tree.text("DirectionType");
+		result.directionId = state.getDirections().values().stream()
+				.filter(direction -> Objects.equals(direction.type, result.directionType))
+				.findFirst()
+				.map(direction -> direction.id)
+				.orElse(null);
 
 		final Map<String, String> keyValueMap = BuilderHelper.buildMapFromKeyList(tree.optionalChild("keyList"));
 		result.sjyid = keyValueMap.get("SJYID");

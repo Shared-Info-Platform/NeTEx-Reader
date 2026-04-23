@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.bernmobil.netex.importer.netex.dom.NetexAvailabilityCondition;
 import ch.bernmobil.netex.importer.netex.dom.NetexDestinationDisplay;
+import ch.bernmobil.netex.importer.netex.dom.NetexDirection;
 import ch.bernmobil.netex.importer.netex.dom.NetexLine;
 import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexOperator;
@@ -38,6 +39,7 @@ public class ImportState {
 	private final Map<String, NetexStopPlace> stopPlaces = new HashMap<>();
 	private final Map<String, NetexQuay> quays = new HashMap<>();
 	private final Map<String, NetexLine> lines = new HashMap<>();
+	private final Map<String, NetexDirection> directions = new HashMap<>();
 	private final Map<String, NetexDestinationDisplay> destinationDisplays = new HashMap<>();
 	private final Map<String, NetexPassengerStopAssignment> passengerStopAssignments = new HashMap<>();
 	private final Map<String, NetexScheduledStopPoint> scheduledStopPoints = new HashMap<>();
@@ -123,6 +125,16 @@ public class ImportState {
 
 	public Map<String, NetexLine> getLines() {
 		return lines;
+	}
+
+	public void addDirection(NetexDirection direction) {
+		if (directions.put(direction.id, direction) != null) {
+			logger.warn("duplicate entry for {}", direction.id);
+		}
+	}
+
+	public Map<String, NetexDirection> getDirections() {
+		return directions;
 	}
 
 	public void addDestinationDisplay(NetexDestinationDisplay destinationDisplay) {

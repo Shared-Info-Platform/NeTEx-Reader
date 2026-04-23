@@ -17,6 +17,8 @@ public class Route {
 	private String regionCode;
 	@Schema(description = "Identifies the direction of this route. There are only two valid direction types.")
 	private DirectionType directionType;
+	@Schema(description = "Identifies the direction of this route.")
+	private String directionId;
 	@Schema(description = "The stop places that a vehicle on this route passes.")
 	private List<StopPlace> stopPlaces = new ArrayList<>();
 	@Schema(description = "The number of journeys for this route in the requested time range.")
@@ -54,6 +56,14 @@ public class Route {
 
 	public void setDirectionType(DirectionType directionType) {
 		this.directionType = directionType;
+	}
+
+	public String getDirectionId() {
+		return directionId;
+	}
+
+	public void setDirectionId(String directionId) {
+		this.directionId = directionId;
 	}
 
 	public List<StopPlace> getStopPlaces() {

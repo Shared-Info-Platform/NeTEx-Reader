@@ -46,6 +46,7 @@ public class JourneyWithCalls {
 
 	// Direction
 	public String directionType; // required
+	public String directionId; // required
 
 	// Calls
 	public List<Call> calls = new ArrayList<>();

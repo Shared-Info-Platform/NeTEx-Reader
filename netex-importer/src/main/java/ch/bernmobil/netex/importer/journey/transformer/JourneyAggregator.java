@@ -133,6 +133,7 @@ public class JourneyAggregator {
 		result.lineCode = journey.lineCode;
 		result.regionCode = journey.regionCode;
 		result.directionType = journey.directionType;
+		result.directionId = journey.directionId;
 		result.stopPlaces = journey.calls.stream().map(this::createStopPlace).filter(Objects::nonNull).toList();
 		return result;
 	}

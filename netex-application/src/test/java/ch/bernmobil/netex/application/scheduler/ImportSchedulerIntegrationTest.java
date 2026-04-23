@@ -116,6 +116,7 @@ public class ImportSchedulerIntegrationTest {
 								aggregation.lineCode = "line";
 								aggregation.regionCode = "region";
 								aggregation.directionType = "direction";
+								aggregation.directionId = "dir1";
 								netexRepository.writeRouteAggregations(List.of(aggregation));
 							}
 						}

@@ -39,6 +39,7 @@ public class JourneyTransformer {
 		result.transportSubmode = (journey.line != null ? journey.line.transportSubmode : null);
 		result.serviceAlteration = journey.serviceAlteration;
 		result.directionType = journey.directionType;
+		result.directionId = journey.directionId;
 
 		if (journey.vehicleType != null) {
 			result.vehicleType = journey.vehicleType.shortName;

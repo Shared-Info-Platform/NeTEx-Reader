@@ -36,6 +36,7 @@ public class CallWithJourney extends Call {
 
 	// Direction
 	public String directionType; // required
+	public String directionId; // required
 
 	@BsonId
 	public String getId() {

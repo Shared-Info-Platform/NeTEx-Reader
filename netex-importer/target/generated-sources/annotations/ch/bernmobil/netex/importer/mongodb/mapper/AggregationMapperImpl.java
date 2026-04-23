@@ -72,6 +72,7 @@ public class AggregationMapperImpl implements AggregationMapper {
         routeAggregation.lineCode = aggregationIdLineCode2( aggregation );
         routeAggregation.regionCode = aggregationIdRegionCode2( aggregation );
         routeAggregation.directionType = aggregationIdDirectionType( aggregation );
+        routeAggregation.directionId = aggregationIdDirectionId( aggregation );
         List<RouteAggregation.StopPlace> stopPlaces = aggregationIdStopPlaces( aggregation );
         routeAggregation.stopPlaces = stopPlaceListToStopPlaceList( stopPlaces );
         routeAggregation.journeys = aggregation.journeys;
@@ -287,6 +288,21 @@ public class AggregationMapperImpl implements AggregationMapper {
             return null;
         }
         return directionType;
+    }
+
+    private String aggregationIdDirectionId(RouteAggregation routeAggregation) {
+        if ( routeAggregation == null ) {
+            return null;
+        }
+        RouteAggregation.Id id = routeAggregation.id;
+        if ( id == null ) {
+            return null;
+        }
+        String directionId = id.directionId;
+        if ( directionId == null ) {
+            return null;
+        }
+        return directionId;
     }
 
     private List<RouteAggregation.StopPlace> aggregationIdStopPlaces(RouteAggregation routeAggregation) {

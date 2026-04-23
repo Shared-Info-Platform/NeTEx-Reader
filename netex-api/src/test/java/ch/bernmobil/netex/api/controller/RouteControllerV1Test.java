@@ -45,6 +45,7 @@ public class RouteControllerV1Test {
 		route1.setLineCode("line");
 		route1.setRegionCode("region");
 		route1.setDirectionType(DirectionType.inbound);
+		route1.setDirectionId("R");
 		route1.setStopPlaces(List.of(new StopPlace("1", "1"), new StopPlace("2", "2")));
 		route1.setNumberOfJourneys(2);
 		route1.setPercentagePerDirection(new BigDecimal("66.667"));
@@ -54,6 +55,7 @@ public class RouteControllerV1Test {
 		route2.setLineCode("line");
 		route2.setRegionCode("region");
 		route2.setDirectionType(DirectionType.inbound);
+		route2.setDirectionId("R");
 		route2.setStopPlaces(List.of(new StopPlace("1", "1")));
 		route2.setNumberOfJourneys(1);
 		route2.setPercentagePerDirection(new BigDecimal("33.333"));
@@ -63,6 +65,7 @@ public class RouteControllerV1Test {
 		route3.setLineCode("line");
 		route3.setRegionCode("region");
 		route3.setDirectionType(DirectionType.outbound);
+		route3.setDirectionId("H");
 		route3.setStopPlaces(List.of(new StopPlace("4", "4")));
 		route3.setNumberOfJourneys(3);
 		route3.setPercentagePerDirection(new BigDecimal("100.000"));
@@ -156,6 +159,7 @@ public class RouteControllerV1Test {
 						+ "\"lineCode\":\"line\","
 						+ "\"regionCode\":\"region\","
 						+ "\"directionType\":\"inbound\","
+						+ "\"directionId\":\"R\","
 						+ "\"stopPlaces\":["
 							+ "{\"code\":\"1\",\"name\":\"1\"},"
 							+ "{\"code\":\"2\",\"name\":\"2\"}"
@@ -168,6 +172,7 @@ public class RouteControllerV1Test {
 						+ "\"lineCode\":\"line\","
 						+ "\"regionCode\":\"region\","
 						+ "\"directionType\":\"inbound\","
+						+ "\"directionId\":\"R\","
 						+ "\"stopPlaces\":["
 							+ "{\"code\":\"1\",\"name\":\"1\"}"
 						+ "],"
@@ -181,6 +186,7 @@ public class RouteControllerV1Test {
 						+ "\"lineCode\":\"line\","
 						+ "\"regionCode\":\"region\","
 						+ "\"directionType\":\"outbound\","
+						+ "\"directionId\":\"H\","
 						+ "\"stopPlaces\":["
 							+ "{\"code\":\"4\",\"name\":\"4\"}"
 						+ "],"

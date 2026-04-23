@@ -290,6 +290,7 @@ public class NetexRepository {
 				set.put(RouteAggregation.FIELDNAME_REGION_CODE, new BsonString(routeAggregation.regionCode));
 			}
 			set.put(RouteAggregation.FIELDNAME_DIRECTION_TYPE, new BsonString(routeAggregation.directionType));
+			set.put(RouteAggregation.FIELDNAME_DIRECTION_ID, new BsonString(routeAggregation.directionId));
 			final List<BsonDocument> stopPlaces = routeAggregation.stopPlaces.stream().map(this::createStopDocument).toList();
 			set.put(RouteAggregation.FIELDNAME_STOP_PLACES, new BsonArray(stopPlaces));
 			final BsonDocument update = new BsonDocument();

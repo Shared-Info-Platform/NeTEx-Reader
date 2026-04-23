@@ -18,6 +18,7 @@ public class NetexServiceJourney {
 	public NetexVehicleType vehicleType; // ?
 	public NetexLine line; // optional
 	public String directionType; // required
+	public String directionId; // required
 	public List<NetexTrainNumber> trainNumbers = new ArrayList<>(); // required but can be empty
 	public List<NetexCall> calls = new ArrayList<>(); // required
 }

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.bernmobil.netex.importer.ImportState;
 import ch.bernmobil.netex.importer.netex.dom.NetexDestinationDisplay;
+import ch.bernmobil.netex.importer.netex.dom.NetexDirection;
 import ch.bernmobil.netex.importer.netex.dom.NetexLine;
 import ch.bernmobil.netex.importer.netex.dom.NetexNotice;
 import ch.bernmobil.netex.importer.netex.dom.NetexPassengerStopAssignment;
@@ -27,6 +28,11 @@ public class ServiceDomBuilder {
 		final ObjectTree lines = serviceFrame.frameTree.optionalChild("lines");
 		if (lines != null) {
 			lines.children("Line").stream().map(ServiceDomBuilder::buildLine).forEach(state::addLine);
+		}
+
+		final ObjectTree directions = serviceFrame.frameTree.optionalChild("directions");
+		if (directions != null) {
+			directions.children("Direction").stream().map(ServiceDomBuilder::buildDirection).forEach(state::addDirection);
 		}
 
 		final ObjectTree destinationDisplays = serviceFrame.frameTree.optionalChild("destinationDisplays");
@@ -80,6 +86,13 @@ public class ServiceDomBuilder {
 				result.transportSubmode = transportSubmodes.get(0);
 			}
 		}
+		return result;
+	}
+
+	private static NetexDirection buildDirection(ObjectTree tree) {
+		final NetexDirection result = new NetexDirection();
+		result.id = tree.text("id");
+		result.type = tree.text("DirectionType");
 		return result;
 	}
 

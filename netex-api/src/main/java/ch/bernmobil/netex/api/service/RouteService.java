@@ -147,6 +147,7 @@ public class RouteService {
 		result.setLineCode(first.lineCode);
 		result.setRegionCode(first.regionCode);
 		result.setDirectionType(DirectionType.valueOf(first.directionType));
+		result.setDirectionId(first.directionId);
 		result.setStopPlaces(first.stopPlaces.stream().map(this::createStopPlace).toList());
 		result.setNumberOfJourneys(aggregations.stream().mapToLong(ra -> ra.journeys).sum());
 		return result;
@@ -160,10 +161,10 @@ public class RouteService {
 		return BigDecimal.valueOf(value).divide(total, 5, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
 	}
 
-	private record RouteId(String operatorCode, String lineCode, String regionCode, String directionType, List<String> stopPlaceCodes) {
+	private record RouteId(String operatorCode, String lineCode, String regionCode, String directionType, String directionId, List<String> stopPlaceCodes) {
 		public static RouteId of(RouteAggregation aggregation) {
 			final List<String> stopPlaceCodes = aggregation.stopPlaces.stream().map(ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace::code).toList();
-			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.regionCode, aggregation.directionType, stopPlaceCodes);
+			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.regionCode, aggregation.directionType, aggregation.directionId, stopPlaceCodes);
 		}
 	}
 
