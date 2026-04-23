@@ -22,17 +22,20 @@ public interface AggregationMapper {
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
+	@Mapping(target = "regionCode", source = "id.regionCode")
 	ch.bernmobil.netex.persistence.dom.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation);
 
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "stopPlaceCode", source = "id.stopPlaceCode")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
+	@Mapping(target = "regionCode", source = "id.regionCode")
 	ch.bernmobil.netex.persistence.dom.CallAggregation mapCallAggregation(CallAggregation aggregation);
 
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
+	@Mapping(target = "regionCode", source = "id.regionCode")
 	@Mapping(target = "directionType", source = "id.directionType")
 	@Mapping(target = "stopPlaces", source = "id.stopPlaces")
 	ch.bernmobil.netex.persistence.dom.RouteAggregation mapRouteAggregation(RouteAggregation aggregation);

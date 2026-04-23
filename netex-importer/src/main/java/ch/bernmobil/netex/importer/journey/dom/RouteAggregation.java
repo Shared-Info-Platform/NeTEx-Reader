@@ -18,12 +18,13 @@ public class RouteAggregation {
 		public LocalDate calendarDay;
 		public String operatorCode;
 		public String lineCode;
+		public String regionCode;
 		public String directionType;
 		public List<StopPlace> stopPlaces = new ArrayList<>();
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(calendarDay, operatorCode, lineCode, directionType, stopPlaces);
+			return Objects.hash(calendarDay, operatorCode, lineCode, regionCode, directionType, stopPlaces);
 		}
 
 		@Override
@@ -37,6 +38,7 @@ public class RouteAggregation {
 			return Objects.equals(calendarDay, other.calendarDay)
 					&& Objects.equals(operatorCode, other.operatorCode)
 					&& Objects.equals(lineCode, other.lineCode)
+					&& Objects.equals(regionCode, other.regionCode)
 					&& Objects.equals(directionType, other.directionType)
 					&& Objects.equals(stopPlaces, other.stopPlaces);
 		}

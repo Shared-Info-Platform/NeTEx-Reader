@@ -16,10 +16,11 @@ public class JourneyAggregation {
 		public LocalDate calendarDay;
 		public String operatorCode;
 		public String lineCode;
+		public String regionCode;
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(calendarDay, lineCode, operatorCode);
+			return Objects.hash(calendarDay, lineCode, regionCode, operatorCode);
 		}
 
 		@Override
@@ -32,6 +33,7 @@ public class JourneyAggregation {
 			Id other = (Id) obj;
 			return Objects.equals(calendarDay, other.calendarDay)
 					&& Objects.equals(lineCode, other.lineCode)
+					&& Objects.equals(regionCode, other.regionCode)
 					&& Objects.equals(operatorCode, other.operatorCode);
 		}
 	}

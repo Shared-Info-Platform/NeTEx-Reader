@@ -164,12 +164,33 @@ public class NetexRepositoryIntegrationTest {
 		assertThat(collection.countDocuments()).isEqualTo((long) (Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE * 2.5));
 
 		// check content of sample document
-		final JourneyAggregation document = collection.find(Filters.eq("2025-12-28_operator_line9")).first();
+		final JourneyAggregation document = collection.find(Filters.eq("2025-12-28_operator_line9_region")).first();
 		assertThat(document).isNotNull();
 		assertThat(document.calendarDay).isEqualTo("2025-12-28");
 		assertThat(document.operatorCode).isEqualTo("operator");
 		assertThat(document.lineCode).isEqualTo("line9");
+		assertThat(document.regionCode).isEqualTo("region");
 		assertThat(document.journeys).isEqualTo(9);
+	}
+
+	@Test
+	public void testCanInsertJourneyAggregationsWithoutRegionCode() {
+		final JourneyAggregation aggregation = createJourneyAggregation(1, 1);
+		aggregation.regionCode = null;
+
+		final MongoCollection<JourneyAggregation> collection = database.getCollection("JourneyAggregations", JourneyAggregation.class);
+		assertThat(collection.countDocuments()).isEqualTo(0);
+
+		repository.writeJourneyAggregations(List.of(aggregation));
+
+		// check content of sample document
+		final JourneyAggregation document = collection.find(Filters.eq("2025-12-28_operator_line1_null")).first();
+		assertThat(document).isNotNull();
+		assertThat(document.calendarDay).isEqualTo("2025-12-28");
+		assertThat(document.operatorCode).isEqualTo("operator");
+		assertThat(document.lineCode).isEqualTo("line1");
+		assertThat(document.regionCode).isNull();
+		assertThat(document.journeys).isEqualTo(1);
 	}
 
 	@Test
@@ -185,7 +206,7 @@ public class NetexRepositoryIntegrationTest {
 		assertThat(collection.countDocuments()).isEqualTo(1);
 
 		// check that document contains sum of individual counts (1 + 2 + 3 = 6)
-		final JourneyAggregation document = collection.find(Filters.eq("2025-12-28_operator_line1")).first();
+		final JourneyAggregation document = collection.find(Filters.eq("2025-12-28_operator_line1_region")).first();
 		assertThat(document).isNotNull();
 		assertThat(document.journeys).isEqualTo(6);
 	}
@@ -195,6 +216,7 @@ public class NetexRepositoryIntegrationTest {
 		aggregation.calendarDay = LocalDate.of(2025, 12, 28).toString();
 		aggregation.operatorCode = "operator";
 		aggregation.lineCode = "line" + id;
+		aggregation.regionCode = "region";
 		aggregation.journeys = number;
 		return aggregation;
 	}
@@ -215,13 +237,35 @@ public class NetexRepositoryIntegrationTest {
 		assertThat(collection.countDocuments()).isEqualTo((long) (Constants.MAX_NUMBER_OF_AGGREGATIONS_PER_MONGODB_WRITE * 2.5));
 
 		// check content of sample document
-		final CallAggregation document = collection.find(Filters.eq("2025-12-28_stop9_operator_line")).first();
+		final CallAggregation document = collection.find(Filters.eq("2025-12-28_stop9_operator_line_region")).first();
 		assertThat(document).isNotNull();
 		assertThat(document.calendarDay).isEqualTo("2025-12-28");
 		assertThat(document.stopPlaceCode).isEqualTo("stop9");
 		assertThat(document.operatorCode).isEqualTo("operator");
 		assertThat(document.lineCode).isEqualTo("line");
+		assertThat(document.regionCode).isEqualTo("region");
 		assertThat(document.calls).isEqualTo(9);
+	}
+
+	@Test
+	public void testCanInsertCallAggregationsWithoutRegionCode() {
+		final CallAggregation aggregation = createCallAggregation(1, 1);
+		aggregation.regionCode = null;
+
+		final MongoCollection<CallAggregation> collection = database.getCollection("CallAggregations", CallAggregation.class);
+		assertThat(collection.countDocuments()).isEqualTo(0);
+
+		repository.writeCallAggregations(List.of(aggregation));
+
+		// check content of sample document
+		final CallAggregation document = collection.find(Filters.eq("2025-12-28_stop1_operator_line_null")).first();
+		assertThat(document).isNotNull();
+		assertThat(document.calendarDay).isEqualTo("2025-12-28");
+		assertThat(document.stopPlaceCode).isEqualTo("stop1");
+		assertThat(document.operatorCode).isEqualTo("operator");
+		assertThat(document.lineCode).isEqualTo("line");
+		assertThat(document.regionCode).isNull();
+		assertThat(document.calls).isEqualTo(1);
 	}
 
 	@Test
@@ -237,7 +281,7 @@ public class NetexRepositoryIntegrationTest {
 		assertThat(collection.countDocuments()).isEqualTo(1);
 
 		// check that document contains sum of individual counts (1 + 2 + 3 = 6)
-		final CallAggregation document = collection.find(Filters.eq("2025-12-28_stop1_operator_line")).first();
+		final CallAggregation document = collection.find(Filters.eq("2025-12-28_stop1_operator_line_region")).first();
 		assertThat(document).isNotNull();
 		assertThat(document.calls).isEqualTo(6);
 	}
@@ -248,6 +292,7 @@ public class NetexRepositoryIntegrationTest {
 		aggregation.stopPlaceCode = "stop" + id;
 		aggregation.operatorCode = "operator";
 		aggregation.lineCode = "line";
+		aggregation.regionCode = "region";
 		aggregation.calls = number;
 		return aggregation;
 	}
@@ -269,17 +314,45 @@ public class NetexRepositoryIntegrationTest {
 
 		// check content of sample document
 		final RouteAggregation document = collection.find(Filters
-				.eq("2025-12-28_operator_line_direction_" + List.of(new StopPlace("0", "stopX"), new StopPlace("9", "stop9")).hashCode()))
+				.eq("2025-12-28_operator_line_region_direction_" + List.of(new StopPlace("0", "stopX"), new StopPlace("9", "stop9")).hashCode()))
 				.first();
 		assertThat(document).isNotNull();
 		assertThat(document.calendarDay).isEqualTo("2025-12-28");
 		assertThat(document.operatorCode).isEqualTo("operator");
 		assertThat(document.lineCode).isEqualTo("line");
+		assertThat(document.regionCode).isEqualTo("region");
 		assertThat(document.directionType).isEqualTo("direction");
 		assertThat(document.stopPlaces).hasSize(2);
 		assertThat(document.stopPlaces.get(0)).isEqualTo(new StopPlace("0", "stopX"));
 		assertThat(document.stopPlaces.get(1)).isEqualTo(new StopPlace("9", "stop9"));
 		assertThat(document.journeys).isEqualTo(9);
+	}
+
+	@Test
+	public void testCanInsertRouteAggregationWithoutRegionCode() {
+		final RouteAggregation aggregation = createRouteAggregation(1, 1);
+		aggregation.regionCode = null;
+
+		final MongoCollection<RouteAggregation> collection = database.getCollection("RouteAggregations", RouteAggregation.class);
+		assertThat(collection.countDocuments()).isEqualTo(0);
+
+		repository.writeRouteAggregations(List.of(aggregation));
+
+		// check content of sample document
+		final RouteAggregation document = collection.find(Filters
+				.eq("2025-12-28_operator_line_null_direction_dir1_" + List.of(new StopPlace("0", "stopX"), new StopPlace("1", "stop1")).hashCode()))
+				.first();
+		assertThat(document).isNotNull();
+		assertThat(document.calendarDay).isEqualTo("2025-12-28");
+		assertThat(document.operatorCode).isEqualTo("operator");
+		assertThat(document.lineCode).isEqualTo("line");
+		assertThat(document.regionCode).isNull();
+		assertThat(document.directionType).isEqualTo("direction");
+		assertThat(document.directionId).isEqualTo("dir1");
+		assertThat(document.stopPlaces).hasSize(2);
+		assertThat(document.stopPlaces.get(0)).isEqualTo(new StopPlace("0", "stopX"));
+		assertThat(document.stopPlaces.get(1)).isEqualTo(new StopPlace("1", "stop1"));
+		assertThat(document.journeys).isEqualTo(1);
 	}
 
 	@Test
@@ -296,7 +369,7 @@ public class NetexRepositoryIntegrationTest {
 
 		// check that document contains sum of individual counts (1 + 2 + 3 = 6)
 		final RouteAggregation document = collection.find(Filters
-				.eq("2025-12-28_operator_line_direction_" + List.of(new StopPlace("0", "stopX"), new StopPlace("1", "stop1")).hashCode()))
+				.eq("2025-12-28_operator_line_region_direction_" + List.of(new StopPlace("0", "stopX"), new StopPlace("1", "stop1")).hashCode()))
 				.first();
 		assertThat(document).isNotNull();
 		assertThat(document.journeys).isEqualTo(6);
@@ -307,6 +380,7 @@ public class NetexRepositoryIntegrationTest {
 		aggregation.calendarDay = LocalDate.of(2025, 12, 28).toString();
 		aggregation.operatorCode = "operator";
 		aggregation.lineCode = "line";
+		aggregation.regionCode = "region";
 		aggregation.directionType = "direction";
 		aggregation.stopPlaces = List.of(new StopPlace("0", "stopX"), new StopPlace(Integer.toString(id), "stop" + id));
 		aggregation.journeys = number;

@@ -221,6 +221,9 @@ public class NetexRepository {
 			set.put("calendarDay", new BsonString(journeyAggregation.calendarDay));
 			set.put("operatorCode", new BsonString(journeyAggregation.operatorCode));
 			set.put("lineCode", new BsonString(journeyAggregation.lineCode));
+			if (journeyAggregation.regionCode != null) {
+				set.put("regionCode", new BsonString(journeyAggregation.regionCode));
+			}
 			final BsonDocument update = new BsonDocument();
 			update.put("$set", set);
 			update.put("$inc", new BsonDocument("journeys", new BsonInt64(journeyAggregation.journeys)));
@@ -251,6 +254,9 @@ public class NetexRepository {
 			set.put("stopPlaceCode", new BsonString(callAggregation.stopPlaceCode));
 			set.put("operatorCode", new BsonString(callAggregation.operatorCode));
 			set.put("lineCode", new BsonString(callAggregation.lineCode));
+			if (callAggregation.regionCode != null) {
+				set.put("regionCode", new BsonString(callAggregation.regionCode));
+			}
 			final BsonDocument update = new BsonDocument();
 			update.put("$set", set);
 			update.put("$inc", new BsonDocument("calls", new BsonInt64(callAggregation.calls)));
@@ -280,6 +286,9 @@ public class NetexRepository {
 			set.put(RouteAggregation.FIELDNAME_CALENDAR_DAY, new BsonString(routeAggregation.calendarDay));
 			set.put(RouteAggregation.FIELDNAME_OPERATOR_CODE, new BsonString(routeAggregation.operatorCode));
 			set.put(RouteAggregation.FIELDNAME_LINE_CODE, new BsonString(routeAggregation.lineCode));
+			if (routeAggregation.regionCode != null) {
+				set.put(RouteAggregation.FIELDNAME_REGION_CODE, new BsonString(routeAggregation.regionCode));
+			}
 			set.put(RouteAggregation.FIELDNAME_DIRECTION_TYPE, new BsonString(routeAggregation.directionType));
 			final List<BsonDocument> stopPlaces = routeAggregation.stopPlaces.stream().map(this::createStopDocument).toList();
 			set.put(RouteAggregation.FIELDNAME_STOP_PLACES, new BsonArray(stopPlaces));

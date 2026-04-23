@@ -97,6 +97,7 @@ public class ImportSchedulerIntegrationTest {
 								aggregation.calendarDay = date.toString();
 								aggregation.operatorCode = "operator";
 								aggregation.lineCode = "line";
+								aggregation.regionCode = "region";
 								netexRepository.writeJourneyAggregations(List.of(aggregation));
 							}
 							{
@@ -105,6 +106,7 @@ public class ImportSchedulerIntegrationTest {
 								aggregation.stopPlaceCode = "stop";
 								aggregation.operatorCode = "operator";
 								aggregation.lineCode = "line";
+								aggregation.regionCode = "region";
 								netexRepository.writeCallAggregations(List.of(aggregation));
 							}
 							{
@@ -112,6 +114,7 @@ public class ImportSchedulerIntegrationTest {
 								aggregation.calendarDay = date.toString();
 								aggregation.operatorCode = "operator";
 								aggregation.lineCode = "line";
+								aggregation.regionCode = "region";
 								aggregation.directionType = "direction";
 								netexRepository.writeRouteAggregations(List.of(aggregation));
 							}

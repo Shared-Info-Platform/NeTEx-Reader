@@ -7,10 +7,11 @@ public class JourneyAggregation {
 	public String calendarDay;
 	public String operatorCode;
 	public String lineCode;
+	public String regionCode; // optional
 	public long journeys;
 
 	@BsonId
 	public String getId() {
-		return calendarDay + "_" + operatorCode + "_" + lineCode;
+		return calendarDay + "_" + operatorCode + "_" + lineCode + "_" + regionCode;
 	}
 }

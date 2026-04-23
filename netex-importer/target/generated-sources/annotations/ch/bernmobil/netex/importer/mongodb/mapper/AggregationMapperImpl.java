@@ -29,6 +29,7 @@ public class AggregationMapperImpl implements AggregationMapper {
         }
         journeyAggregation.operatorCode = aggregationIdOperatorCode( aggregation );
         journeyAggregation.lineCode = aggregationIdLineCode( aggregation );
+        journeyAggregation.regionCode = aggregationIdRegionCode( aggregation );
         journeyAggregation.journeys = aggregation.journeys;
 
         return journeyAggregation;
@@ -49,6 +50,7 @@ public class AggregationMapperImpl implements AggregationMapper {
         callAggregation.stopPlaceCode = aggregationIdStopPlaceCode( aggregation );
         callAggregation.operatorCode = aggregationIdOperatorCode1( aggregation );
         callAggregation.lineCode = aggregationIdLineCode1( aggregation );
+        callAggregation.regionCode = aggregationIdRegionCode1( aggregation );
         callAggregation.calls = aggregation.calls;
 
         return callAggregation;
@@ -68,6 +70,7 @@ public class AggregationMapperImpl implements AggregationMapper {
         }
         routeAggregation.operatorCode = aggregationIdOperatorCode2( aggregation );
         routeAggregation.lineCode = aggregationIdLineCode2( aggregation );
+        routeAggregation.regionCode = aggregationIdRegionCode2( aggregation );
         routeAggregation.directionType = aggregationIdDirectionType( aggregation );
         List<RouteAggregation.StopPlace> stopPlaces = aggregationIdStopPlaces( aggregation );
         routeAggregation.stopPlaces = stopPlaceListToStopPlaceList( stopPlaces );
@@ -119,6 +122,21 @@ public class AggregationMapperImpl implements AggregationMapper {
             return null;
         }
         return lineCode;
+    }
+
+    private String aggregationIdRegionCode(JourneyAggregation journeyAggregation) {
+        if ( journeyAggregation == null ) {
+            return null;
+        }
+        JourneyAggregation.Id id = journeyAggregation.id;
+        if ( id == null ) {
+            return null;
+        }
+        String regionCode = id.regionCode;
+        if ( regionCode == null ) {
+            return null;
+        }
+        return regionCode;
     }
 
     private LocalDate aggregationIdCalendarDay1(ch.bernmobil.netex.importer.journey.dom.CallAggregation callAggregation) {
@@ -181,6 +199,21 @@ public class AggregationMapperImpl implements AggregationMapper {
         return lineCode;
     }
 
+    private String aggregationIdRegionCode1(ch.bernmobil.netex.importer.journey.dom.CallAggregation callAggregation) {
+        if ( callAggregation == null ) {
+            return null;
+        }
+        ch.bernmobil.netex.importer.journey.dom.CallAggregation.Id id = callAggregation.id;
+        if ( id == null ) {
+            return null;
+        }
+        String regionCode = id.regionCode;
+        if ( regionCode == null ) {
+            return null;
+        }
+        return regionCode;
+    }
+
     private LocalDate aggregationIdCalendarDay2(RouteAggregation routeAggregation) {
         if ( routeAggregation == null ) {
             return null;
@@ -224,6 +257,21 @@ public class AggregationMapperImpl implements AggregationMapper {
             return null;
         }
         return lineCode;
+    }
+
+    private String aggregationIdRegionCode2(RouteAggregation routeAggregation) {
+        if ( routeAggregation == null ) {
+            return null;
+        }
+        RouteAggregation.Id id = routeAggregation.id;
+        if ( id == null ) {
+            return null;
+        }
+        String regionCode = id.regionCode;
+        if ( regionCode == null ) {
+            return null;
+        }
+        return regionCode;
     }
 
     private String aggregationIdDirectionType(RouteAggregation routeAggregation) {

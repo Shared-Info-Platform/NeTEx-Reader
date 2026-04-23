@@ -8,10 +8,11 @@ public class CallAggregation {
 	public String stopPlaceCode;
 	public String operatorCode;
 	public String lineCode;
+	public String regionCode; // optional
 	public long calls;
 
 	@BsonId
 	public String getId() {
-		return calendarDay + "_" + stopPlaceCode + "_" + operatorCode + "_" + lineCode;
+		return calendarDay + "_" + stopPlaceCode + "_" + operatorCode + "_" + lineCode + "_" + regionCode;
 	}
 }

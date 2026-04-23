@@ -48,13 +48,13 @@ public class RouteServiceIntegrationTest {
 	@Test
 	public void testWriteAndReadRoutes() {
 		final List<RouteAggregation> aggregations = new ArrayList<>();
-		aggregations.add(createRouteAggregation("operator", "line", "inbound", "2024-09-09", 1, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "inbound", "2024-09-10", 2, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "inbound", "2024-09-11", 3, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "inbound", "2024-09-09", 4, List.of("1", "2", "3")));
-		aggregations.add(createRouteAggregation("operator", "line", "outbound", "2024-09-09", 5, List.of("4")));
-		aggregations.add(createRouteAggregation("xxxxxxxx", "line", "inbound", "2024-09-09", 1, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "xxxx", "inbound", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "2024-09-10", 2, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "2024-09-11", 3, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "2024-09-09", 4, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "2024-09-09", 5, List.of("4")));
+		aggregations.add(createRouteAggregation("xxxxxxxx", "line", "region", "inbound", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "xxxx", "region", "inbound", "2024-09-09", 1, List.of("1", "2")));
 
 		final NetexRepository netexRepository = new NetexRepository(mongoClient, properties.getApiDatabaseName());
 		netexRepository.writeRouteAggregations(aggregations);
@@ -98,11 +98,12 @@ public class RouteServiceIntegrationTest {
 		}
 	}
 
-	private RouteAggregation createRouteAggregation(String operatorCode, String lineCode, String directionType, String calendarDay, long journeys, List<String> stopPlaces) {
+	private RouteAggregation createRouteAggregation(String operatorCode, String lineCode, String regionCode, String directionType, String calendarDay, long journeys, List<String> stopPlaces) {
 		final RouteAggregation result = new RouteAggregation();
 		result.calendarDay = calendarDay;
 		result.operatorCode = operatorCode;
 		result.lineCode = lineCode;
+		result.regionCode = regionCode;
 		result.directionType = directionType;
 		result.stopPlaces = stopPlaces.stream().map(code -> new StopPlace(code, code)).toList();
 		result.journeys = journeys;

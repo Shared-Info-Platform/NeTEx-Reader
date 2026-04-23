@@ -112,6 +112,7 @@ public class JourneyAggregator {
 		result.calendarDay = journey.getCalendarDay();
 		result.operatorCode = journey.operatorCode;
 		result.lineCode = journey.lineCode;
+		result.regionCode = journey.regionCode;
 		return result;
 	}
 
@@ -121,6 +122,7 @@ public class JourneyAggregator {
 		result.stopPlaceCode = call.stopPlaceCode;
 		result.operatorCode = journey.operatorCode;
 		result.lineCode = journey.lineCode;
+		result.regionCode = journey.regionCode;
 		return result;
 	}
 
@@ -129,6 +131,7 @@ public class JourneyAggregator {
 		result.calendarDay = journey.getCalendarDay();
 		result.operatorCode = journey.operatorCode;
 		result.lineCode = journey.lineCode;
+		result.regionCode = journey.regionCode;
 		result.directionType = journey.directionType;
 		result.stopPlaces = journey.calls.stream().map(this::createStopPlace).filter(Objects::nonNull).toList();
 		return result;

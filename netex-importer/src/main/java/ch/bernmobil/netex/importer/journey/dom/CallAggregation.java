@@ -17,10 +17,11 @@ public class CallAggregation {
 		public String stopPlaceCode;
 		public String operatorCode;
 		public String lineCode;
+		public String regionCode;
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(calendarDay, lineCode, operatorCode, stopPlaceCode);
+			return Objects.hash(calendarDay, lineCode, regionCode, operatorCode, stopPlaceCode);
 		}
 
 		@Override
@@ -33,6 +34,7 @@ public class CallAggregation {
 			Id other = (Id) obj;
 			return Objects.equals(calendarDay, other.calendarDay)
 					&& Objects.equals(lineCode, other.lineCode)
+					&& Objects.equals(regionCode, other.regionCode)
 					&& Objects.equals(operatorCode, other.operatorCode)
 					&& Objects.equals(stopPlaceCode, other.stopPlaceCode);
 		}
