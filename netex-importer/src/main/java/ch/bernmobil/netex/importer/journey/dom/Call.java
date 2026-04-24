@@ -16,6 +16,7 @@ public class Call {
 	// ScheduledStopPoint
 	public String stopPlaceCode; // optional
 	public String stopPlaceName; // optional
+	public String stopPointCode; // optional
 	public String stopPointName; // optional
 
 	// NetexDestinationDisplay

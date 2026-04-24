@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.List;
-
 import ch.bernmobil.netex.importer.Constants;
 import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.Call.Arrival;
@@ -105,6 +104,9 @@ public class JourneyTransformer {
 			result.stopPlaceCode = call.scheduledStopPoint.didok;
 			result.stopPlaceName = call.scheduledStopPoint.name;
 			result.stopPointName = call.scheduledStopPoint.shortName;
+			if (call.scheduledStopPoint.assignment != null && call.scheduledStopPoint.assignment.quay != null) {
+				result.stopPointCode = call.scheduledStopPoint.assignment.quay.sloid;
+			}
 		}
 		if (call.destinationDisplay != null) {
 			result.destinationDisplayName = call.destinationDisplay.name;

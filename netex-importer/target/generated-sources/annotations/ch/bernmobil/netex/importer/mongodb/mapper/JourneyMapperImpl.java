@@ -89,6 +89,7 @@ public class JourneyMapperImpl implements JourneyMapper {
             callWithJourney.stopUse = call.stopUse;
             callWithJourney.stopPlaceCode = call.stopPlaceCode;
             callWithJourney.stopPlaceName = call.stopPlaceName;
+            callWithJourney.stopPointCode = call.stopPointCode;
             callWithJourney.stopPointName = call.stopPointName;
             callWithJourney.destinationDisplayName = call.destinationDisplayName;
             callWithJourney.arrival = arrivalToArrival( call.arrival );
@@ -173,6 +174,7 @@ public class JourneyMapperImpl implements JourneyMapper {
         call1.stopUse = call.stopUse;
         call1.stopPlaceCode = call.stopPlaceCode;
         call1.stopPlaceName = call.stopPlaceName;
+        call1.stopPointCode = call.stopPointCode;
         call1.stopPointName = call.stopPointName;
         call1.destinationDisplayName = call.destinationDisplayName;
         call1.arrival = arrivalToArrival( call.arrival );

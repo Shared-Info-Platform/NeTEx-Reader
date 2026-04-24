@@ -127,8 +127,11 @@ public class ServiceDomBuilder {
 			result.scheduledStopPoint = state.getScheduledStopPoints().get(scheduledStopPointId);
 			if (result.scheduledStopPoint == null) {
 				throw new IllegalArgumentException("unknown ScheduledStopPoint with id " + scheduledStopPointId);
+			} else if (result.scheduledStopPoint.assignment != null) {
+				logger.warn("ScheduledStopPoint {} is alrady referenced by another PassengerStopAssignment", result.scheduledStopPoint.id);
+			} else {
+				result.scheduledStopPoint.assignment = result;
 			}
-			result.scheduledStopPoint.assignments.add(result);
 		}
 
 		final String stopPlaceId = tree.child("StopPlaceRef").text("ref");

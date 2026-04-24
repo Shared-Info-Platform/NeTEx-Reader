@@ -216,13 +216,6 @@ public class Importer {
 			logger.info("scheduled stop points: {}", state.getScheduledStopPoints().size());
 			logger.info("passenger stop assignments: {}", state.getPassengerStopAssignments().size());
 			logger.info("notices: {}", state.getNotices().size());
-
-			// TODO: there seems to be a bug in the data - PassengerStopAssignments for quays does not reference ScheduledStopPoint for quays but instead the generic (quay-less) entity
-//				for (ScheduledStopPoint s : state.getScheduledStopPoints().values()) {
-//					if (s.assignments.size() != 1) {
-//						LOGGER.warn("ScheduledStopPoint {} is referenced by {} PassengerStopAssignments", s.id, s.assignments.size());
-//					}
-//				}
 		}
 
 		for (final Frame serviceCalendarFrame : serviceCalendarFrames) {
