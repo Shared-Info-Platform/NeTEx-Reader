@@ -24,6 +24,10 @@
 		</dependency>
 		<dependency>
 			<groupId>ch.bernmobil.sip.netex</groupId>
+			<artifactId>sip-netex-haltelog</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.bernmobil.sip.netex</groupId>
 			<artifactId>sip-netex-api</artifactId>
 		</dependency>
 

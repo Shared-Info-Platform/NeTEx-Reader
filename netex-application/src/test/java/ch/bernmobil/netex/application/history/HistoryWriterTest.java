@@ -21,11 +21,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.application.scheduler.ImportSchedulerProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.TaskRepository;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.helper.MongoClientWrapper;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
 import ch.bernmobil.netex.persistence.model.task.HistoryTask;
 

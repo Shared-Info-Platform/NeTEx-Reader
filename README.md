@@ -101,6 +101,12 @@ or as environment variables.
 | `adminDatabaseName` | `String` | `netex-admin` | The name of the database where metadata for the automated import is stored. |
 | `historyDatabaseName` | `String` | `netex-history` | The name of the database where a history of netex data is stored. |
 | `historyExportTimeOfDay` | `Local Time` | `12:00` | Defines the time of day when the history is exported. It affects which version is exported as the "active" version for a day, depending on whether a new netex version was imported before or after this time. |
+| `logging.writeHaltelog` | `Boolean` | `false` | Enables/disables the export of Haltelog entries. |
+| `logging.haltelogExportDaysInFuture` | `Integer` | `0` | How many calendar days in the future the haltelog is written. Zero means that the haltelog is only written for the current day. |
+| `logging.haltelogExportTimeOfDay` | `Local Time` | `12:00` | Defines the time of day when the haltelog is exported. It affects which version is exported as the "active" version for a day, depending on whether a new netex version was imported before or after this time. Only really makes a difference if `haltelogExportDaysInFuture` is zero. Otherwise the haltelog is written for a day in the future and it will be deleted, if a new version becomes active later. |
+| `logging.elastic.*` | * |  | Properties identical to SIP-Hub |
+| `logging.elastic.halteLogIndexName` | `String` | `haltelog` | The Write-Index (or Alias) for the Haltelog, used to insert new data. |
+| `logging.elastic.halteLogIndexPattern` | `String` | `haltelog-*` | The Index-Pattern for the Haltelog, used to find and delete data. |
 | `apiDatabaseName` | `String` |  | The netex database that should be used to serve the routes API. If not defined, the application uses the active databases of the automated import, but this property can be used if another database should be used. |
 
 ### Monitoring

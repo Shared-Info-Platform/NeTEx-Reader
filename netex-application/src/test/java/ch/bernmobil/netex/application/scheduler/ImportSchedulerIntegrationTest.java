@@ -40,12 +40,13 @@ import com.mongodb.client.model.Filters;
 import ch.bernmobil.netex.application.UnittestTime;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
-import ch.bernmobil.netex.application.helper.MongoClientWrapper;
+import ch.bernmobil.netex.haltelog.writer.HaltelogWriter;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.helper.MongoClientWrapper;
 import ch.bernmobil.netex.persistence.model.CallAggregation;
 import ch.bernmobil.netex.persistence.model.CallWithJourney;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
@@ -137,6 +138,11 @@ public class ImportSchedulerIntegrationTest {
 		@Bean
 		public UnittestTime unittestTime() {
 			return new UnittestTime(Instant.ofEpochMilli(0));
+		}
+
+		@Bean
+		public HaltelogWriter haltelogWriter() {
+			return Mockito.mock(HaltelogWriter.class);
 		}
 	}
 

@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.application.helper;
+package ch.bernmobil.netex.persistence.helper;
 
 import java.util.List;
 

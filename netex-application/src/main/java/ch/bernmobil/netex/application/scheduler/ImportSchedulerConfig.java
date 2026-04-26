@@ -10,11 +10,12 @@ import com.mongodb.client.MongoClient;
 
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
-import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.application.history.HistoryWriter;
+import ch.bernmobil.netex.haltelog.writer.HaltelogWriter;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.TaskRepository;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.helper.MongoClientWrapper;
 
 @Configuration
 @EnableConfigurationProperties(ImportSchedulerProperties.class)
@@ -29,9 +30,9 @@ public class ImportSchedulerConfig {
 
 	@Bean
 	public ImportScheduler importScheduler(Downloader downloader, ImporterFactory importerFactory,
-			ImportVersionRepository importVersionRepository, HistoryWriter historyWriter, MongoClientWrapper mongoClientWrapper,
+			ImportVersionRepository importVersionRepository, HistoryWriter historyWriter, HaltelogWriter haltelogWriter, MongoClientWrapper mongoClientWrapper,
 			FilesystemWrapper filesystemWrapper, Clock clock) {
-		return new ImportScheduler(properties, downloader, importerFactory, historyWriter, importVersionRepository, mongoClientWrapper,
+		return new ImportScheduler(properties, downloader, importerFactory, historyWriter, haltelogWriter, importVersionRepository, mongoClientWrapper,
 				filesystemWrapper, clock);
 	}
 

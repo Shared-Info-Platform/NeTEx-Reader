@@ -8,6 +8,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 
+import ch.bernmobil.netex.persistence.model.task.HaltelogTask;
 import ch.bernmobil.netex.persistence.model.task.HistoryTask;
 import ch.bernmobil.netex.persistence.model.task.Task;
 
@@ -28,6 +29,16 @@ public class TaskRepository {
 
 	public void updateHistoryTask(HistoryTask task) {
 		final Bson filter = Filters.eq(HistoryTask.TASK_ID);
+		taskCollection.replaceOne(filter, task, new ReplaceOptions().upsert(true));
+	}
+
+	public HaltelogTask getHaltelogTask() {
+		final Bson filter = Filters.eq(HaltelogTask.TASK_ID);
+		return taskCollection.find(filter, HaltelogTask.class).first();
+	}
+
+	public void updateHaltelogTask(HaltelogTask task) {
+		final Bson filter = Filters.eq(HaltelogTask.TASK_ID);
 		taskCollection.replaceOne(filter, task, new ReplaceOptions().upsert(true));
 	}
 }

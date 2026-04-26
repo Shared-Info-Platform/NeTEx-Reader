@@ -31,12 +31,13 @@ import org.mockito.Mockito;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
-import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.application.history.HistoryWriter;
+import ch.bernmobil.netex.haltelog.writer.HaltelogWriter;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.helper.MongoClientWrapper;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
 
 public class ImportSchedulerTest {
@@ -52,6 +53,7 @@ public class ImportSchedulerTest {
 	private ImporterFactory importerFactory;
 	private Importer importer;
 	private HistoryWriter historyWriter;
+	private HaltelogWriter haltelogWriter;
 	private ImportVersionRepository importVersionRepository;
 	private MongoClientWrapper mongoClientWrapper;
 	private NetexRepository netexRepository;
@@ -70,6 +72,7 @@ public class ImportSchedulerTest {
 		importerFactory = Mockito.mock(ImporterFactory.class);
 		when(importerFactory.createImporter(any(), any())).thenReturn(importer);
 		historyWriter = Mockito.mock(HistoryWriter.class);
+		haltelogWriter = Mockito.mock(HaltelogWriter.class);
 		importVersionRepository = Mockito.mock(ImportVersionRepository.class);
 		mongoClientWrapper = Mockito.mock(MongoClientWrapper.class);
 		netexRepository = Mockito.mock(NetexRepository.class);
@@ -78,7 +81,7 @@ public class ImportSchedulerTest {
 		when(filesystemWrapper.exists(any())).thenReturn(true);
 		clock = Clock.fixed(ZonedDateTime.of(2025, 12, 23, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant(), ZoneId.of("UTC"));
 
-		importScheduler = new ImportScheduler(properties, downloader, importerFactory, historyWriter, importVersionRepository,
+		importScheduler = new ImportScheduler(properties, downloader, importerFactory, historyWriter, haltelogWriter, importVersionRepository,
 				mongoClientWrapper, filesystemWrapper, clock);
 	}
 
@@ -759,6 +762,13 @@ public class ImportSchedulerTest {
 		importScheduler.runPeriodicImportTasks();
 
 		verify(historyWriter).updateHistoryIfNecessary();
+	}
+
+	@Test
+	public void whenSchedulerIsRunThenCallsHaltelogWriter() {
+		importScheduler.runPeriodicImportTasks();
+
+		verify(haltelogWriter).updateHaltelogIfNecessary();
 	}
 
 	private ImportVersion createIncompleteImportVersion() {

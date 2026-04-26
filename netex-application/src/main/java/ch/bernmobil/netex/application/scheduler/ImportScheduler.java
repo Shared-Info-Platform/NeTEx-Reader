@@ -23,13 +23,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
-import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.application.history.HistoryWriter;
+import ch.bernmobil.netex.haltelog.writer.HaltelogWriter;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.helper.MongoClientWrapper;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
 import jakarta.annotation.PostConstruct;
 
@@ -43,18 +44,20 @@ public class ImportScheduler {
 	private final Downloader downloader;
 	private final ImporterFactory importerFactory;
 	private final HistoryWriter historyWriter;
+	private final HaltelogWriter haltelogWriter;
 	private final ImportVersionRepository importVersionRepository;
 	private final MongoClientWrapper mongoClientWrapper;
 	private final FilesystemWrapper filesystem;
 	private final Clock clock;
 
 	public ImportScheduler(ImportSchedulerProperties properties, Downloader downloader, ImporterFactory importerFactory,
-			HistoryWriter historyWriter, ImportVersionRepository importVersionRepository, MongoClientWrapper mongoClientWrapper,
+			HistoryWriter historyWriter, HaltelogWriter haltelogWriter, ImportVersionRepository importVersionRepository, MongoClientWrapper mongoClientWrapper,
 			FilesystemWrapper filesystem, Clock clock) {
 		this.properties = properties;
 		this.downloader = downloader;
 		this.importerFactory = importerFactory;
 		this.historyWriter = historyWriter;
+		this.haltelogWriter = haltelogWriter;
 		this.importVersionRepository = importVersionRepository;
 		this.mongoClientWrapper = mongoClientWrapper;
 		this.filesystem = filesystem;
@@ -74,6 +77,7 @@ public class ImportScheduler {
 			downloadNewVersionsIfNecessary();
 			importDataIfNecessary();
 			historyWriter.updateHistoryIfNecessary();
+			haltelogWriter.updateHaltelogIfNecessary();
 			cleanupIfNecessary();
 			logger.info("done");
 		} catch (Throwable t) {
