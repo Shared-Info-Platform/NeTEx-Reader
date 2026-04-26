@@ -88,6 +88,25 @@ public class JourneyTransformer {
 		final ZonedDateTime noonMinus12Hours = noon.minusHours(12);
 		result.calls = journey.calls.stream().map(call -> transform(call, noonMinus12Hours, result.id)).toList();
 
+		// TODO: there's a bug that sometimes the dayoffset of the first call is missing, which leads to a jump of 24+ hours between the first and the second call.
+//		if (result.calls.size() > 0) {
+//			Call prev = result.calls.getFirst();
+//			for (int i = 1; i < result.calls.size(); ++i) {
+//				final Call call = result.calls.get(i);
+//				if (prev.departure != null && call.departure != null) {
+//					if (prev.departure.time.isBefore(call.departure.time.minus(Duration.ofHours(23)))) {
+//						System.out.println(journey.id);
+//					}
+//				}
+//				if (prev.arrival != null && call.arrival != null) {
+//					if (prev.arrival.time.isBefore(call.arrival.time.minus(Duration.ofHours(23)))) {
+//						System.out.println(journey.id);
+//					}
+//				}
+//				prev = call;
+//			}
+//		}
+
 		return result;
 	}
 
