@@ -32,6 +32,7 @@ import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.application.helper.MongoClientWrapper;
+import ch.bernmobil.netex.application.history.HistoryWriter;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
@@ -50,8 +51,8 @@ public class ImportSchedulerTest {
 	private Downloader downloader;
 	private ImporterFactory importerFactory;
 	private Importer importer;
+	private HistoryWriter historyWriter;
 	private ImportVersionRepository importVersionRepository;
-	private NetexRepository historyNetexRepository;
 	private MongoClientWrapper mongoClientWrapper;
 	private NetexRepository netexRepository;
 	private FilesystemWrapper filesystemWrapper;
@@ -68,8 +69,8 @@ public class ImportSchedulerTest {
 		importer = Mockito.mock(Importer.class);
 		importerFactory = Mockito.mock(ImporterFactory.class);
 		when(importerFactory.createImporter(any(), any())).thenReturn(importer);
+		historyWriter = Mockito.mock(HistoryWriter.class);
 		importVersionRepository = Mockito.mock(ImportVersionRepository.class);
-		historyNetexRepository = Mockito.mock(NetexRepository.class);
 		mongoClientWrapper = Mockito.mock(MongoClientWrapper.class);
 		netexRepository = Mockito.mock(NetexRepository.class);
 		when(mongoClientWrapper.createNetexRepository(any())).thenReturn(netexRepository);
@@ -77,7 +78,7 @@ public class ImportSchedulerTest {
 		when(filesystemWrapper.exists(any())).thenReturn(true);
 		clock = Clock.fixed(ZonedDateTime.of(2025, 12, 23, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant(), ZoneId.of("UTC"));
 
-		importScheduler = new ImportScheduler(properties, downloader, importerFactory, importVersionRepository, historyNetexRepository,
+		importScheduler = new ImportScheduler(properties, downloader, importerFactory, historyWriter, importVersionRepository,
 				mongoClientWrapper, filesystemWrapper, clock);
 	}
 
@@ -754,90 +755,10 @@ public class ImportSchedulerTest {
 	}
 
 	@Test
-	public void whenHasActiveVersions_thenUpdatesHistoryDatabase() {
-		final ImportVersion version1 = createCompleteImportVersion();
-		version1.timetable = TIMETABLE_2025;
-		version1.databaseName = "database1";
-		final ImportVersion version2 = createCompleteImportVersion();
-		version2.timetable = TIMETABLE_2026;
-		version2.databaseName = "database2";
-		when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
-
-		final NetexRepository repository1 = Mockito.mock(NetexRepository.class);
-		final NetexRepository repository2 = Mockito.mock(NetexRepository.class);
-		when(mongoClientWrapper.createNetexRepository(version1.databaseName)).thenReturn(repository1);
-		when(mongoClientWrapper.createNetexRepository(version2.databaseName)).thenReturn(repository2);
-
-		properties.setHistoryNumberOfDays(10);
-
+	public void whenSchedulerIsRunThenCallsHistoryWriter() {
 		importScheduler.runPeriodicImportTasks();
 
-		verify(repository1).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getCallsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-
-		verify(repository2).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getCallsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-
-		verify(historyNetexRepository, times(2)).writeJourneys(any());
-		verify(historyNetexRepository, times(2)).writeCalls(any());
-		verify(historyNetexRepository, times(2)).writeJourneyAggregations(any());
-		verify(historyNetexRepository, times(2)).writeCallAggregations(any());
-		verify(historyNetexRepository, times(2)).writeRouteAggregations(any());
-
-		verify(historyNetexRepository).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 13));
-	}
-
-	@Test
-	public void whenHasActiveVersions_andHistoryDatabaseAlreadyHasDataForToday_thenDoesNotUpdateHistoryDatabase() {
-		final ImportVersion version1 = createCompleteImportVersion();
-		version1.timetable = TIMETABLE_2025;
-		version1.databaseName = "database1";
-		final ImportVersion version2 = createCompleteImportVersion();
-		version2.timetable = TIMETABLE_2026;
-		version2.databaseName = "database2";
-		when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
-
-		when(historyNetexRepository.containsDataForCalendarDay(LocalDate.of(2025, 12, 23))).thenReturn(true);
-
-		importScheduler.runPeriodicImportTasks();
-
-		verify(netexRepository, never()).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getCallsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-
-		verify(historyNetexRepository, never()).writeJourneys(any());
-		verify(historyNetexRepository, never()).writeCalls(any());
-		verify(historyNetexRepository, never()).writeJourneyAggregations(any());
-		verify(historyNetexRepository, never()).writeCallAggregations(any());
-		verify(historyNetexRepository, never()).writeRouteAggregations(any());
-	}
-
-	@Test
-	public void whenUpdatingHistoryDatabaseThrows_thenStillUpdatesOtherVersions() {
-		final ImportVersion version1 = createCompleteImportVersion();
-		version1.timetable = TIMETABLE_2025;
-		version1.databaseName = "database1";
-		final ImportVersion version2 = createCompleteImportVersion();
-		version2.timetable = TIMETABLE_2026;
-		version2.databaseName = "database2";
-		when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
-
-		when(netexRepository.getJourneysForCalendarDay(any())).thenThrow(new RuntimeException("test"));
-
-		properties.setHistoryNumberOfDays(10);
-
-		importScheduler.runPeriodicImportTasks();
-
-		verify(netexRepository, times(2)).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(historyNetexRepository).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 13));
+		verify(historyWriter).updateHistoryIfNecessary();
 	}
 
 	private ImportVersion createIncompleteImportVersion() {

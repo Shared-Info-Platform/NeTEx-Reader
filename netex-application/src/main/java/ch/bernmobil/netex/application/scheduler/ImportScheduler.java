@@ -6,7 +6,6 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -25,14 +24,13 @@ import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.application.helper.MongoClientWrapper;
+import ch.bernmobil.netex.application.history.HistoryWriter;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
-import ch.bernmobil.netex.persistence.model.CallWithJourney;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
-import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
 import jakarta.annotation.PostConstruct;
 
 public class ImportScheduler {
@@ -44,20 +42,20 @@ public class ImportScheduler {
 	private final ImportSchedulerProperties properties;
 	private final Downloader downloader;
 	private final ImporterFactory importerFactory;
+	private final HistoryWriter historyWriter;
 	private final ImportVersionRepository importVersionRepository;
-	private final NetexRepository historyNetexRepository;
 	private final MongoClientWrapper mongoClientWrapper;
 	private final FilesystemWrapper filesystem;
 	private final Clock clock;
 
 	public ImportScheduler(ImportSchedulerProperties properties, Downloader downloader, ImporterFactory importerFactory,
-			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClientWrapper mongoClientWrapper,
+			HistoryWriter historyWriter, ImportVersionRepository importVersionRepository, MongoClientWrapper mongoClientWrapper,
 			FilesystemWrapper filesystem, Clock clock) {
 		this.properties = properties;
 		this.downloader = downloader;
 		this.importerFactory = importerFactory;
+		this.historyWriter = historyWriter;
 		this.importVersionRepository = importVersionRepository;
-		this.historyNetexRepository = historyNetexRepository;
 		this.mongoClientWrapper = mongoClientWrapper;
 		this.filesystem = filesystem;
 		this.clock = clock;
@@ -75,7 +73,7 @@ public class ImportScheduler {
 		try {
 			downloadNewVersionsIfNecessary();
 			importDataIfNecessary();
-			updateHistoryIfNecessary();
+			historyWriter.updateHistoryIfNecessary();
 			cleanupIfNecessary();
 			logger.info("done");
 		} catch (Throwable t) {
@@ -382,51 +380,6 @@ public class ImportScheduler {
 			filesystem.deleteDirectory(new File(importVersion.directory));
 		}
 		importVersionRepository.deleteImportVersion(importVersion);
-	}
-
-	private void updateHistoryIfNecessary() {
-		final LocalDate today = LocalDate.now(clock);
-		if (!historyNetexRepository.containsDataForCalendarDay(today)) {
-			updateHistory(today);
-		}
-	}
-
-	private void updateHistory(LocalDate today) {
-		// copy data from the currently active versions to the history database
-		final Collection<ImportVersion> activeVersions = importVersionRepository.getActiveImportVersions();
-		for (final ImportVersion activeVersion : activeVersions) {
-			try {
-				updateHistory(activeVersion, today);
-			} catch (RuntimeException e) {
-				logger.error("failed to update history database for version " + activeVersion.version + " of " + activeVersion.timetable,
-						e);
-			}
-		}
-
-		// delete old data from history database
-		final LocalDate cleanupThreshold = today.minusDays(properties.getHistoryNumberOfDays());
-		logger.info("delete old data in history database up to {}", cleanupThreshold);
-		historyNetexRepository.deleteDataUpToCalendarDay(cleanupThreshold);
-	}
-
-	private void updateHistory(ImportVersion version, LocalDate today) {
-		logger.info("adding data for {} from version {} of {} to history database", today, version.version, version.timetable);
-		final NetexRepository netexRepository = mongoClientWrapper.createNetexRepository(version.databaseName);
-
-		final List<JourneyWithCalls> journeys = netexRepository.getJourneysForCalendarDay(today);
-		final List<CallWithJourney> calls = netexRepository.getCallsForCalendarDay(today);
-
-		// override ids to avoid duplicates between different versions (e.g. if the same journey changes calendar day between two versions
-		// then it might be inserted twice into the history database; also different versions could just use a different numbering system
-		// which could lead to colliding ids).
-		journeys.forEach(journey -> journey.id = journey.id + "_" + version.getId());
-		calls.forEach(call -> call.id = call.id + "_" + version.getId());
-
-		historyNetexRepository.writeJourneys(journeys);
-		historyNetexRepository.writeCalls(calls);
-		historyNetexRepository.writeJourneyAggregations(netexRepository.getJourneyAggregationsForCalendarDay(today));
-		historyNetexRepository.writeCallAggregations(netexRepository.getCallAggregationsForCalendarDay(today));
-		historyNetexRepository.writeRouteAggregations(netexRepository.getRouteAggregationsForCalendarDay(today));
 	}
 
 	/**

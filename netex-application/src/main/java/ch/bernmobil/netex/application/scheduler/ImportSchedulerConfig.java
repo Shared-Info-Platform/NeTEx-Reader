@@ -11,6 +11,7 @@ import com.mongodb.client.MongoClient;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.application.helper.MongoClientWrapper;
+import ch.bernmobil.netex.application.history.HistoryWriter;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
 
@@ -27,10 +28,10 @@ public class ImportSchedulerConfig {
 
 	@Bean
 	public ImportScheduler importScheduler(Downloader downloader, ImporterFactory importerFactory,
-			ImportVersionRepository importVersionRepository, NetexRepository historyNetexRepository, MongoClientWrapper mongoClientWrapper,
+			ImportVersionRepository importVersionRepository, HistoryWriter historyWriter, MongoClientWrapper mongoClientWrapper,
 			FilesystemWrapper filesystemWrapper, Clock clock) {
-		return new ImportScheduler(properties, downloader, importerFactory, importVersionRepository, historyNetexRepository,
-				mongoClientWrapper, filesystemWrapper, clock);
+		return new ImportScheduler(properties, downloader, importerFactory, historyWriter, importVersionRepository, mongoClientWrapper,
+				filesystemWrapper, clock);
 	}
 
 	@Bean
@@ -41,6 +42,12 @@ public class ImportSchedulerConfig {
 	@Bean
 	public ImporterFactory importerFactory() {
 		return new ImporterFactory();
+	}
+
+	@Bean
+	public HistoryWriter historyWriter(NetexRepository historyNetexRepository, ImportVersionRepository importVersionRepository,
+			MongoClientWrapper mongoClientWrapper, Clock clock) {
+		return new HistoryWriter(properties, historyNetexRepository, importVersionRepository, mongoClientWrapper, clock);
 	}
 
 	@Bean
