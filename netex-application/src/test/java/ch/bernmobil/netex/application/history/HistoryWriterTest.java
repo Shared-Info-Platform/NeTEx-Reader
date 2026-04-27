@@ -1,143 +1,270 @@
 package ch.bernmobil.netex.application.history;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.application.scheduler.ImportSchedulerProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.admin.TaskRepository;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
+import ch.bernmobil.netex.persistence.model.task.HistoryTask;
 
 public class HistoryWriterTest {
 
 	private static final String TIMETABLE_2025 = "2025";
 	private static final String TIMETABLE_2026 = "2026";
 
+	private static final LocalDate TODAY = LocalDate.of(2025, 12, 23);
+
 	private HistoryWriter historyWriter;
 	private ImportSchedulerProperties properties;
 	private NetexRepository historyNetexRepository;
+	private TaskRepository taskRepository;
 	private ImportVersionRepository importVersionRepository;
-	private NetexRepository netexRepository;
 	private MongoClientWrapper mongoClientWrapper;
 	private Clock clock;
+
+	private HistoryTask task;
 
 	@BeforeEach
 	public void setup() {
 		properties = new ImportSchedulerProperties();
+		properties.setHistoryNumberOfDays(10);
 
 		historyNetexRepository = Mockito.mock(NetexRepository.class);
+		taskRepository = Mockito.mock(TaskRepository.class);
+		when(taskRepository.getHistoryTask()).thenAnswer(args -> task);
+		doAnswer(args -> task = args.getArgument(0)).when(taskRepository).updateHistoryTask(any());
+
 		importVersionRepository = Mockito.mock(ImportVersionRepository.class);
 		mongoClientWrapper = Mockito.mock(MongoClientWrapper.class);
-		netexRepository = Mockito.mock(NetexRepository.class);
-		when(mongoClientWrapper.createNetexRepository(any())).thenReturn(netexRepository);
-		clock = Clock.fixed(ZonedDateTime.of(2025, 12, 23, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant(), ZoneId.of("UTC"));
+		clock = Clock.fixed(ZonedDateTime.of(TODAY, LocalTime.of(12, 0, 0), ZoneId.of("UTC")).toInstant(), ZoneId.of("UTC"));
 
-		historyWriter = new HistoryWriter(properties, historyNetexRepository, importVersionRepository, mongoClientWrapper, clock);
+		historyWriter = new HistoryWriter(properties, historyNetexRepository, taskRepository, importVersionRepository, mongoClientWrapper, clock);
 	}
 
-	@Test
-	public void whenHasActiveVersions_thenUpdatesHistoryDatabase() {
-		final ImportVersion version1 = new ImportVersion();
-		version1.version = "version";
-		version1.timetable = TIMETABLE_2025;
-		version1.databaseName = "database1";
-		final ImportVersion version2 = new ImportVersion();
-		version2.version = "version";
-		version2.timetable = TIMETABLE_2026;
-		version2.databaseName = "database2";
-		when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
+	@Nested
+	public class WhenHasOneActiveVersion {
 
-		final NetexRepository repository1 = Mockito.mock(NetexRepository.class);
-		final NetexRepository repository2 = Mockito.mock(NetexRepository.class);
-		when(mongoClientWrapper.createNetexRepository(version1.databaseName)).thenReturn(repository1);
-		when(mongoClientWrapper.createNetexRepository(version2.databaseName)).thenReturn(repository2);
+		private NetexRepository repository;
 
-		properties.setHistoryNumberOfDays(10);
+		@BeforeEach
+		public void setup() {
+			repository = mockActiveVersion();
+		}
 
-		historyWriter.updateHistoryIfNecessary();
+		@Nested
+		public class AndHistoryTaskIsNull {
 
-		verify(repository1).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getCallsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository1).getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
+			@BeforeEach
+			public void setup() {
+				assertThat(taskRepository.getHistoryTask()).isNull();
+			}
 
-		verify(repository2).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getCallsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(repository2).getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
+			@Test
+			public void thenExportsHistoryForToday_andUpdatesTask() {
+				historyWriter.updateHistoryIfNecessary();
 
-		verify(historyNetexRepository, times(2)).writeJourneys(any());
-		verify(historyNetexRepository, times(2)).writeCalls(any());
-		verify(historyNetexRepository, times(2)).writeJourneyAggregations(any());
-		verify(historyNetexRepository, times(2)).writeCallAggregations(any());
-		verify(historyNetexRepository, times(2)).writeRouteAggregations(any());
+				assertReadsDataFor(repository, TODAY);
+				assertWritesHistoryFor(TODAY);
 
-		verify(historyNetexRepository).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 13));
+				assertThat(taskRepository.getHistoryTask()).isNotNull();
+				assertThat(taskRepository.getHistoryTask().getHistoryExportedUntil()).isEqualTo(TODAY);
+			}
+		}
+
+		@Nested
+		public class AndHistoryTaskWasUpdatedForToday {
+
+			@BeforeEach
+			public void setup() {
+				task = new HistoryTask();
+				task.setHistoryExportedUntil(TODAY);
+			}
+
+			@Test
+			public void thenExportsNothing() {
+				historyWriter.updateHistoryIfNecessary();
+
+				assertReadsNoData(repository);
+				assertWritesNoHistory();
+
+				assertThat(taskRepository.getHistoryTask()).isNotNull();
+				assertThat(taskRepository.getHistoryTask().getHistoryExportedUntil()).isEqualTo(TODAY);
+			}
+		}
+
+		@Nested
+		public class AndHistoryTaskWasUpdatedForYesterday {
+
+			@BeforeEach
+			public void setup() {
+				task = new HistoryTask();
+				task.setHistoryExportedUntil(TODAY.minusDays(1));
+			}
+
+			@Test
+			public void thenExportsToday_andUpdatesTask() {
+				historyWriter.updateHistoryIfNecessary();
+
+				assertReadsDataFor(repository, TODAY);
+				assertWritesHistoryFor(TODAY);
+
+				assertThat(taskRepository.getHistoryTask()).isNotNull();
+				assertThat(taskRepository.getHistoryTask().getHistoryExportedUntil()).isEqualTo(TODAY);
+			}
+		}
+
+		@Nested
+		public class AndHistoryTaskWasUpdatedForThreeDaysBefore {
+
+			@BeforeEach
+			public void setup() {
+				task = new HistoryTask();
+				task.setHistoryExportedUntil(TODAY.minusDays(3));
+			}
+
+			@Test
+			public void thenExportsThreeDays_andUpdatesTask() {
+				historyWriter.updateHistoryIfNecessary();
+
+				assertReadsDataFor(repository, TODAY);
+				assertReadsDataFor(repository, TODAY.minusDays(1));
+				assertReadsDataFor(repository, TODAY.minusDays(2));
+				assertWritesHistoryFor(TODAY, TODAY.minusDays(1), TODAY.minusDays(2));
+
+				assertThat(taskRepository.getHistoryTask()).isNotNull();
+				assertThat(taskRepository.getHistoryTask().getHistoryExportedUntil()).isEqualTo(TODAY);
+			}
+
+			@Test
+			public void andHistoryDatabaseAlreadyContainsDataForDate_thenDeletesIt() {
+				when(historyNetexRepository.containsDataForCalendarDay(TODAY.minusDays(1))).thenReturn(true);
+
+				historyWriter.updateHistoryIfNecessary();
+
+				// verify that data was deleted exactly for today-1 (and no other dates)
+				verify(historyNetexRepository).deleteDataForCalendarDay(any());
+				verify(historyNetexRepository).deleteDataForCalendarDay(TODAY.minusDays(1));
+
+				assertReadsDataFor(repository, TODAY);
+				assertReadsDataFor(repository, TODAY.minusDays(1));
+				assertReadsDataFor(repository, TODAY.minusDays(2));
+				assertWritesHistoryFor(TODAY, TODAY.minusDays(1), TODAY.minusDays(2));
+			}
+		}
+
+		private NetexRepository mockActiveVersion() {
+			final ImportVersion version = new ImportVersion();
+			version.version = "version";
+			version.timetable = TIMETABLE_2026;
+			version.databaseName = "database";
+			when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version));
+
+			final NetexRepository repository = Mockito.mock(NetexRepository.class);
+			when(mongoClientWrapper.createNetexRepository(version.databaseName)).thenReturn(repository);
+
+			return repository;
+		}
 	}
 
-	@Test
-	public void whenHasActiveVersions_andHistoryDatabaseAlreadyHasDataForToday_thenDoesNotUpdateHistoryDatabase() {
-		final ImportVersion version1 = new ImportVersion();
-		version1.version = "version";
-		version1.timetable = TIMETABLE_2025;
-		version1.databaseName = "database1";
-		final ImportVersion version2 = new ImportVersion();
-		version2.version = "version";
-		version2.timetable = TIMETABLE_2026;
-		version2.databaseName = "database2";
-		when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
+	@Nested
+	public class WhenHasTwoActiveVersions {
 
-		when(historyNetexRepository.containsDataForCalendarDay(LocalDate.of(2025, 12, 23))).thenReturn(true);
+		private NetexRepository repository1;
+		private NetexRepository repository2;
 
-		historyWriter.updateHistoryIfNecessary();
+		@BeforeEach
+		public void setup() {
+			final ImportVersion version1 = new ImportVersion();
+			version1.version = "version";
+			version1.timetable = TIMETABLE_2025;
+			version1.databaseName = "database1";
+			final ImportVersion version2 = new ImportVersion();
+			version2.version = "version";
+			version2.timetable = TIMETABLE_2026;
+			version2.databaseName = "database2";
+			when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
 
-		verify(netexRepository, never()).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getCallsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getJourneyAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getCallAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(netexRepository, never()).getRouteAggregationsForCalendarDay(LocalDate.of(2025, 12, 23));
+			repository1 = Mockito.mock(NetexRepository.class);
+			repository2 = Mockito.mock(NetexRepository.class);
+			when(mongoClientWrapper.createNetexRepository(version1.databaseName)).thenReturn(repository1);
+			when(mongoClientWrapper.createNetexRepository(version2.databaseName)).thenReturn(repository2);
+		}
 
-		verify(historyNetexRepository, never()).writeJourneys(any());
-		verify(historyNetexRepository, never()).writeCalls(any());
-		verify(historyNetexRepository, never()).writeJourneyAggregations(any());
-		verify(historyNetexRepository, never()).writeCallAggregations(any());
-		verify(historyNetexRepository, never()).writeRouteAggregations(any());
+		@Test
+		public void thenExportsBoth() {
+			historyWriter.updateHistoryIfNecessary();
+
+			assertReadsDataFor(repository1, TODAY);
+			assertReadsDataFor(repository2, TODAY);
+			assertWritesHistoryFor(TODAY, TODAY);
+		}
+
+		@Test
+		public void andUpdatingHistoryDatabaseThrows_thenStillUpdatesOtherVersions() {
+			when(repository1.getJourneysForCalendarDay(any())).thenThrow(new RuntimeException("test"));
+			when(repository2.getJourneysForCalendarDay(any())).thenThrow(new RuntimeException("test"));
+
+			historyWriter.updateHistoryIfNecessary();
+
+			verify(repository1).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
+			verify(repository2).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
+			verify(historyNetexRepository).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 13));
+		}
 	}
 
-	@Test
-	public void whenUpdatingHistoryDatabaseThrows_thenStillUpdatesOtherVersions() {
-		final ImportVersion version1 = new ImportVersion();
-		version1.version = "version";
-		version1.timetable = TIMETABLE_2025;
-		version1.databaseName = "database1";
-		final ImportVersion version2 = new ImportVersion();
-		version2.version = "version";
-		version2.timetable = TIMETABLE_2026;
-		version2.databaseName = "database2";
-		when(importVersionRepository.getActiveImportVersions()).thenReturn(List.of(version1, version2));
+	private void assertReadsDataFor(NetexRepository repository, LocalDate date) {
+		verify(repository).getJourneysForCalendarDay(date);
+		verify(repository).getCallsForCalendarDay(date);
+		verify(repository).getJourneyAggregationsForCalendarDay(date);
+		verify(repository).getCallAggregationsForCalendarDay(date);
+		verify(repository).getRouteAggregationsForCalendarDay(date);
+	}
 
-		when(netexRepository.getJourneysForCalendarDay(any())).thenThrow(new RuntimeException("test"));
+	private void assertWritesHistoryFor(LocalDate ... dates) {
+		for (final LocalDate date : dates) {
+			verify(historyNetexRepository).containsDataForCalendarDay(date);
+		}
 
-		properties.setHistoryNumberOfDays(10);
+		verify(historyNetexRepository, times(dates.length)).writeJourneys(any());
+		verify(historyNetexRepository, times(dates.length)).writeCalls(any());
+		verify(historyNetexRepository, times(dates.length)).writeJourneyAggregations(any());
+		verify(historyNetexRepository, times(dates.length)).writeCallAggregations(any());
+		verify(historyNetexRepository, times(dates.length)).writeRouteAggregations(any());
 
-		historyWriter.updateHistoryIfNecessary();
+		for (final LocalDate date : dates) {
+			verify(historyNetexRepository).deleteDataUpToCalendarDay(date.minusDays(10));
+		}
 
-		verify(netexRepository, times(2)).getJourneysForCalendarDay(LocalDate.of(2025, 12, 23));
-		verify(historyNetexRepository).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 13));
+		verifyNoMoreInteractions(historyNetexRepository);
+	}
+
+	private void assertReadsNoData(NetexRepository repository) {
+		verifyNoInteractions(repository);
+	}
+
+	private void assertWritesNoHistory() {
+		verifyNoInteractions(historyNetexRepository);
 	}
 }

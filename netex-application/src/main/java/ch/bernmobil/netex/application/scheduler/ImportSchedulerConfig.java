@@ -13,6 +13,7 @@ import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.application.history.HistoryWriter;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.admin.TaskRepository;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
 
 @Configuration
@@ -45,9 +46,9 @@ public class ImportSchedulerConfig {
 	}
 
 	@Bean
-	public HistoryWriter historyWriter(NetexRepository historyNetexRepository, ImportVersionRepository importVersionRepository,
-			MongoClientWrapper mongoClientWrapper, Clock clock) {
-		return new HistoryWriter(properties, historyNetexRepository, importVersionRepository, mongoClientWrapper, clock);
+	public HistoryWriter historyWriter(NetexRepository historyNetexRepository, TaskRepository taskRepository,
+			ImportVersionRepository importVersionRepository, MongoClientWrapper mongoClientWrapper, Clock clock) {
+		return new HistoryWriter(properties, historyNetexRepository, taskRepository, importVersionRepository, mongoClientWrapper, clock);
 	}
 
 	@Bean

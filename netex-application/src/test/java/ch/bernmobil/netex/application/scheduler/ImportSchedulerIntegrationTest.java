@@ -176,6 +176,7 @@ public class ImportSchedulerIntegrationTest {
 				new NetexRepository(mongoClient, databaseName).deleteAll();
 			} else if (databaseName.equals("netex-test-admin")) {
 				mongoClient.getDatabase(databaseName).getCollection("ImportVersions").deleteMany(Filters.empty());
+				mongoClient.getDatabase(databaseName).getCollection("Tasks").deleteMany(Filters.empty());
 			}
 		}
 

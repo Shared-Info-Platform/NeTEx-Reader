@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import com.mongodb.client.MongoClient;
 
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
+import ch.bernmobil.netex.persistence.admin.TaskRepository;
 import ch.bernmobil.netex.persistence.export.MongoDbClientHelper;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
 
@@ -28,6 +29,11 @@ public class PersistenceConfig {
 	@Bean
 	public ImportVersionRepository importVersionRepository(MongoClient mongoClient) {
 		return new ImportVersionRepository(mongoClient, properties.getAdminDatabaseName());
+	}
+
+	@Bean
+	public TaskRepository taskRepository(MongoClient mongoClient) {
+		return new TaskRepository(mongoClient, properties.getAdminDatabaseName());
 	}
 
 	@Bean
