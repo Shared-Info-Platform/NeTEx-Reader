@@ -23,9 +23,9 @@ import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.model.RouteAggregation;
+import ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace;
 
 @SpringBootTest(classes = { NetexApiConfig.class, PersistenceConfig.class })
 @ActiveProfiles("test")

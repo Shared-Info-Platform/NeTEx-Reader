@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.bernmobil.netex.api.service.AdminService;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController

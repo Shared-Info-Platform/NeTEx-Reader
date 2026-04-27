@@ -2,7 +2,8 @@ package ch.bernmobil.netex.importer.mongodb.mapper;
 
 import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
 import ch.bernmobil.netex.importer.journey.dom.RouteAggregation;
-import ch.bernmobil.netex.persistence.dom.CallAggregation;
+import ch.bernmobil.netex.persistence.model.CallAggregation;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -16,12 +17,12 @@ import javax.annotation.processing.Generated;
 public class AggregationMapperImpl implements AggregationMapper {
 
     @Override
-    public ch.bernmobil.netex.persistence.dom.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation) {
+    public ch.bernmobil.netex.persistence.model.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation) {
         if ( aggregation == null ) {
             return null;
         }
 
-        ch.bernmobil.netex.persistence.dom.JourneyAggregation journeyAggregation = new ch.bernmobil.netex.persistence.dom.JourneyAggregation();
+        ch.bernmobil.netex.persistence.model.JourneyAggregation journeyAggregation = new ch.bernmobil.netex.persistence.model.JourneyAggregation();
 
         LocalDate calendarDay = aggregationIdCalendarDay( aggregation );
         if ( calendarDay != null ) {
@@ -57,12 +58,12 @@ public class AggregationMapperImpl implements AggregationMapper {
     }
 
     @Override
-    public ch.bernmobil.netex.persistence.dom.RouteAggregation mapRouteAggregation(RouteAggregation aggregation) {
+    public ch.bernmobil.netex.persistence.model.RouteAggregation mapRouteAggregation(RouteAggregation aggregation) {
         if ( aggregation == null ) {
             return null;
         }
 
-        ch.bernmobil.netex.persistence.dom.RouteAggregation routeAggregation = new ch.bernmobil.netex.persistence.dom.RouteAggregation();
+        ch.bernmobil.netex.persistence.model.RouteAggregation routeAggregation = new ch.bernmobil.netex.persistence.model.RouteAggregation();
 
         LocalDate calendarDay = aggregationIdCalendarDay2( aggregation );
         if ( calendarDay != null ) {
@@ -320,7 +321,7 @@ public class AggregationMapperImpl implements AggregationMapper {
         return stopPlaces;
     }
 
-    protected ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace stopPlaceToStopPlace(RouteAggregation.StopPlace stopPlace) {
+    protected ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace stopPlaceToStopPlace(RouteAggregation.StopPlace stopPlace) {
         if ( stopPlace == null ) {
             return null;
         }
@@ -331,17 +332,17 @@ public class AggregationMapperImpl implements AggregationMapper {
         code = stopPlace.code();
         name = stopPlace.name();
 
-        ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace stopPlace1 = new ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace( code, name );
+        ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace stopPlace1 = new ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace( code, name );
 
         return stopPlace1;
     }
 
-    protected List<ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace> stopPlaceListToStopPlaceList(List<RouteAggregation.StopPlace> list) {
+    protected List<ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace> stopPlaceListToStopPlaceList(List<RouteAggregation.StopPlace> list) {
         if ( list == null ) {
             return null;
         }
 
-        List<ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace> list1 = new ArrayList<ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace>( list.size() );
+        List<ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace> list1 = new ArrayList<ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace>( list.size() );
         for ( RouteAggregation.StopPlace stopPlace : list ) {
             list1.add( stopPlaceToStopPlace( stopPlace ) );
         }

@@ -18,7 +18,7 @@ import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.Sorts;
 
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
 import ch.bernmobil.netex.persistence.search.Helper;
 
 public class ImportVersionRepository {

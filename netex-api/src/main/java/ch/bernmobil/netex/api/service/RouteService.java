@@ -23,8 +23,8 @@ import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.api.model.Route.StopPlace;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
+import ch.bernmobil.netex.persistence.model.RouteAggregation;
 import ch.bernmobil.netex.persistence.search.RouteAggregationRepository;
 
 @Service
@@ -153,7 +153,7 @@ public class RouteService {
 		return result;
 	}
 
-	private StopPlace createStopPlace(ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace stopPlace) {
+	private StopPlace createStopPlace(ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace stopPlace) {
 		return new StopPlace(stopPlace.code(), stopPlace.name());
 	}
 
@@ -163,7 +163,7 @@ public class RouteService {
 
 	private record RouteId(String operatorCode, String lineCode, String regionCode, String directionType, String directionId, List<String> stopPlaceCodes) {
 		public static RouteId of(RouteAggregation aggregation) {
-			final List<String> stopPlaceCodes = aggregation.stopPlaces.stream().map(ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace::code).toList();
+			final List<String> stopPlaceCodes = aggregation.stopPlaces.stream().map(ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace::code).toList();
 			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.regionCode, aggregation.directionType, aggregation.directionId, stopPlaceCodes);
 		}
 	}

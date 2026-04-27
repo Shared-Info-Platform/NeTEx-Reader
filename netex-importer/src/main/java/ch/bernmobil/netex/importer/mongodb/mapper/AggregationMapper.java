@@ -23,14 +23,14 @@ public interface AggregationMapper {
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
 	@Mapping(target = "regionCode", source = "id.regionCode")
-	ch.bernmobil.netex.persistence.dom.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation);
+	ch.bernmobil.netex.persistence.model.JourneyAggregation mapJourneyAggregation(JourneyAggregation aggregation);
 
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "stopPlaceCode", source = "id.stopPlaceCode")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
 	@Mapping(target = "regionCode", source = "id.regionCode")
-	ch.bernmobil.netex.persistence.dom.CallAggregation mapCallAggregation(CallAggregation aggregation);
+	ch.bernmobil.netex.persistence.model.CallAggregation mapCallAggregation(CallAggregation aggregation);
 
 	@Mapping(target = "calendarDay", source = "id.calendarDay")
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
@@ -39,5 +39,5 @@ public interface AggregationMapper {
 	@Mapping(target = "directionType", source = "id.directionType")
 	@Mapping(target = "directionId", source = "id.directionId")
 	@Mapping(target = "stopPlaces", source = "id.stopPlaces")
-	ch.bernmobil.netex.persistence.dom.RouteAggregation mapRouteAggregation(RouteAggregation aggregation);
+	ch.bernmobil.netex.persistence.model.RouteAggregation mapRouteAggregation(RouteAggregation aggregation);
 }

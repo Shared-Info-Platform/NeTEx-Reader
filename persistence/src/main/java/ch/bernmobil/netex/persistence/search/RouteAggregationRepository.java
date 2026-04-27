@@ -11,7 +11,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 
-import ch.bernmobil.netex.persistence.dom.RouteAggregation;
+import ch.bernmobil.netex.persistence.model.RouteAggregation;
 
 public class RouteAggregationRepository {
 

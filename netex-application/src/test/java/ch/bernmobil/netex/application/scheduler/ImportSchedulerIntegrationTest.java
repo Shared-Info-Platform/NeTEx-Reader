@@ -45,13 +45,13 @@ import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
-import ch.bernmobil.netex.persistence.dom.CallAggregation;
-import ch.bernmobil.netex.persistence.dom.CallWithJourney;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
-import ch.bernmobil.netex.persistence.dom.JourneyAggregation;
-import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.model.CallAggregation;
+import ch.bernmobil.netex.persistence.model.CallWithJourney;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
+import ch.bernmobil.netex.persistence.model.JourneyAggregation;
+import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
+import ch.bernmobil.netex.persistence.model.RouteAggregation;
 
 @SpringBootTest(classes = {ImportSchedulerConfig.class, PersistenceConfig.class, ImportSchedulerIntegrationTest.TestConfig.class})
 @ActiveProfiles("test")

@@ -25,9 +25,9 @@ import ch.bernmobil.netex.api.model.Route;
 import ch.bernmobil.netex.api.model.Route.DirectionType;
 import ch.bernmobil.netex.api.service.RouteService.NotFoundException;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
+import ch.bernmobil.netex.persistence.model.RouteAggregation;
+import ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace;
 import ch.bernmobil.netex.persistence.search.RouteAggregationRepository;
 
 public class RouteServiceTest {

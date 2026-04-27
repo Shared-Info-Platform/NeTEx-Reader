@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import ch.bernmobil.netex.api.NetexApiConfig;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
 
 @SpringBootTest(classes = {NetexApiConfig.class, PersistenceConfig.class})
 @ActiveProfiles("test")

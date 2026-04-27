@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
 
 @Service
 public class AdminService {

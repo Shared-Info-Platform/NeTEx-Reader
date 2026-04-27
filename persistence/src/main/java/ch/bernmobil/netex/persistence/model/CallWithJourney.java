@@ -1,4 +1,4 @@
-package ch.bernmobil.netex.persistence.dom;
+package ch.bernmobil.netex.persistence.model;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

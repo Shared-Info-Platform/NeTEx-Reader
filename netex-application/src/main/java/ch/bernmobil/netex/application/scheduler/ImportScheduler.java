@@ -29,10 +29,10 @@ import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
-import ch.bernmobil.netex.persistence.dom.CallWithJourney;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
-import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.model.CallWithJourney;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
+import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
 import jakarta.annotation.PostConstruct;
 
 public class ImportScheduler {

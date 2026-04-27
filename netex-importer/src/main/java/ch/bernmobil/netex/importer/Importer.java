@@ -44,9 +44,9 @@ import ch.bernmobil.netex.importer.netex.builder.TimetableJourneyDomBuilder;
 import ch.bernmobil.netex.importer.netex.builder.TimetableTrainNumberDomBuilder;
 import ch.bernmobil.netex.importer.netex.dom.NetexServiceJourney;
 import ch.bernmobil.netex.importer.xml.Parser;
-import ch.bernmobil.netex.persistence.dom.CallWithJourney;
-import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.model.CallWithJourney;
+import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
 
 /**
  * This class imports journeys from NeTEx files that are located in a given directory.

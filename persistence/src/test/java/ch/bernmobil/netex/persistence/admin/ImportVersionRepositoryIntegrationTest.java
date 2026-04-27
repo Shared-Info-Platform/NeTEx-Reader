@@ -19,7 +19,7 @@ import com.mongodb.client.model.Filters;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
 import ch.bernmobil.netex.persistence.PersistenceProperties;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
 
 @SpringBootTest(classes = PersistenceConfig.class)
 @ActiveProfiles("test")

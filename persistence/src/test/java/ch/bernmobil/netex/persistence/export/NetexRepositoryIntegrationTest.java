@@ -20,15 +20,15 @@ import com.mongodb.client.model.Filters;
 
 import ch.bernmobil.netex.persistence.Constants;
 import ch.bernmobil.netex.persistence.PersistenceConfig;
-import ch.bernmobil.netex.persistence.dom.Call;
-import ch.bernmobil.netex.persistence.dom.Call.Arrival;
-import ch.bernmobil.netex.persistence.dom.Call.Departure;
-import ch.bernmobil.netex.persistence.dom.CallAggregation;
-import ch.bernmobil.netex.persistence.dom.CallWithJourney;
-import ch.bernmobil.netex.persistence.dom.JourneyAggregation;
-import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
+import ch.bernmobil.netex.persistence.model.Call;
+import ch.bernmobil.netex.persistence.model.CallAggregation;
+import ch.bernmobil.netex.persistence.model.CallWithJourney;
+import ch.bernmobil.netex.persistence.model.JourneyAggregation;
+import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
+import ch.bernmobil.netex.persistence.model.RouteAggregation;
+import ch.bernmobil.netex.persistence.model.Call.Arrival;
+import ch.bernmobil.netex.persistence.model.Call.Departure;
+import ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace;
 
 @SpringBootTest(classes = PersistenceConfig.class)
 @ActiveProfiles("test")

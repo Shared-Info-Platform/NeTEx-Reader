@@ -35,8 +35,8 @@ import ch.bernmobil.netex.application.helper.MongoClientWrapper;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository.Order;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
 import ch.bernmobil.netex.persistence.export.NetexRepository;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
 
 public class ImportSchedulerTest {
 

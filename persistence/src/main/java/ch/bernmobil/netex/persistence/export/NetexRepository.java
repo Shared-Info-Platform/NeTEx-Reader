@@ -23,12 +23,12 @@ import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 
 import ch.bernmobil.netex.persistence.Constants;
-import ch.bernmobil.netex.persistence.dom.CallAggregation;
-import ch.bernmobil.netex.persistence.dom.CallWithJourney;
-import ch.bernmobil.netex.persistence.dom.JourneyAggregation;
-import ch.bernmobil.netex.persistence.dom.JourneyWithCalls;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation;
-import ch.bernmobil.netex.persistence.dom.RouteAggregation.StopPlace;
+import ch.bernmobil.netex.persistence.model.CallAggregation;
+import ch.bernmobil.netex.persistence.model.CallWithJourney;
+import ch.bernmobil.netex.persistence.model.JourneyAggregation;
+import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
+import ch.bernmobil.netex.persistence.model.RouteAggregation;
+import ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace;
 import ch.bernmobil.netex.persistence.search.Helper;
 
 /**

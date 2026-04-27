@@ -9,7 +9,7 @@ import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
-import ch.bernmobil.netex.persistence.dom.ImportVersion;
+import ch.bernmobil.netex.persistence.model.ImportVersion;
 
 @Component
 public class CustomInfoContributor implements InfoContributor {
