@@ -100,6 +100,7 @@ or as environment variables.
 | `mongoConnectionString` | `String` | `mongodb://localhost:27017/` | Connection string for the MongoDB cluster where imported netex data is stored. |
 | `adminDatabaseName` | `String` | `netex-admin` | The name of the database where metadata for the automated import is stored. |
 | `historyDatabaseName` | `String` | `netex-history` | The name of the database where a history of netex data is stored. |
+| `historyExportTimeOfDay` | `Local Time` | `12:00` | Defines the time of day when the history is exported. It affects which version is exported as the "active" version for a day, depending on whether a new netex version was imported before or after this time. |
 | `apiDatabaseName` | `String` |  | The netex database that should be used to serve the routes API. If not defined, the application uses the active databases of the automated import, but this property can be used if another database should be used. |
 
 ### Monitoring

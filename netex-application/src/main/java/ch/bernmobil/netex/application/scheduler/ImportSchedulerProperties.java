@@ -2,6 +2,7 @@ package ch.bernmobil.netex.application.scheduler;
 
 import java.io.File;
 import java.net.URI;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,6 +84,12 @@ public class ImportSchedulerProperties {
 	 * Defines the number of days that should be stored in the history database.
 	 */
 	private int historyNumberOfDays = 30;
+
+	/**
+	 * Defines the time of day when the history is exported. It affects which version is exported as the "active" version for a day,
+	 * depending on whether a new netex version was imported before or after this time.
+	 */
+	private LocalTime historyExportTimeOfDay = LocalTime.of(12, 0);
 
 	public String getImportCronExpression() {
 		return importCronExpression;
@@ -178,5 +185,13 @@ public class ImportSchedulerProperties {
 
 	public void setHistoryNumberOfDays(int historyNumberOfDays) {
 		this.historyNumberOfDays = historyNumberOfDays;
+	}
+
+	public LocalTime getHistoryExportTimeOfDay() {
+		return historyExportTimeOfDay;
+	}
+
+	public void setHistoryExportTimeOfDay(LocalTime historyExportTimeOfDay) {
+		this.historyExportTimeOfDay = historyExportTimeOfDay;
 	}
 }

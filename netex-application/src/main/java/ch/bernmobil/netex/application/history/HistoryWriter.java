@@ -1,7 +1,10 @@
 package ch.bernmobil.netex.application.history;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -49,12 +52,18 @@ public class HistoryWriter {
 		}
 
 		final LocalDate start = task.getHistoryExportedUntil().plusDays(1);
-		for (LocalDate date = start; !date.isAfter(today); date = date.plusDays(1)) {
+		for (LocalDate date = start; shouldWriteHistoryForDate(date); date = date.plusDays(1)) {
 			updateHistory(date);
 
 			task.setHistoryExportedUntil(date);
 			taskRepository.updateHistoryTask(task);
 		}
+	}
+
+	private boolean shouldWriteHistoryForDate(LocalDate date) {
+		final Instant now = Instant.now(clock);
+		final Instant cutoffTime = ZonedDateTime.of(date, properties.getHistoryExportTimeOfDay(), ZoneId.systemDefault()).toInstant();
+		return now.isAfter(cutoffTime);
 	}
 
 	private void updateHistory(LocalDate date) {

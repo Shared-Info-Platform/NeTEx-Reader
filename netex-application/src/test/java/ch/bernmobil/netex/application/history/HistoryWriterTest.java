@@ -50,6 +50,7 @@ public class HistoryWriterTest {
 	public void setup() {
 		properties = new ImportSchedulerProperties();
 		properties.setHistoryNumberOfDays(10);
+		properties.setHistoryExportTimeOfDay(LocalTime.of(12, 0));
 
 		historyNetexRepository = Mockito.mock(NetexRepository.class);
 		taskRepository = Mockito.mock(TaskRepository.class);
@@ -58,7 +59,7 @@ public class HistoryWriterTest {
 
 		importVersionRepository = Mockito.mock(ImportVersionRepository.class);
 		mongoClientWrapper = Mockito.mock(MongoClientWrapper.class);
-		clock = Clock.fixed(ZonedDateTime.of(TODAY, LocalTime.of(12, 0, 0), ZoneId.of("UTC")).toInstant(), ZoneId.of("UTC"));
+		clock = Clock.fixed(ZonedDateTime.of(TODAY, LocalTime.of(13, 0, 0), ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
 
 		historyWriter = new HistoryWriter(properties, historyNetexRepository, taskRepository, importVersionRepository, mongoClientWrapper, clock);
 	}
@@ -90,6 +91,21 @@ public class HistoryWriterTest {
 
 				assertThat(taskRepository.getHistoryTask()).isNotNull();
 				assertThat(taskRepository.getHistoryTask().getHistoryExportedUntil()).isEqualTo(TODAY);
+			}
+
+			@Test
+			public void thenExportsHistoryForToday_ifTimeOfDayIsLateEnough() {
+				// simulated time is 13:00, cutoff time is 13:00 -> no export expected
+				properties.setHistoryExportTimeOfDay(LocalTime.of(13, 0));
+				historyWriter.updateHistoryIfNecessary();
+				assertReadsNoData(repository);
+				assertWritesNoHistory();
+
+				// simulated time is 13:00, cutoff time is 12:59 -> export expected
+				properties.setHistoryExportTimeOfDay(LocalTime.of(12, 59));
+				historyWriter.updateHistoryIfNecessary();
+				assertReadsDataFor(repository, TODAY);
+				assertWritesHistoryFor(TODAY);
 			}
 		}
 
@@ -132,6 +148,21 @@ public class HistoryWriterTest {
 
 				assertThat(taskRepository.getHistoryTask()).isNotNull();
 				assertThat(taskRepository.getHistoryTask().getHistoryExportedUntil()).isEqualTo(TODAY);
+			}
+
+			@Test
+			public void thenExportsToday_ifTimeOfDayIsLateEnough() {
+				// simulated time is 13:00, cutoff time is 13:00 -> no export expected
+				properties.setHistoryExportTimeOfDay(LocalTime.of(13, 0));
+				historyWriter.updateHistoryIfNecessary();
+				assertReadsNoData(repository);
+				assertWritesNoHistory();
+
+				// simulated time is 13:00, cutoff time is 12:59 -> export expected
+				properties.setHistoryExportTimeOfDay(LocalTime.of(12, 59));
+				historyWriter.updateHistoryIfNecessary();
+				assertReadsDataFor(repository, TODAY);
+				assertWritesHistoryFor(TODAY);
 			}
 		}
 

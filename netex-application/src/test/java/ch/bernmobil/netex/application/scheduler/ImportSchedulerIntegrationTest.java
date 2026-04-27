@@ -180,7 +180,7 @@ public class ImportSchedulerIntegrationTest {
 			}
 		}
 
-		unittestTime.set(ZonedDateTime.of(2025, 12, 23, 12, 0, 0, 0, ZoneId.systemDefault()).toInstant());
+		unittestTime.set(ZonedDateTime.of(2025, 12, 23, 12, 0, 1, 0, ZoneId.systemDefault()).toInstant());
 
 		reset(downloader);
 		mockNewDownload(URI_2025, "version2025a");
