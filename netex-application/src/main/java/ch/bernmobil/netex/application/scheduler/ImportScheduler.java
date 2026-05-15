@@ -75,11 +75,14 @@ public class ImportScheduler {
 	public void runPeriodicImportTasks() {
 		try {
 			downloadNewVersionsIfNecessary();
-			importDataIfNecessary();
-			historyWriter.updateHistoryIfNecessary();
-			haltelogWriter.updateHaltelogIfNecessary();
-			cleanupIfNecessary();
-			logger.info("done");
+			if (importDataIfNecessary()) {
+				historyWriter.updateHistoryIfNecessary();
+				haltelogWriter.updateHaltelogIfNecessary();
+				cleanupIfNecessary();
+				logger.info("done");
+			} else {
+				logger.error("periodic import task aborted because of errors");
+			}
 		} catch (Throwable t) {
 			logger.error("periodic import task failed", t);
 		}
@@ -138,7 +141,8 @@ public class ImportScheduler {
 		}
 	}
 
-	private void importDataIfNecessary() {
+	private boolean importDataIfNecessary() {
+		boolean successful = true;
 		for (final String timetable : properties.getUriPerTimetable().keySet()) {
 			// import data from older versions first so we can use them as baseline to validate imports of newer versions
 			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable, Order.OLDEST_FIRST);
@@ -151,13 +155,16 @@ public class ImportScheduler {
 						importData(version, importerProperties);
 					} catch (IOException | XMLStreamException | RuntimeException e) {
 						logger.error("failed to import data", e);
+						successful = false;
 					} catch (InterruptedException e) {
 						logger.error("interrupted", e);
 						Thread.currentThread().interrupt();
+						return false;
 					}
 				}
 			}
 		}
+		return successful;
 	}
 
 	private ImporterProperties createPropertiesIfImportIsNecessary(ImportVersion version) {
