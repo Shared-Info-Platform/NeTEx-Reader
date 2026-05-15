@@ -59,6 +59,7 @@ public class Downloader {
 
 		// Read metadata
 		final String filename = Path.of(response.uri().getPath()).getFileName().toString();
+		final String actualUri = getActualUri(response, uri).toString();
 		final String newEtag = response.headers().firstValue("ETag").orElse(null);
 		if (newEtag == null) {
 			logger.warn("no ETag defined in response");
@@ -78,7 +79,26 @@ public class Downloader {
 			Files.copy(inputStream, tempFile.toPath());
 		}
 
-		return new NetexFile(tempFile, newEtag);
+		return new NetexFile(tempFile, actualUri, newEtag);
+	}
+
+	/**
+	 * If the original URI redirects to another URI (which might redirect to yet another) then this function tries to find the latest
+	 * redirect that was still on the same server like the original URI.
+	 *
+	 * This is done because the original URI is often the permalink of opentransportdata.swiss. This cannot be used to re-download the same
+	 * version again after the current version has changed. The permalink redirects to the specific URI of the current version, which should
+	 * be remembered instead. The specific URI then redirects to an external URI with an access token, but this should not be remembered
+	 * because the token expires soon.
+	 */
+	private URI getActualUri(HttpResponse<?> response, URI originalUri) {
+		if (response.uri().getAuthority().equals(originalUri.getAuthority())) {
+			return response.uri();
+		} else if (response.previousResponse().isPresent()) {
+			return getActualUri(response.previousResponse().get(), originalUri);
+		} else {
+			return originalUri;
+		}
 	}
 
 	/**
@@ -117,6 +137,6 @@ public class Downloader {
 		}
 	}
 
-	public record NetexFile(File file, String etag) {
+	public record NetexFile(File file, String actualUri, String etag) {
 	}
 }

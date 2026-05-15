@@ -129,7 +129,7 @@ public class ImportScheduler {
 			currentImport.timetable = timetable;
 			currentImport.version = version;
 			currentImport.createdAt = Instant.now(clock);
-			currentImport.uri = uri.toString();
+			currentImport.uri = netexFile.actualUri();
 			currentImport.etag = netexFile.etag();
 			currentImport.zipFile = netexFile.file().getAbsolutePath();
 			currentImport.directory = directory.getAbsolutePath();

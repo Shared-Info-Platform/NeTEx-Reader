@@ -115,7 +115,7 @@ public class ImportSchedulerTest {
 	@Test
 	public void whenDownloaderReturnsNewVersionForTimetable_thenUnzipsFileAndCreatesNewImportVersion()
 			throws IOException, InterruptedException {
-		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_version1.zip"), "etag");
+		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_version1.zip"), "actual-uri", "etag");
 		when(downloader.downloadFileFromUrlToTemporaryDirectoryIfNecessary(URI_2025, null)).thenReturn(netexFile);
 		when(downloader.extractZipFileToTemporarySubfolder(any())).thenReturn(new File("somedirectory"));
 
@@ -131,7 +131,7 @@ public class ImportSchedulerTest {
 			assertThat(importVersion.timetable).isEqualTo(TIMETABLE_2025);
 			assertThat(importVersion.version).isEqualTo("version1");
 			assertThat(importVersion.createdAt).isEqualTo(clock.instant());
-			assertThat(importVersion.uri).isEqualTo("uri2025");
+			assertThat(importVersion.uri).isEqualTo("actual-uri");
 			assertThat(importVersion.etag).isEqualTo("etag");
 			assertThat(importVersion.zipFile).endsWith("somezipfile_with_version1.zip");
 			assertThat(importVersion.directory).endsWith("somedirectory");
@@ -150,7 +150,7 @@ public class ImportSchedulerTest {
 	@Test
 	public void whenDownloaderReturnsNewVersionForTimetable_andAnotherVersionForThisTimetableAlreadyExists_thenCreatesNewImportVersion()
 			throws IOException, InterruptedException {
-		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_newversion.zip"), "etag");
+		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_newversion.zip"), "actual-uri", "etag");
 		when(downloader.downloadFileFromUrlToTemporaryDirectoryIfNecessary(URI_2025, null)).thenReturn(netexFile);
 		when(downloader.extractZipFileToTemporarySubfolder(any())).thenReturn(new File("somedirectory"));
 
@@ -166,7 +166,7 @@ public class ImportSchedulerTest {
 	@Test
 	public void whenDownloaderReturnsNewVersionForTimetable_andTheSameVersionForThisTimetableAlreadyExists_butItIsNotComplete_thenCreatesNewImportVersion_andDropsDatabaseOfExistingVersion()
 			throws IOException, InterruptedException {
-		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_newversion.zip"), "etag");
+		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_newversion.zip"), "actual-uri", "etag");
 		when(downloader.downloadFileFromUrlToTemporaryDirectoryIfNecessary(URI_2025, null)).thenReturn(netexFile);
 		when(downloader.extractZipFileToTemporarySubfolder(any())).thenReturn(new File("somedirectory"));
 
@@ -183,7 +183,7 @@ public class ImportSchedulerTest {
 	@Test
 	public void whenDownloaderReturnsNewVersionForTimetable_andTheSameVersionForThisTimetableAlreadyExists_andItIsComplete_thenDoesNotCreateNewImportVersion()
 			throws IOException, InterruptedException {
-		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_newversion.zip"), "etag");
+		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_newversion.zip"), "actual-uri", "etag");
 		when(downloader.downloadFileFromUrlToTemporaryDirectoryIfNecessary(URI_2025, null)).thenReturn(netexFile);
 		when(downloader.extractZipFileToTemporarySubfolder(any())).thenReturn(new File("somedirectory"));
 
@@ -378,7 +378,7 @@ public class ImportSchedulerTest {
 	@Test
 	public void whenHasImportVersionWithMissingDirectory_thenExtractsFileAgain_andUpdatesImportVersion()
 			throws IOException, InterruptedException {
-		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_version1.zip"), "etag");
+		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_version1.zip"), "actual-uri", "etag");
 		when(downloader.downloadFileFromUrlToTemporaryDirectory(URI_2025)).thenReturn(netexFile);
 		when(downloader.extractZipFileToTemporarySubfolder(any())).thenReturn(new File("somedirectory"));
 
@@ -403,7 +403,7 @@ public class ImportSchedulerTest {
 	@Test
 	public void whenHasImportVersionWithMissingDirectoryAndZipFile_thenDownloadsAndExtractsFileAgain_andUpdatesImportVersionTwoTimes()
 			throws IOException, InterruptedException {
-		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_version1.zip"), "etag");
+		final NetexFile netexFile = new NetexFile(new File("somezipfile_with_version1.zip"), "actual-uri", "etag");
 		when(downloader.downloadFileFromUrlToTemporaryDirectory(URI_2025)).thenReturn(netexFile);
 		when(downloader.extractZipFileToTemporarySubfolder(any())).thenReturn(new File("somedirectory"));
 

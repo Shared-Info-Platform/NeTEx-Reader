@@ -200,7 +200,7 @@ public class ImportSchedulerIntegrationTest {
 		final File directory = new File(properties.getTemporaryFilesDirectory(), "download_" + version).getAbsoluteFile();
 
 		// return file except if etag is unchanged
-		final NetexFile netexFile = new NetexFile(file, UUID.randomUUID().toString());
+		final NetexFile netexFile = new NetexFile(file, uri.toString(), UUID.randomUUID().toString());
 		when(downloader.downloadFileFromUrlToTemporaryDirectory(uri)).thenAnswer(args -> {
 			file.createNewFile();
 			return netexFile;
