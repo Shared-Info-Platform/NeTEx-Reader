@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
@@ -60,6 +61,7 @@ public class Importer {
 	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Constants.NUMBER_OF_THREADS);
 	private final JourneyAggregator aggregator = new JourneyAggregator();
 	private final Statistics statistics = new Statistics();
+	private final AtomicBoolean stopImport = new AtomicBoolean(false);
 
 	public Importer(ImporterProperties properties, NetexRepository netexRepository) {
 		this.properties = properties;
@@ -262,7 +264,11 @@ public class Importer {
 				// clear vehicle numbers because they are not needed for the next file
 				state.getTrainNumbers().clear();
 			} catch (RuntimeException e) {
-				logger.error("failed to import journeys from " + file, e);
+				throw new RuntimeException("failed to import journeys from " + file, e);
+			}
+
+			if (stopImport.get()) {
+				throw new RuntimeException("import has been stopped");
 			}
 		}
 	}
@@ -273,6 +279,10 @@ public class Importer {
 	 * internal Journey-Model and then write it to MongoDB.
 	 */
 	private void processJourney(NetexServiceJourney journey) {
+		if (stopImport.get()) {
+			return; // abort
+		}
+
 		statistics.countImport(journey);
 
 		// wait some time if queue is filling up (filling the queue needs memory ->  throttle import instead)
@@ -317,9 +327,9 @@ public class Importer {
 			netexRepository.writeJourneys(mappedJourneys);
 			netexRepository.writeCalls(mappedCalls);
 		} catch (MongoException e) {
-			logger.error("exporting journey to MongoDB failed", e);
-			logger.error("stop import");
-			System.exit(1);
+			logger.error("exporting journey to MongoDB failed, stopping import", e);
+			stopImport.set(true);
+			executor.shutdownNow();
 		}
 
 		statistics.countExport(journey);
