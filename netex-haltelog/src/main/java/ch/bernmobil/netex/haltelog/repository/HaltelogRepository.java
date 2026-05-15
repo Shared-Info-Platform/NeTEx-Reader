@@ -1,6 +1,7 @@
 package ch.bernmobil.netex.haltelog.repository;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 
 import org.slf4j.Logger;
@@ -16,8 +17,10 @@ import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
+import co.elastic.clients.elasticsearch.tasks.GetTasksResponse;
 
 /**
  * Note: Keep this in sync with HaltelogRepository in SIP-Hub.
@@ -64,13 +67,31 @@ public class HaltelogRepository {
 
 	public void deleteDataForCalendarDay(LocalDate date) {
 		try {
-			esClient.deleteByQuery(d -> d
+			final DeleteByQueryResponse response = esClient.deleteByQuery(d -> d
 					.index(indexPattern)
 					.conflicts(Conflicts.Proceed)
+					.waitForCompletion(false)
 					.query(createServiceAndCalendarDayQuery(date))
 			);
+			while (true) {
+				Thread.sleep(Duration.ofSeconds(3));
+				final GetTasksResponse task = esClient.tasks().get(t -> t.taskId(response.task()));
+				logger.info("status of deleteByQuery: {}", task.task().status());
+				if (task.error() != null) {
+					logger.error("error while deleting haltelog documents: {}", task.error());
+				}
+				if (task.completed()) {
+					final DeleteByQueryResponse finalResponse = task.response().to(DeleteByQueryResponse.class);
+					logger.info("deleted documents: {}", finalResponse.deleted());
+					logger.info("failures: {}", finalResponse.failures());
+					break;
+				}
+			}
 		} catch (ElasticsearchException | IOException e) {
 			logger.error("failed to delete documents in elasticsearch", e);
+		} catch (InterruptedException e) {
+			logger.error("interrupted", e);
+			Thread.currentThread().interrupt();
 		}
 	}
 
