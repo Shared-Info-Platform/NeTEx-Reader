@@ -40,6 +40,7 @@ public class HaltelogEntryMapper {
 		if (!Objects.equals(call.stopPointName, call.stopPlaceName)) { // netex uses stopPlaceName as default for stopPointName; ignore it in this case
 			result.setHaltePositionsText(call.stopPointName);
 		}
+		result.setFahrtBezeichnerTexte(journey.trainNumbers);
 		result.setLinienText(journey.lineName);
 		result.setRichtungsText(call.destinationDisplayName);
 		result.setVerkehrsmittelText(journey.productCategoryCode);
@@ -48,6 +49,7 @@ public class HaltelogEntryMapper {
 		result.setEinsteigeVerbot(call.departure != null ? !call.departure.forBoarding : false);
 		result.setAussteigeVerbot(call.arrival != null ? !call.arrival.forAlighting : false);
 		result.setDurchfahrt("passthrough".equalsIgnoreCase(call.stopUse) || "noboarding".equalsIgnoreCase(call.stopUse));
+		result.setVerkehrsmittelNummer(journey.trainNumbers.size() == 1 ? journey.trainNumbers.getFirst() : null);
 		result.setZielHst(journey.calls.get(journey.calls.size() - 1).stopPlaceName);
 		result.setServiceAttribute(toServiceAttribute(journey.serviceFacilities));
 		result.setProduktId(transformProduktId(journey.transportMode, journey.productCategoryCode));

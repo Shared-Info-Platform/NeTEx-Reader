@@ -28,6 +28,7 @@ public class HaltelogEntry {
 	private Instant abfahrtszeitPlan;
 	private Instant ankunftszeitPlan;
 	private String haltePositionsText;
+	private List<String> fahrtBezeichnerTexte;
 	private String linienText;
 	private String richtungsText;
 	private String verkehrsmittelText;
@@ -36,6 +37,7 @@ public class HaltelogEntry {
 	private Boolean einsteigeVerbot;
 	private Boolean aussteigeVerbot;
 	private Boolean durchfahrt;
+	private String verkehrsmittelNummer;
 	private String zielHst;
 	private List<ServiceAttribut> serviceAttribute;
 	private String produktId;
@@ -144,6 +146,14 @@ public class HaltelogEntry {
 		this.haltePositionsText = haltePositionsText;
 	}
 
+	public List<String> getFahrtBezeichnerTexte() {
+		return fahrtBezeichnerTexte;
+	}
+
+	public void setFahrtBezeichnerTexte(List<String> fahrtBezeichnerTexte) {
+		this.fahrtBezeichnerTexte = fahrtBezeichnerTexte;
+	}
+
 	public String getLinienText() {
 		return linienText;
 	}
@@ -206,6 +216,14 @@ public class HaltelogEntry {
 
 	public void setDurchfahrt(Boolean durchfahrt) {
 		this.durchfahrt = durchfahrt;
+	}
+
+	public String getVerkehrsmittelNummer() {
+		return verkehrsmittelNummer;
+	}
+
+	public void setVerkehrsmittelNummer(String verkehrsmittelNummer) {
+		this.verkehrsmittelNummer = verkehrsmittelNummer;
 	}
 
 	public String getZielHst() {
