@@ -22,7 +22,12 @@ public class ServiceCalendarDomBuilder {
 		final CompositeFrameHeader header = serviceCalendarFrame.compositeFrameHeader;
 		final ObjectTree validityConditions = serviceCalendarFrame.frameTree.optionalChild("validityConditions");
 		if (validityConditions != null) {
-			validityConditions.children("AvailabilityCondition").stream().map(child -> buildAvailabilityCondition(child, header)).forEach(state::addAvailabilityCondition);
+			validityConditions.children("AvailabilityCondition").stream().forEach(child -> {
+				final NetexAvailabilityCondition availabilityCondition = buildAvailabilityCondition(child, header);
+				if (availabilityCondition != null) {
+					state.addAvailabilityCondition(availabilityCondition);
+				}
+			});
 		}
 	}
 
@@ -46,7 +51,8 @@ public class ServiceCalendarDomBuilder {
 			logger.warn("ValidDayBits in {} has length {} instead of {}", result.id, validDayBits.length(), numberOfDays);
 		} else if (validDayBits != null && validDayBits.length() < numberOfDays) {
 			// this also shouln't happen but we cannot use it in this case
-			throw new IllegalArgumentException("ValidDayBits in " + result.id + " has length " + validDayBits.length() + " instead of " + numberOfDays);
+			logger.error("ignore AvailabilityCondition {} because ValidDayBits has length {} instead of {}", result.id, validDayBits.length(), numberOfDays);
+			return null; // abort
 		}
 
 		LocalDate date = fromDateInclusive;
