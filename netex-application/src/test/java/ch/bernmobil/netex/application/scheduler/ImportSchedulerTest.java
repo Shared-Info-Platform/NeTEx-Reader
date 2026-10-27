@@ -502,6 +502,61 @@ public class ImportSchedulerTest {
 	}
 
 	@Test
+	public void whenMakesInitialImportForNewVersion_andThereIsPreviousVersion_butPreviousVersionHasNoDataForNewDates_thenNewVersionIsValid()
+			throws XMLStreamException, InterruptedException {
+		mockSetupForImportValidationWithIncompleteOldVersion(100, 100);
+		importScheduler.runPeriodicImportTasks();
+
+		// expect that only the days of the previous version that were imported are compared and the new version is therefore still valid,
+		// even though
+		// the number of days on 2025-12-24 and 2025-12-25 are different.
+		verify(importVersionRepository).insertOrUpdate(argThat(update -> update.version.equals("version2") && update.valid));
+	}
+
+	@Test
+	public void whenMakesInitialImportForNewVersion_andThereIsPreviousVersion_butPreviousVersionHasNoDataForNewDates_butNumberOfJourneysIsVeryDifferent_thenNewVersionIsNotValid()
+			throws XMLStreamException, InterruptedException {
+		mockSetupForImportValidationWithIncompleteOldVersion(100, 150);
+		importScheduler.runPeriodicImportTasks();
+
+		// expect that only the days of the previous version that were imported are compared and the new version is therefore still valid, even though
+		// the number of days on 2025-12-24 and 2025-12-25 are different.
+		verify(importVersionRepository).insertOrUpdate(argThat(update -> update.version.equals("version2") && !update.valid));
+	}
+
+	private void mockSetupForImportValidationWithIncompleteOldVersion(long journeysInOldVersion, long journeysInNewVersion)
+			throws XMLStreamException, InterruptedException {
+		final ImportVersion prevVersion = createCompleteImportVersion();
+		prevVersion.version = "version1";
+		prevVersion.databaseName = "database1";
+		prevVersion.lastDate = LocalDate.of(2025, 12, 23); // only has data until 23th, the next two days failed
+		final ImportVersion newVersion = createIncompleteImportVersion();
+		newVersion.version = "version2";
+		newVersion.databaseName = "database2";
+		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.OLDEST_FIRST)).thenReturn(List.of(prevVersion, newVersion));
+		when(importVersionRepository.getImportVersions(TIMETABLE_2025, Order.NEWEST_FIRST)).thenReturn(List.of(newVersion, prevVersion));
+
+		// let importer fail for prevVersion
+		prevVersion.directory = "olddirectory";
+		doThrow(new RuntimeException("test")).when(importer).importDirectory(new File(prevVersion.directory));
+
+		final NetexRepository repository1 = Mockito.mock(NetexRepository.class);
+		when(repository1.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 21))).thenReturn(journeysInOldVersion);
+		when(repository1.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 22))).thenReturn(journeysInOldVersion);
+		when(repository1.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 23))).thenReturn(journeysInOldVersion);
+		when(repository1.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 24))).thenReturn(0L); // no data
+		when(repository1.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 25))).thenReturn(0L); // no data
+		final NetexRepository repository2 = Mockito.mock(NetexRepository.class);
+		when(repository2.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 21))).thenReturn(journeysInNewVersion);
+		when(repository2.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 22))).thenReturn(journeysInNewVersion);
+		when(repository2.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 23))).thenReturn(journeysInNewVersion);
+		when(repository2.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 24))).thenReturn(journeysInNewVersion);
+		when(repository2.getNumberOfJourneysForCalendarDay(LocalDate.of(2025, 12, 25))).thenReturn(journeysInNewVersion);
+		when(mongoClientWrapper.createNetexRepository(prevVersion.databaseName)).thenReturn(repository1);
+		when(mongoClientWrapper.createNetexRepository(newVersion.databaseName)).thenReturn(repository2);
+	}
+
+	@Test
 	public void whenHasImportVersion_thenCleansOldData_andUpdatesImportVersion() {
 		final ImportVersion importVersion = createCompleteImportVersion();
 		importVersion.firstDate = LocalDate.of(2025, 12, 1);
