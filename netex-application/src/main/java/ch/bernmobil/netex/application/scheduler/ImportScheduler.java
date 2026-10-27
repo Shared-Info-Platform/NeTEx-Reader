@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.stream.XMLStreamException;
 
 import org.slf4j.Logger;
@@ -75,14 +74,14 @@ public class ImportScheduler {
 	public void runPeriodicImportTasks() {
 		try {
 			downloadNewVersionsIfNecessary();
-			if (importDataIfNecessary()) {
-				historyWriter.updateHistoryIfNecessary();
-				haltelogWriter.updateHaltelogIfNecessary();
-				cleanupIfNecessary();
-				logger.info("done");
-			} else {
-				logger.error("periodic import task aborted because of errors");
-			}
+			importDataIfNecessary();
+			historyWriter.updateHistoryIfNecessary();
+			haltelogWriter.updateHaltelogIfNecessary();
+			cleanupIfNecessary();
+			logger.info("done");
+		} catch (InterruptedException e) {
+			logger.error("interrupted", e);
+			Thread.currentThread().interrupt();
 		} catch (Throwable t) {
 			logger.error("periodic import task failed", t);
 		}
@@ -141,8 +140,7 @@ public class ImportScheduler {
 		}
 	}
 
-	private boolean importDataIfNecessary() {
-		boolean successful = true;
+	private void importDataIfNecessary() throws InterruptedException {
 		for (final String timetable : properties.getUriPerTimetable().keySet()) {
 			// import data from older versions first so we can use them as baseline to validate imports of newer versions
 			final List<ImportVersion> versions = importVersionRepository.getImportVersions(timetable, Order.OLDEST_FIRST);
@@ -155,16 +153,10 @@ public class ImportScheduler {
 						importData(version, importerProperties);
 					} catch (IOException | XMLStreamException | RuntimeException e) {
 						logger.error("failed to import data", e);
-						successful = false;
-					} catch (InterruptedException e) {
-						logger.error("interrupted", e);
-						Thread.currentThread().interrupt();
-						return false;
 					}
 				}
 			}
 		}
-		return successful;
 	}
 
 	private ImporterProperties createPropertiesIfImportIsNecessary(ImportVersion version) {
