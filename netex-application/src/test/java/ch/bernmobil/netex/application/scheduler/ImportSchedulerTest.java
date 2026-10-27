@@ -519,7 +519,7 @@ public class ImportSchedulerTest {
 	}
 
 	@Test
-	public void whenHasImportVersion_andImportFails_thenDoesNotCleanOldData() throws XMLStreamException, InterruptedException {
+	public void whenHasImportVersion_andImportFails_thenStillCleansOldData() throws XMLStreamException, InterruptedException {
 		final ImportVersion importVersion = createCompleteImportVersion();
 		importVersion.firstDate = LocalDate.of(2025, 12, 1);
 		importVersion.lastDate = LocalDate.of(2025, 12, 24);
@@ -530,8 +530,8 @@ public class ImportSchedulerTest {
 
 		importScheduler.runPeriodicImportTasks();
 
-		verify(netexRepository, never()).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 20));
-		verify(importVersionRepository, never()).insertOrUpdate(argThat(update -> update.firstDate.isEqual(LocalDate.of(2025, 12, 21))));
+		verify(netexRepository).deleteDataUpToCalendarDay(LocalDate.of(2025, 12, 20));
+		verify(importVersionRepository).insertOrUpdate(argThat(update -> update.firstDate.isEqual(LocalDate.of(2025, 12, 21))));
 		verify(importVersionRepository, never()).deleteImportVersion(any());
 		verify(mongoClientWrapper, never()).dropDatabase(any());
 	}
@@ -784,14 +784,14 @@ public class ImportSchedulerTest {
 	}
 
 	@Test
-	public void whenSchedulerIsRun_andImportFails_thenDoesNotCallHistoryWriter() throws XMLStreamException, InterruptedException {
+	public void whenSchedulerIsRun_andImportFails_thenStillCallsHistoryWriter() throws XMLStreamException, InterruptedException {
 		final ImportVersion importVersion = createIncompleteImportVersion();
 		when(importVersionRepository.getImportVersions(eq(TIMETABLE_2025), any())).thenReturn(List.of(importVersion));
 		doThrow(RuntimeException.class).when(importer).importDirectory(any());
 
 		importScheduler.runPeriodicImportTasks();
 
-		verify(historyWriter, never()).updateHistoryIfNecessary();
+		verify(historyWriter).updateHistoryIfNecessary();
 	}
 
 	@Test
@@ -802,14 +802,14 @@ public class ImportSchedulerTest {
 	}
 
 	@Test
-	public void whenSchedulerIsRun_andImportFails_thenDoesNotCallHaltelogWriter() throws XMLStreamException, InterruptedException {
+	public void whenSchedulerIsRun_andImportFails_thenStillCallsHaltelogWriter() throws XMLStreamException, InterruptedException {
 		final ImportVersion importVersion = createIncompleteImportVersion();
 		when(importVersionRepository.getImportVersions(eq(TIMETABLE_2025), any())).thenReturn(List.of(importVersion));
 		doThrow(RuntimeException.class).when(importer).importDirectory(any());
 
 		importScheduler.runPeriodicImportTasks();
 
-		verify(haltelogWriter, never()).updateHaltelogIfNecessary();
+		verify(haltelogWriter).updateHaltelogIfNecessary();
 	}
 
 	private ImportVersion createIncompleteImportVersion() {
