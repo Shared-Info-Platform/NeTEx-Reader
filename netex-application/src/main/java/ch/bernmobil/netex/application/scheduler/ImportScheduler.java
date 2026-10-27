@@ -272,8 +272,13 @@ public class ImportScheduler {
 		final NetexRepository repositoryOfCurrentVersion = mongoClientWrapper.createNetexRepository(versionToValidate.databaseName);
 		final NetexRepository repositoryOfPreviousVersion = mongoClientWrapper.createNetexRepository(previousVersion.databaseName);
 
-		for (LocalDate date = importerProperties.getFirstCalendarDay(); !date.isAfter(importerProperties.getLastCalendarDay()); date =
-				date.plusDays(1)) {
+		// validate only days that are available in both versions (in case the previous version incomplete): from the latest "firstDate" to the earliest "lastDate"
+		final LocalDate firstDate = previousVersion.firstDate.isAfter(importerProperties.getFirstCalendarDay()) ? previousVersion.firstDate
+				: importerProperties.getFirstCalendarDay();
+		final LocalDate lastDate = previousVersion.lastDate.isBefore(importerProperties.getLastCalendarDay()) ? previousVersion.lastDate
+				: importerProperties.getLastCalendarDay();
+
+		for (LocalDate date = firstDate; !date.isAfter(lastDate); date = date.plusDays(1)) {
 			final long journeysInCurrentVersion = repositoryOfCurrentVersion.getNumberOfJourneysForCalendarDay(date);
 			final long journeysInPreviousVersion = repositoryOfPreviousVersion.getNumberOfJourneysForCalendarDay(date);
 
