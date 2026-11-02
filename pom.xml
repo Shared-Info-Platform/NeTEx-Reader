@@ -21,6 +21,7 @@
 		<module>netex-api</module>
 		<module>netex-importer</module>
 		<module>netex-haltelog</module>
+		<module>netex-masterdata</module>
 		<module>persistence</module>
 	</modules>
 
@@ -51,6 +52,11 @@
 			<dependency>
 				<groupId>ch.bernmobil.sip.netex</groupId>
 				<artifactId>sip-netex-persistence</artifactId>
+				<version>${revision}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.bernmobil.sip.netex</groupId>
+				<artifactId>sip-netex-masterdata</artifactId>
 				<version>${revision}</version>
 			</dependency>
 			<dependency>
