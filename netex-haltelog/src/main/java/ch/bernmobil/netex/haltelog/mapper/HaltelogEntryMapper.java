@@ -5,8 +5,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import ch.bernmobil.netex.application.masterdata.OperatorRepository;
+import ch.bernmobil.netex.application.masterdata.StopRepository;
 import ch.bernmobil.netex.application.masterdata.model.Operator;
 import ch.bernmobil.netex.haltelog.model.Dataflow;
 import ch.bernmobil.netex.haltelog.model.Dataview;
@@ -24,7 +26,10 @@ import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
  */
 public class HaltelogEntryMapper {
 
-	public static HaltelogEntry createHalteLogEntry(JourneyWithCalls journey, Call call, int callIndex, Instant importTime, OperatorRepository operatorRepository) {
+	private static final Pattern SLOID_PATTERN = Pattern.compile("ch:1:sloid:.*");
+
+	public static HaltelogEntry createHalteLogEntry(JourneyWithCalls journey, Call call, int callIndex, Instant importTime,
+			OperatorRepository operatorRepository, StopRepository stopRepository) {
 		final HaltelogEntry result = new HaltelogEntry();
 
 		result.setMetaData(createMetaData(importTime));
@@ -33,7 +38,7 @@ public class HaltelogEntryMapper {
 		result.setFahrtBezeichner(journey.sjyid != null ? journey.sjyid : journey.id);
 		result.setBetriebstag(LocalDate.parse(journey.operatingDay));
 		result.setKalendertag(LocalDate.parse(journey.calendarDay));
-		result.setHaltId(call.stopPointCode != null ? call.stopPointCode : call.stopPlaceCode);
+		result.setHaltId(getSloid(call.stopPointCode != null ? call.stopPointCode : call.stopPlaceCode, stopRepository));
 		result.setBetreiberId(getBetreiberId(journey.operatorCode, operatorRepository));
 		result.setLinienId(journey.lineCode);
 		result.setRichtungsId(journey.directionId);
@@ -77,6 +82,22 @@ public class HaltelogEntryMapper {
 		} else {
 			return PositionInTrip.MIDDLE;
 		}
+	}
+
+	private static String getSloid(String haltId, StopRepository stopRepository) {
+		if (haltId != null) {
+			if (SLOID_PATTERN.matcher(haltId).matches()) {
+				// haltId is already a SLOID -> return haltId
+				return haltId;
+			} else {
+				// try to find SLOID for DIDOK in MDM if available
+				final String sloid = stopRepository.getSloidForDidok(haltId);
+				if (sloid != null) {
+					return sloid;
+				}
+			}
+		}
+		return haltId;
 	}
 
 	private static String getBetreiberId(String operatorCode, OperatorRepository operatorRepository) {

@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import ch.bernmobil.netex.application.masterdata.OperatorRepository;
+import ch.bernmobil.netex.application.masterdata.StopRepository;
 import ch.bernmobil.netex.haltelog.properties.HaltelogProperties;
 import ch.bernmobil.netex.haltelog.repository.ElasticSingletons;
 import ch.bernmobil.netex.haltelog.repository.HaltelogRepository;
@@ -25,8 +26,10 @@ public class HaltelogConfig {
 
 	@Bean
 	public HaltelogWriter haltelogWriter(HaltelogProperties properties, HaltelogRepository haltelogRepository, TaskRepository taskRepository,
-			ImportVersionRepository importVersionRepository, OperatorRepository operatorRepository, MongoClientWrapper mongoClientWrapper, Clock clock) {
-		return new HaltelogWriter(properties, haltelogRepository, taskRepository, importVersionRepository, operatorRepository, mongoClientWrapper, clock);
+			ImportVersionRepository importVersionRepository, OperatorRepository operatorRepository, StopRepository stopRepository,
+			MongoClientWrapper mongoClientWrapper, Clock clock) {
+		return new HaltelogWriter(properties, haltelogRepository, taskRepository, importVersionRepository, operatorRepository, stopRepository,
+				mongoClientWrapper, clock);
 	}
 
 	@Bean
