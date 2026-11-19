@@ -46,7 +46,7 @@ public class JourneyTransformer {
 		result.transportSubmode = (journey.line != null ? journey.line.transportSubmode : null);
 		result.serviceAlteration = journey.serviceAlteration;
 		result.directionType = journey.directionType;
-		result.directionId = journey.directionId;
+		result.directionId = getDirectionId(journey.directionId);
 
 		if (journey.vehicleType != null) {
 			result.vehicleType = journey.vehicleType.shortName;
@@ -117,6 +117,14 @@ public class JourneyTransformer {
 //		}
 
 		return result;
+	}
+
+	private static String getDirectionId(String directionId) {
+		return switch (directionId) {
+			case "ch:1:Direction:R" -> "R";
+			case "ch:1:Direction:H" -> "H";
+			default -> directionId;
+		};
 	}
 
 	private static String getLineCode(String lineCode, String lineName, String operatorCode, String regionCode, ImporterProperties importerProperties, LineRepository lineRepository) {
