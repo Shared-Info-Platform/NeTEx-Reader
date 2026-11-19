@@ -164,29 +164,26 @@ public class ImportScheduler {
 		final LocalDate desiredLastDate = LocalDate.now(clock).plusDays(properties.getImportDaysInFuture());
 
 		if (!version.complete) {
-			final ImporterProperties result = new ImporterProperties();
-			result.setWriteCalls(properties.isWriteCallsCollection());
-			result.setFirstCalendarDay(desiredFirstDate);
-			result.setLastCalendarDay(desiredLastDate);
-			return result;
+			return createImporterProperties(desiredFirstDate, desiredLastDate);
 		} else if (!version.valid) {
 			return null; // don't import data for invalid version
 		} else if (desiredLastDate.isAfter(version.lastDate)) {
-			final ImporterProperties result = new ImporterProperties();
-			result.setWriteCalls(properties.isWriteCallsCollection());
-			result.setFirstCalendarDay(version.lastDate.plusDays(1));
-			result.setLastCalendarDay(desiredLastDate);
-			return result;
+			return createImporterProperties(version.lastDate.plusDays(1), desiredLastDate);
 		} else if (desiredFirstDate.isBefore(version.firstDate)) {
 			// only possible if properties change
-			final ImporterProperties result = new ImporterProperties();
-			result.setWriteCalls(properties.isWriteCallsCollection());
-			result.setFirstCalendarDay(desiredFirstDate);
-			result.setLastCalendarDay(version.firstDate.minusDays(1));
-			return result;
+			return createImporterProperties(desiredFirstDate, version.firstDate.minusDays(1));
 		} else {
 			return null;
 		}
+	}
+
+	private ImporterProperties createImporterProperties(LocalDate firstCalendarDay, LocalDate lastCalendarDay) {
+		final ImporterProperties result = new ImporterProperties();
+		result.setWriteCalls(properties.isWriteCallsCollection());
+		result.setUseSlnid(properties.isUseSlnid());
+		result.setFirstCalendarDay(firstCalendarDay);
+		result.setLastCalendarDay(lastCalendarDay);
+		return result;
 	}
 
 	private void importData(ImportVersion version, ImporterProperties importerProperties)

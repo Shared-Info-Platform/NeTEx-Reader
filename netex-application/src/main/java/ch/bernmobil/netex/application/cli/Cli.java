@@ -15,6 +15,7 @@ import com.mongodb.client.MongoClient;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.Downloader.NetexFile;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
+import ch.bernmobil.netex.application.masterdata.LineRepository;
 import ch.bernmobil.netex.importer.Importer;
 import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.persistence.export.MongoDbClientHelper;
@@ -93,7 +94,7 @@ public class Cli implements Runnable {
 			final MongoClient mongoClient = MongoDbClientHelper.createClient(connectionString);
 			final NetexRepository netexRepository = new NetexRepository(mongoClient, databaseName);
 			final ImporterProperties properties = new ImporterProperties();
-			final Importer importer = new Importer(properties, netexRepository);
+			final Importer importer = new Importer(properties, netexRepository, new LineRepository());
 
 			// check if database is empty
 			if (!netexRepository.isDatabaseEmpty()) {

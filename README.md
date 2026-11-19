@@ -91,6 +91,7 @@ or as environment variables.
 | `importDaysInPast` | `Integer` | `3` | How many calendar days before the current day should be imported. Should be more than the equivalent setting in the service that reads netex data for the departures service. |
 | `importDaysInFuture` | `Integer` | `10` | How many calendar days after the current day should be imported. Should be more than the equivalent setting in the service that reads netex data for the departures service. |
 | `writeCallsCollection` | `Boolean` | `false` | The departures service only needs data from the Journeys collection, so with this property the export of data into the Calls collection can be suppressed. |
+| `useSlnid` | `Boolean` | `false` | If true and if netex data contains an SLNID as lineCode, the SLNID is used as lineCode. If false or if netex data contains something else as lineCode, then an RV-LineId is used as lineCode (through an MDM-lookup). |
 | `importDatabasePrefix` | `String` | `netex-autoimport` | The prefix that will be used for databases that contain netex data. It should be a distinct prefix that is not used by any other database in the system because the prefix will also be used to find and delete unreferenced leftover databases. |
 | `temporaryFilesDirectory` | `String` | `tmp` | The directory where zip files with netex data will be downloaded and extracted to. It should be a directory that contains no other files or directories because files/directories that are not referenced by any known import version will be deleted periodically. |
 | `maxVersionsToKeep` | `Integer` | `3` | If there are more import versions for one timetable than the number specified in this property then they are deleted (except when they are forcibly active or marked to be kept). |
@@ -108,6 +109,9 @@ or as environment variables.
 | `logging.elastic.halteLogIndexName` | `String` | `haltelog` | The Write-Index (or Alias) for the Haltelog, used to insert new data. |
 | `logging.elastic.halteLogIndexPattern` | `String` | `haltelog-*` | The Index-Pattern for the Haltelog, used to find and delete data. |
 | `apiDatabaseName` | `String` |  | The netex database that should be used to serve the routes API. If not defined, the application uses the active databases of the automated import, but this property can be used if another database should be used. |
+| `masterdata.importCronExpression` | `String` | `0 0 23 * * *` | A cron expression that triggers the periodic masterdata import job. |
+| `masterdata.linesUrl` | `String` |  | The URL to the lines-v2 API of the MDM |
+| `masterdata.linesPerRequest` | `Integer` | `1000` | The number of lines to import in each API call from the MDM |
 
 ### Monitoring
 

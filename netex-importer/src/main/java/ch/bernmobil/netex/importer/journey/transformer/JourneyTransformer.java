@@ -5,7 +5,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+import ch.bernmobil.netex.application.masterdata.LineRepository;
+import ch.bernmobil.netex.application.masterdata.model.Line;
 import ch.bernmobil.netex.importer.Constants;
+import ch.bernmobil.netex.importer.ImporterProperties;
 import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.Call.Arrival;
 import ch.bernmobil.netex.importer.journey.dom.Call.Departure;
@@ -23,13 +29,15 @@ import ch.bernmobil.netex.importer.netex.dom.NetexTrainNumber;
  */
 public class JourneyTransformer {
 
-	public static List<Journey> transform(NetexServiceJourney netexServiceJourney) {
+	private static final Pattern SLNID_PATTERN = Pattern.compile("ch:1:slnid:.*");
+
+	public static List<Journey> transform(NetexServiceJourney netexServiceJourney, ImporterProperties importerProperties, LineRepository lineRepository) {
 		return netexServiceJourney.availabilityCondition.validDays.stream()
-				.map(date -> transform(netexServiceJourney, date))
+				.map(date -> transform(netexServiceJourney, date, importerProperties, lineRepository))
 				.toList();
 	}
 
-	private static Journey transform(NetexServiceJourney journey, LocalDate date) {
+	private static Journey transform(NetexServiceJourney journey, LocalDate date, ImporterProperties importerProperties, LineRepository lineRepository) {
 		final Journey result = new Journey();
 		result.id = journey.id + "_" + date;
 		result.sjyid = journey.sjyid;
@@ -79,7 +87,8 @@ public class JourneyTransformer {
 		}
 
 		if (journey.line != null) {
-			result.lineCode = journey.line.publicCode;
+			// Important: call this after result.operatorCode and result.regionCode were assigned
+			result.lineCode = getLineCode(journey.line.publicCode, journey.line.name, result.operatorCode, result.regionCode, importerProperties, lineRepository);
 			result.lineName = journey.line.name;
 			result.lineShortName = journey.line.shortName;
 		}
@@ -108,6 +117,22 @@ public class JourneyTransformer {
 //		}
 
 		return result;
+	}
+
+	private static String getLineCode(String lineCode, String lineName, String operatorCode, String regionCode, ImporterProperties importerProperties, LineRepository lineRepository) {
+		final boolean hasSlnid = lineCode != null && SLNID_PATTERN.matcher(lineCode).matches();
+		if (importerProperties.isUseSlnid() && hasSlnid) {
+			// use SLNID and lineCode is SLNID -> return lineCode
+			return lineCode;
+		} else if ("801".equals(operatorCode)) {
+			// use region code for Postauto
+			return "85:801:" + regionCode;
+		} else {
+			// use RV-LinienID from MDM if available
+			final String lineText = hasSlnid || lineCode == null ? lineName : lineCode;
+			final List<Line> lines = lineRepository.getLinesForOrganisationNumberAndText(operatorCode, lineText);
+			return lines.stream().map(Line::getLineId).filter(Objects::nonNull).findFirst().orElse(lineText);
+		}
 	}
 
 	private static Call transform(NetexCall call, ZonedDateTime noonMinus12Hours, String journeyId) {

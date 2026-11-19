@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 
+import ch.bernmobil.netex.application.masterdata.LineRepository;
 import ch.bernmobil.netex.importer.journey.dom.CallAggregation;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.importer.journey.dom.JourneyAggregation;
@@ -58,14 +59,17 @@ public class Importer {
 
 	private final ImporterProperties properties;
 	private final NetexRepository netexRepository;
+	private final LineRepository lineRepository;
+
 	private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Constants.NUMBER_OF_THREADS);
 	private final JourneyAggregator aggregator = new JourneyAggregator();
 	private final Statistics statistics = new Statistics();
 	private final AtomicBoolean stopImport = new AtomicBoolean(false);
 
-	public Importer(ImporterProperties properties, NetexRepository netexRepository) {
+	public Importer(ImporterProperties properties, NetexRepository netexRepository, LineRepository lineRepository) {
 		this.properties = properties;
 		this.netexRepository = netexRepository;
+		this.lineRepository = lineRepository;
 	}
 
 	public void importFile(File file) throws XMLStreamException, InterruptedException {
@@ -306,7 +310,7 @@ public class Importer {
 	}
 
 	private void transformAndExport(NetexServiceJourney journey) {
-		final List<Journey> results = JourneyTransformer.transform(journey);
+		final List<Journey> results = JourneyTransformer.transform(journey, properties, lineRepository);
 		aggregateValues(results);
 
 		final List<JourneyWithCalls> mappedJourneys = new ArrayList<>();

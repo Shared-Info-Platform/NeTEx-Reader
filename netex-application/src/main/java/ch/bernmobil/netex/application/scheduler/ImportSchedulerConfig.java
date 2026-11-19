@@ -1,9 +1,11 @@
 package ch.bernmobil.netex.application.scheduler;
 
 import java.time.Clock;
+
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.mongodb.client.MongoClient;
@@ -11,6 +13,8 @@ import com.mongodb.client.MongoClient;
 import ch.bernmobil.netex.application.helper.Downloader;
 import ch.bernmobil.netex.application.helper.FilesystemWrapper;
 import ch.bernmobil.netex.application.history.HistoryWriter;
+import ch.bernmobil.netex.application.masterdata.LineRepository;
+import ch.bernmobil.netex.application.masterdata.MasterdataImporterConfig;
 import ch.bernmobil.netex.haltelog.writer.HaltelogWriter;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.admin.TaskRepository;
@@ -20,6 +24,7 @@ import ch.bernmobil.netex.persistence.helper.MongoClientWrapper;
 @Configuration
 @EnableConfigurationProperties(ImportSchedulerProperties.class)
 @EnableScheduling
+@Import(MasterdataImporterConfig.class)
 public class ImportSchedulerConfig {
 
 	private final ImportSchedulerProperties properties;
@@ -42,8 +47,8 @@ public class ImportSchedulerConfig {
 	}
 
 	@Bean
-	public ImporterFactory importerFactory() {
-		return new ImporterFactory();
+	public ImporterFactory importerFactory(LineRepository lineRepository) {
+		return new ImporterFactory(lineRepository);
 	}
 
 	@Bean

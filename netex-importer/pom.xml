@@ -18,6 +18,10 @@
 			<groupId>ch.bernmobil.sip.netex</groupId>
 			<artifactId>sip-netex-persistence</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>ch.bernmobil.sip.netex</groupId>
+			<artifactId>sip-netex-masterdata</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>

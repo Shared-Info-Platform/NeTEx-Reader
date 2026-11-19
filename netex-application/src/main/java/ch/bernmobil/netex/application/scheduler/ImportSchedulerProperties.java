@@ -47,6 +47,12 @@ public class ImportSchedulerProperties {
 	private boolean writeCallsCollection = false;
 
 	/**
+	 * If true and if netex data contains an SLNID as lineCode, the SLNID is used as lineCode. If false or if netex data contains something
+	 * else as lineCode, then an RV-LineId is used as lineCode (through an MDM-lookup).
+	 */
+	private boolean useSlnid = false;
+
+	/**
 	 * The prefix that will be used for databases that contain netex data. It should be a distinct prefix that is not used by any other
 	 * database in the system because the prefix will also be used to find and delete unreferenced leftover databases.
 	 */
@@ -137,6 +143,14 @@ public class ImportSchedulerProperties {
 
 	public void setWriteCallsCollection(boolean writeCallsCollection) {
 		this.writeCallsCollection = writeCallsCollection;
+	}
+
+	public boolean isUseSlnid() {
+		return useSlnid;
+	}
+
+	public void setUseSlnid(boolean useSlnid) {
+		this.useSlnid = useSlnid;
 	}
 
 	public String getImportDatabasePrefix() {

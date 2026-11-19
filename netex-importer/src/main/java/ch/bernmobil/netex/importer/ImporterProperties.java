@@ -7,6 +7,7 @@ public class ImporterProperties {
 	private LocalDate firstCalendarDay;
 	private LocalDate lastCalendarDay;
 	private boolean writeCalls = true;
+	private boolean useSlnid = false;
 
 	public LocalDate getFirstCalendarDay() {
 		return firstCalendarDay;
@@ -30,5 +31,13 @@ public class ImporterProperties {
 
 	public void setWriteCalls(boolean writeCalls) {
 		this.writeCalls = writeCalls;
+	}
+
+	public boolean isUseSlnid() {
+		return useSlnid;
+	}
+
+	public void setUseSlnid(boolean useSlnid) {
+		this.useSlnid = useSlnid;
 	}
 }
