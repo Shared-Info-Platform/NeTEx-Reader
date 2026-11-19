@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.bernmobil.netex.application.masterdata.OperatorRepository;
 import ch.bernmobil.netex.haltelog.mapper.HaltelogEntryMapper;
 import ch.bernmobil.netex.haltelog.model.HaltelogEntry;
 import ch.bernmobil.netex.haltelog.properties.HaltelogProperties;
@@ -35,15 +36,17 @@ public class HaltelogWriter {
 	private final HaltelogRepository haltelogRepository;
 	private final TaskRepository taskRepository;
 	private final ImportVersionRepository importVersionRepository;
+	private final OperatorRepository operatorRepository;
 	private final MongoClientWrapper mongoClientWrapper;
 	private final Clock clock;
 
 	public HaltelogWriter(HaltelogProperties properties, HaltelogRepository haltelogRepository, TaskRepository taskRepository,
-			ImportVersionRepository importVersionRepository, MongoClientWrapper mongoClientWrapper, Clock clock) {
+			ImportVersionRepository importVersionRepository, OperatorRepository operatorRepository, MongoClientWrapper mongoClientWrapper, Clock clock) {
 		this.properties = properties;
 		this.haltelogRepository = haltelogRepository;
 		this.taskRepository = taskRepository;
 		this.importVersionRepository = importVersionRepository;
+		this.operatorRepository = operatorRepository;
 		this.mongoClientWrapper = mongoClientWrapper;
 		this.clock = clock;
 	}
@@ -126,7 +129,7 @@ public class HaltelogWriter {
 		for (final JourneyWithCalls journey : journeys) {
 			for (int i = 0; i < journey.calls.size(); ++i) {
 				final Call call = journey.calls.get(i);
-				final HaltelogEntry entry = HaltelogEntryMapper.createHalteLogEntry(journey, call, i, now);
+				final HaltelogEntry entry = HaltelogEntryMapper.createHalteLogEntry(journey, call, i, now, operatorRepository);
 				haltelogRepository.save(entry);
 			}
 		}

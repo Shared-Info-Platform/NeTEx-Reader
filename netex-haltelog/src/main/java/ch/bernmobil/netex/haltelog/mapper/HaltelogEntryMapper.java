@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import ch.bernmobil.netex.application.masterdata.OperatorRepository;
+import ch.bernmobil.netex.application.masterdata.model.Operator;
 import ch.bernmobil.netex.haltelog.model.Dataflow;
 import ch.bernmobil.netex.haltelog.model.Dataview;
 import ch.bernmobil.netex.haltelog.model.FahrtStatus;
@@ -22,7 +24,7 @@ import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
  */
 public class HaltelogEntryMapper {
 
-	public static HaltelogEntry createHalteLogEntry(JourneyWithCalls journey, Call call, int callIndex, Instant importTime) {
+	public static HaltelogEntry createHalteLogEntry(JourneyWithCalls journey, Call call, int callIndex, Instant importTime, OperatorRepository operatorRepository) {
 		final HaltelogEntry result = new HaltelogEntry();
 
 		result.setMetaData(createMetaData(importTime));
@@ -32,7 +34,7 @@ public class HaltelogEntryMapper {
 		result.setBetriebstag(LocalDate.parse(journey.operatingDay));
 		result.setKalendertag(LocalDate.parse(journey.calendarDay));
 		result.setHaltId(call.stopPointCode != null ? call.stopPointCode : call.stopPlaceCode);
-		result.setBetreiberId(journey.operatorCode);
+		result.setBetreiberId(getBetreiberId(journey.operatorCode, operatorRepository));
 		result.setLinienId(journey.lineCode);
 		result.setRichtungsId(journey.directionId);
 		result.setAbfahrtszeitPlan(call.departure != null ? call.departure.time : null);
@@ -75,6 +77,16 @@ public class HaltelogEntryMapper {
 		} else {
 			return PositionInTrip.MIDDLE;
 		}
+	}
+
+	private static String getBetreiberId(String operatorCode, OperatorRepository operatorRepository) {
+		if (operatorCode != null) {
+			final Operator operator = operatorRepository.getOperatorForOrganisationNumber(operatorCode);
+			if (operator != null && operator.getOperatorId() != null) {
+				return operator.getOperatorId();
+			}
+		}
+		return operatorCode;
 	}
 
 	private static String transformProduktId(String transportMode, String productCategoryCode) {

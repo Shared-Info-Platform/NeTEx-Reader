@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import ch.bernmobil.netex.application.masterdata.OperatorRepository;
 import ch.bernmobil.netex.haltelog.properties.HaltelogProperties;
 import ch.bernmobil.netex.haltelog.repository.HaltelogRepository;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
@@ -47,6 +48,7 @@ public class HaltelogWriterTest {
 	private HaltelogRepository haltelogRepository;
 	private TaskRepository taskRepository;
 	private ImportVersionRepository importVersionRepository;
+	private OperatorRepository operatorRepository;
 	private MongoClientWrapper mongoClientWrapper;
 	private Clock clock;
 
@@ -65,10 +67,11 @@ public class HaltelogWriterTest {
 		doAnswer(args -> task = args.getArgument(0)).when(taskRepository).updateHaltelogTask(any());
 
 		importVersionRepository = Mockito.mock(ImportVersionRepository.class);
+		operatorRepository = Mockito.mock(OperatorRepository.class);
 		mongoClientWrapper = Mockito.mock(MongoClientWrapper.class);
 		clock = Clock.fixed(ZonedDateTime.of(TODAY, LocalTime.of(13, 0, 0), ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
 
-		haltelogWriter = new HaltelogWriter(properties, haltelogRepository, taskRepository, importVersionRepository, mongoClientWrapper, clock);
+		haltelogWriter = new HaltelogWriter(properties, haltelogRepository, taskRepository, importVersionRepository, operatorRepository, mongoClientWrapper, clock);
 	}
 
 	@Nested

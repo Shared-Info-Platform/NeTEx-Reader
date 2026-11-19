@@ -111,7 +111,9 @@ or as environment variables.
 | `apiDatabaseName` | `String` |  | The netex database that should be used to serve the routes API. If not defined, the application uses the active databases of the automated import, but this property can be used if another database should be used. |
 | `masterdata.importCronExpression` | `String` | `0 0 23 * * *` | A cron expression that triggers the periodic masterdata import job. |
 | `masterdata.linesUrl` | `String` |  | The URL to the lines-v2 API of the MDM |
+| `masterdata.operatorsUrl` | `String` |  | The URL to the operators API of the MDM |
 | `masterdata.linesPerRequest` | `Integer` | `1000` | The number of lines to import in each API call from the MDM |
+| `masterdata.operatorsPerRequest` | `Integer` | `1000` | The number of operators to import in each API call from the MDM |
 
 ### Monitoring
 
