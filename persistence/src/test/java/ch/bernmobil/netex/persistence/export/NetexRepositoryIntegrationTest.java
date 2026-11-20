@@ -318,14 +318,13 @@ public class NetexRepositoryIntegrationTest {
 
 		// check content of sample document
 		final RouteAggregation document = collection.find(Filters
-				.eq("2025-12-28_operator_line_region_direction_dir1_" + List.of(new StopPlace("0", "stopX"), new StopPlace("9", "stop9")).hashCode()))
+				.eq("2025-12-28_operator_line_region_dir1_" + List.of(new StopPlace("0", "stopX"), new StopPlace("9", "stop9")).hashCode()))
 				.first();
 		assertThat(document).isNotNull();
 		assertThat(document.calendarDay).isEqualTo("2025-12-28");
 		assertThat(document.operatorCode).isEqualTo("operator");
 		assertThat(document.lineCode).isEqualTo("line");
 		assertThat(document.regionCode).isEqualTo("region");
-		assertThat(document.directionType).isEqualTo("direction");
 		assertThat(document.directionId).isEqualTo("dir1");
 		assertThat(document.stopPlaces).hasSize(2);
 		assertThat(document.stopPlaces.get(0)).isEqualTo(new StopPlace("0", "stopX"));
@@ -345,14 +344,13 @@ public class NetexRepositoryIntegrationTest {
 
 		// check content of sample document
 		final RouteAggregation document = collection.find(Filters
-				.eq("2025-12-28_operator_line_null_direction_dir1_" + List.of(new StopPlace("0", "stopX"), new StopPlace("1", "stop1")).hashCode()))
+				.eq("2025-12-28_operator_line_null_dir1_" + List.of(new StopPlace("0", "stopX"), new StopPlace("1", "stop1")).hashCode()))
 				.first();
 		assertThat(document).isNotNull();
 		assertThat(document.calendarDay).isEqualTo("2025-12-28");
 		assertThat(document.operatorCode).isEqualTo("operator");
 		assertThat(document.lineCode).isEqualTo("line");
 		assertThat(document.regionCode).isNull();
-		assertThat(document.directionType).isEqualTo("direction");
 		assertThat(document.directionId).isEqualTo("dir1");
 		assertThat(document.stopPlaces).hasSize(2);
 		assertThat(document.stopPlaces.get(0)).isEqualTo(new StopPlace("0", "stopX"));
@@ -374,7 +372,7 @@ public class NetexRepositoryIntegrationTest {
 
 		// check that document contains sum of individual counts (1 + 2 + 3 = 6)
 		final RouteAggregation document = collection.find(Filters
-				.eq("2025-12-28_operator_line_region_direction_dir1_" + List.of(new StopPlace("0", "stopX"), new StopPlace("1", "stop1")).hashCode()))
+				.eq("2025-12-28_operator_line_region_dir1_" + List.of(new StopPlace("0", "stopX"), new StopPlace("1", "stop1")).hashCode()))
 				.first();
 		assertThat(document).isNotNull();
 		assertThat(document.journeys).isEqualTo(6);
@@ -386,7 +384,6 @@ public class NetexRepositoryIntegrationTest {
 		aggregation.operatorCode = "operator";
 		aggregation.lineCode = "line";
 		aggregation.regionCode = "region";
-		aggregation.directionType = "direction";
 		aggregation.directionId = "dir1";
 		aggregation.stopPlaces = List.of(new StopPlace("0", "stopX"), new StopPlace(Integer.toString(id), "stop" + id));
 		aggregation.journeys = number;

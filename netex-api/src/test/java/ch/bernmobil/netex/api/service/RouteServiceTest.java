@@ -22,7 +22,7 @@ import org.mockito.Mockito;
 
 import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
-import ch.bernmobil.netex.api.model.Route.DirectionType;
+import ch.bernmobil.netex.api.model.Route.DirectionId;
 import ch.bernmobil.netex.api.service.RouteService.NotFoundException;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
@@ -78,17 +78,16 @@ public class RouteServiceTest {
 
 	@Test
 	public void testUsesCorrectDirectionInRepository() {
-		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.of(DirectionType.inbound), Optional.empty(),
+		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.of(DirectionId.R), Optional.empty(),
 				Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
-		verify(repository).findRouteAggregations(anyString(), anyString(), any(), eq(List.of("inbound")), anyCollection());
+		verify(repository).findRouteAggregations(anyString(), anyString(), any(), eq(List.of("R")), anyCollection());
 	}
 
 	@Test
 	public void testFallsBackToAllDirectionsWhenNoneProvided() {
 		routeService.findRoutesByDirection("operator", "line", Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
 				BigDecimal.valueOf(90), Optional.empty());
-		verify(repository).findRouteAggregations(anyString(), anyString(), any(), eq(List.of("inbound", "outbound")),
-				anyCollection());
+		verify(repository).findRouteAggregations(anyString(), anyString(), any(), eq(List.of("H", "R")), anyCollection());
 	}
 
 	@Test
@@ -193,22 +192,21 @@ public class RouteServiceTest {
 
 	@Test
 	public void testReturnsRouteAggregationAsRoute() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1", "2")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(1);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result.get(DirectionId.R)).hasSize(1);
 
-		final Route route = result.get(DirectionType.inbound).get(0);
+		final Route route = result.get(DirectionId.R).get(0);
 		assertThat(route.getOperatorCode()).isEqualTo("operator");
 		assertThat(route.getLineCode()).isEqualTo("line");
 		assertThat(route.getRegionCode()).isEqualTo("region");
-		assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
-		assertThat(route.getDirectionId()).isEqualTo("R");
+		assertThat(route.getDirectionId()).isEqualTo(DirectionId.R);
 		assertThat(route.getNumberOfJourneys()).isEqualTo(1);
 		assertThat(route.getStopPlaces()).hasSize(2);
 		assertThat(route.getStopPlaces().get(0).code()).isEqualTo("1");
@@ -219,24 +217,23 @@ public class RouteServiceTest {
 
 	@Test
 	public void testCombinesMultipleRouteAggregationsInOneRoute() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-10", 2, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-11", 3, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-10", 2, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-11", 3, List.of("1", "2")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(1);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result.get(DirectionId.R)).hasSize(1);
 
-		final Route route = result.get(DirectionType.inbound).get(0);
+		final Route route = result.get(DirectionId.R).get(0);
 		assertThat(route.getOperatorCode()).isEqualTo("operator");
 		assertThat(route.getLineCode()).isEqualTo("line");
 		assertThat(route.getRegionCode()).isEqualTo("region");
-		assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
-		assertThat(route.getDirectionId()).isEqualTo("R");
+		assertThat(route.getDirectionId()).isEqualTo(DirectionId.R);
 		assertThat(route.getNumberOfJourneys()).isEqualTo(6);
 		assertThat(route.getStopPlaces()).hasSize(2);
 		assertThat(route.getStopPlaces().get(0).code()).isEqualTo("1");
@@ -247,36 +244,34 @@ public class RouteServiceTest {
 
 	@Test
 	public void testReturnsSeveralRoutes() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-10", 2, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 2, List.of("1", "2", "3")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-10", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-10", 2, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 2, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-10", 3, List.of("1", "2", "3")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(2);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result.get(DirectionId.R)).hasSize(2);
 
 		{
-			final Route route = result.get(DirectionType.inbound).get(0);
+			final Route route = result.get(DirectionId.R).get(0);
 			assertThat(route.getOperatorCode()).isEqualTo("operator");
 			assertThat(route.getLineCode()).isEqualTo("line");
 			assertThat(route.getRegionCode()).isEqualTo("region");
-			assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
-			assertThat(route.getDirectionId()).isEqualTo("R");
+			assertThat(route.getDirectionId()).isEqualTo(DirectionId.R);
 			assertThat(route.getNumberOfJourneys()).isEqualTo(5);
 			assertThat(route.getStopPlaces()).hasSize(3);
 		}
 		{
-			final Route route = result.get(DirectionType.inbound).get(1);
+			final Route route = result.get(DirectionId.R).get(1);
 			assertThat(route.getOperatorCode()).isEqualTo("operator");
 			assertThat(route.getLineCode()).isEqualTo("line");
 			assertThat(route.getRegionCode()).isEqualTo("region");
-			assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
-			assertThat(route.getDirectionId()).isEqualTo("R");
+			assertThat(route.getDirectionId()).isEqualTo(DirectionId.R);
 			assertThat(route.getNumberOfJourneys()).isEqualTo(3);
 			assertThat(route.getStopPlaces()).hasSize(2);
 		}
@@ -305,24 +300,23 @@ public class RouteServiceTest {
 		Mockito.when(repositoryFactory.createRepository("some-db-2")).thenReturn(repository2);
 
 		// have two aggregations in one and a third in the other repository
-		aggregations1.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1", "2")));
-		aggregations1.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-10", 2, List.of("1", "2")));
-		aggregations2.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-11", 3, List.of("1", "2")));
+		aggregations1.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1", "2")));
+		aggregations1.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-10", 2, List.of("1", "2")));
+		aggregations2.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-11", 3, List.of("1", "2")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", Optional.empty(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(1);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result.get(DirectionId.R)).hasSize(1);
 
-		final Route route = result.get(DirectionType.inbound).get(0);
+		final Route route = result.get(DirectionId.R).get(0);
 		assertThat(route.getOperatorCode()).isEqualTo("operator");
 		assertThat(route.getLineCode()).isEqualTo("line");
 		assertThat(route.getRegionCode()).isEqualTo("region");
-		assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
-		assertThat(route.getDirectionId()).isEqualTo("R");
+		assertThat(route.getDirectionId()).isEqualTo(DirectionId.R);
 		assertThat(route.getNumberOfJourneys()).isEqualTo(6);
 		assertThat(route.getStopPlaces()).hasSize(2);
 		assertThat(route.getStopPlaces().get(0).code()).isEqualTo("1");
@@ -333,32 +327,30 @@ public class RouteServiceTest {
 
 	@Test
 	public void testGroupsRoutesByDirection() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-10", 2, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "H", "2024-09-09", 2, List.of("1", "2", "3")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "H", "2024-09-10", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-10", 2, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "H", "2024-09-09", 2, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "H", "2024-09-10", 3, List.of("1", "2", "3")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(2);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result).containsKey(DirectionType.outbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(1);
-		assertThat(result.get(DirectionType.outbound)).hasSize(1);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result).containsKey(DirectionId.H);
+		assertThat(result.get(DirectionId.R)).hasSize(1);
+		assertThat(result.get(DirectionId.H)).hasSize(1);
 
 		{
-			final Route route = result.get(DirectionType.inbound).get(0);
-			assertThat(route.getDirectionType()).isEqualTo(DirectionType.inbound);
-			assertThat(route.getDirectionId()).isEqualTo("R");
+			final Route route = result.get(DirectionId.R).get(0);
+			assertThat(route.getDirectionId()).isEqualTo(DirectionId.R);
 			assertThat(route.getNumberOfJourneys()).isEqualTo(3);
 			assertThat(route.getStopPlaces()).hasSize(2);
 		}
 		{
-			final Route route = result.get(DirectionType.outbound).get(0);
-			assertThat(route.getDirectionType()).isEqualTo(DirectionType.outbound);
-			assertThat(route.getDirectionId()).isEqualTo("H");
+			final Route route = result.get(DirectionId.H).get(0);
+			assertThat(route.getDirectionId()).isEqualTo(DirectionId.H);
 			assertThat(route.getNumberOfJourneys()).isEqualTo(5);
 			assertThat(route.getStopPlaces()).hasSize(3);
 		}
@@ -366,19 +358,19 @@ public class RouteServiceTest {
 
 	@Test
 	public void testGroupsRoutesByRegion() {
-		aggregations.add(createRouteAggregation("operator", "line", "region1", "inbound", "R", "2024-09-09", 1, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region1", "inbound", "R", "2024-09-10", 2, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region2", "inbound", "R", "2024-09-09", 2, List.of("1", "2", "3")));
-		aggregations.add(createRouteAggregation("operator", "line", "region2", "inbound", "R", "2024-09-10", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region1", "R", "2024-09-09", 1, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region1", "R", "2024-09-10", 2, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region2", "R", "2024-09-09", 2, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region2", "R", "2024-09-10", 3, List.of("1", "2", "3")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
-		assertThat(result).containsKey(DirectionType.inbound);
+		assertThat(result).containsKey(DirectionId.R);
 
-		final List<Route> routes = new ArrayList<>(result.get(DirectionType.inbound));
+		final List<Route> routes = new ArrayList<>(result.get(DirectionId.R));
 		assertThat(routes).hasSize(2);
 
 		routes.sort((a, b) -> a.getRegionCode().compareTo(b.getRegionCode()));
@@ -398,154 +390,153 @@ public class RouteServiceTest {
 
 	@Test
 	public void testOrdersRoutesByFrequency() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 5, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 5, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 3, List.of("1", "2", "3")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(3);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result.get(DirectionId.R)).hasSize(3);
 
-		assertThat(result.get(DirectionType.inbound).get(0).getNumberOfJourneys()).isEqualTo(5);
-		assertThat(result.get(DirectionType.inbound).get(1).getNumberOfJourneys()).isEqualTo(3);
-		assertThat(result.get(DirectionType.inbound).get(2).getNumberOfJourneys()).isEqualTo(1);
+		assertThat(result.get(DirectionId.R).get(0).getNumberOfJourneys()).isEqualTo(5);
+		assertThat(result.get(DirectionId.R).get(1).getNumberOfJourneys()).isEqualTo(3);
+		assertThat(result.get(DirectionId.R).get(2).getNumberOfJourneys()).isEqualTo(1);
 	}
 
 	@Test
 	public void testCalculatesCorrectPercentageForOneDirection() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 5, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 5, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 3, List.of("1", "2", "3")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(3);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result.get(DirectionId.R)).hasSize(3);
 
-		assertThat(result.get(DirectionType.inbound).get(0).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("55.556"));
-		assertThat(result.get(DirectionType.inbound).get(1).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("33.333"));
-		assertThat(result.get(DirectionType.inbound).get(2).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("11.111"));
+		assertThat(result.get(DirectionId.R).get(0).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("55.556"));
+		assertThat(result.get(DirectionId.R).get(1).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("33.333"));
+		assertThat(result.get(DirectionId.R).get(2).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("11.111"));
 	}
 
 	@Test
 	public void testCalculatesCorrectPercentageForAllDirections() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 5, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 3, List.of("1", "2", "3")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "H", "2024-09-09", 3, List.of("1")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "H", "2024-09-09", 3, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 5, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "H", "2024-09-09", 3, List.of("1")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "H", "2024-09-09", 3, List.of("1", "2")));
 
-		final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+		final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 				Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(2);
-		assertThat(result).containsKey(DirectionType.inbound);
-		assertThat(result).containsKey(DirectionType.outbound);
-		assertThat(result.get(DirectionType.inbound)).hasSize(3);
-		assertThat(result.get(DirectionType.outbound)).hasSize(2);
+		assertThat(result).containsKey(DirectionId.R);
+		assertThat(result).containsKey(DirectionId.H);
+		assertThat(result.get(DirectionId.R)).hasSize(3);
+		assertThat(result.get(DirectionId.H)).hasSize(2);
 
-		assertThat(result.get(DirectionType.inbound).get(0).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("55.556"));
-		assertThat(result.get(DirectionType.inbound).get(1).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("33.333"));
-		assertThat(result.get(DirectionType.inbound).get(2).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("11.111"));
-		assertThat(result.get(DirectionType.outbound).get(0).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("50.000"));
-		assertThat(result.get(DirectionType.outbound).get(1).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("50.000"));
+		assertThat(result.get(DirectionId.R).get(0).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("55.556"));
+		assertThat(result.get(DirectionId.R).get(1).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("33.333"));
+		assertThat(result.get(DirectionId.R).get(2).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("11.111"));
+		assertThat(result.get(DirectionId.H).get(0).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("50.000"));
+		assertThat(result.get(DirectionId.H).get(1).getPercentagePerDirection()).isEqualByComparingTo(new BigDecimal("50.000"));
 	}
 
 	@Test
 	public void testCutsOffRoutesAtCorrectThresholdForOneDirection() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 5, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 5, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 3, List.of("1", "2", "3")));
 
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(100), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(3);
+			assertThat(result.get(DirectionId.R)).hasSize(3);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(3);
+			assertThat(result.get(DirectionId.R)).hasSize(3);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(80), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(2);
+			assertThat(result.get(DirectionId.R)).hasSize(2);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(50), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(1);
+			assertThat(result.get(DirectionId.R)).hasSize(1);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(0), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(1);
+			assertThat(result.get(DirectionId.R)).hasSize(1);
 		}
 	}
 
 	@Test
 	public void testCutsOffRoutesAtCorrectThresholdForAllDirections() {
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 1, List.of("1")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 5, List.of("1", "2")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "inbound", "R", "2024-09-09", 3, List.of("1", "2", "3")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "H", "2024-09-09", 3, List.of("1")));
-		aggregations.add(createRouteAggregation("operator", "line", "region", "outbound", "H", "2024-09-09", 3, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 1, List.of("1")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 5, List.of("1", "2")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "R", "2024-09-09", 3, List.of("1", "2", "3")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "H", "2024-09-09", 3, List.of("1")));
+		aggregations.add(createRouteAggregation("operator", "line", "region", "H", "2024-09-09", 3, List.of("1", "2")));
 
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(100), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(3);
-			assertThat(result.get(DirectionType.outbound)).hasSize(2);
+			assertThat(result.get(DirectionId.R)).hasSize(3);
+			assertThat(result.get(DirectionId.H)).hasSize(2);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(90), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(3);
-			assertThat(result.get(DirectionType.outbound)).hasSize(2);
+			assertThat(result.get(DirectionId.R)).hasSize(3);
+			assertThat(result.get(DirectionId.H)).hasSize(2);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(80), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(2);
-			assertThat(result.get(DirectionType.outbound)).hasSize(2);
+			assertThat(result.get(DirectionId.R)).hasSize(2);
+			assertThat(result.get(DirectionId.H)).hasSize(2);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(55), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(1);
-			assertThat(result.get(DirectionType.outbound)).hasSize(2);
+			assertThat(result.get(DirectionId.R)).hasSize(1);
+			assertThat(result.get(DirectionId.H)).hasSize(2);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(50), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(1);
-			assertThat(result.get(DirectionType.outbound)).hasSize(1);
+			assertThat(result.get(DirectionId.R)).hasSize(1);
+			assertThat(result.get(DirectionId.H)).hasSize(1);
 		}
 		{
-			final Map<DirectionType, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
+			final Map<DirectionId, List<Route>> result = routeService.findRoutesByDirection("operator", "line", any(),
 					Optional.empty(), Optional.empty(), Optional.empty(), BigDecimal.valueOf(0), Optional.empty());
-			assertThat(result.get(DirectionType.inbound)).hasSize(1);
-			assertThat(result.get(DirectionType.outbound)).hasSize(1);
+			assertThat(result.get(DirectionId.R)).hasSize(1);
+			assertThat(result.get(DirectionId.H)).hasSize(1);
 		}
 	}
 
-	private RouteAggregation createRouteAggregation(String operatorCode, String lineCode, String regionCode, String directionType, String directionId,
+	private RouteAggregation createRouteAggregation(String operatorCode, String lineCode, String regionCode, String directionId,
 			String calendarDay, long journeys, List<String> stopPlaces) {
 		final RouteAggregation result = new RouteAggregation();
 		result.calendarDay = calendarDay;
 		result.operatorCode = operatorCode;
 		result.lineCode = lineCode;
 		result.regionCode = regionCode;
-		result.directionType = directionType;
 		result.directionId = directionId;
 		result.stopPlaces = stopPlaces.stream().map(code -> new StopPlace(code, code)).toList();
 		result.journeys = journeys;

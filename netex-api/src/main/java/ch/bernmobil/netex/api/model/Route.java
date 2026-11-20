@@ -15,10 +15,8 @@ public class Route {
 	private String lineCode;
 	@Schema(description = "Identifies the region of this route. Required for operators that use the same lineCode for different routes in different regions.")
 	private String regionCode;
-	@Schema(description = "Identifies the direction of this route. There are only two valid direction types.")
-	private DirectionType directionType;
-	@Schema(description = "Identifies the direction of this route.")
-	private String directionId;
+	@Schema(description = "Identifies the direction of this route. There are only two valid direction ids.")
+	private DirectionId directionId;
 	@Schema(description = "The stop places that a vehicle on this route passes.")
 	private List<StopPlace> stopPlaces = new ArrayList<>();
 	@Schema(description = "The number of journeys for this route in the requested time range.")
@@ -50,19 +48,11 @@ public class Route {
 		this.regionCode = regionCode;
 	}
 
-	public DirectionType getDirectionType() {
-		return directionType;
-	}
-
-	public void setDirectionType(DirectionType directionType) {
-		this.directionType = directionType;
-	}
-
-	public String getDirectionId() {
+	public DirectionId getDirectionId() {
 		return directionId;
 	}
 
-	public void setDirectionId(String directionId) {
+	public void setDirectionId(DirectionId directionId) {
 		this.directionId = directionId;
 	}
 
@@ -90,8 +80,8 @@ public class Route {
 		this.percentagePerDirection = percentagePerDirection;
 	}
 
-	public enum DirectionType {
-		inbound, outbound
+	public enum DirectionId {
+		H, R
 	}
 
 	@Schema(description = "A stop place, defined by a code and a human readable name.")

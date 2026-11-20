@@ -159,7 +159,7 @@ public class NetexRepository {
 			final Map<String, Integer> index = new LinkedHashMap<>();
 			index.put("operatorCode", 1);
 			index.put("lineCode", 1);
-			index.put("directionType", 1);
+			index.put("directionId", 1);
 			index.put("calendarDay", 1);
 			routeAggregationCollection.createIndex(new Document(index));
 		}
@@ -289,7 +289,6 @@ public class NetexRepository {
 			if (routeAggregation.regionCode != null) {
 				set.put(RouteAggregation.FIELDNAME_REGION_CODE, new BsonString(routeAggregation.regionCode));
 			}
-			set.put(RouteAggregation.FIELDNAME_DIRECTION_TYPE, new BsonString(routeAggregation.directionType));
 			set.put(RouteAggregation.FIELDNAME_DIRECTION_ID, new BsonString(routeAggregation.directionId));
 			final List<BsonDocument> stopPlaces = routeAggregation.stopPlaces.stream().map(this::createStopDocument).toList();
 			set.put(RouteAggregation.FIELDNAME_STOP_PLACES, new BsonArray(stopPlaces));

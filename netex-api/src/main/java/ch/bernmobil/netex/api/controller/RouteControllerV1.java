@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.bernmobil.netex.api.model.Route;
-import ch.bernmobil.netex.api.model.Route.DirectionType;
+import ch.bernmobil.netex.api.model.Route.DirectionId;
 import ch.bernmobil.netex.api.service.RouteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,15 +42,15 @@ public class RouteControllerV1 {
 			}
 	)
 	@GetMapping("/find")
-	public Map<DirectionType, List<Route>> findRoutesByDirection(
+	public Map<DirectionId, List<Route>> findRoutesByDirection(
 			@Parameter(description = "The operator code (e.g. '11' for SBB)")
 			@RequestParam(required = true) String operatorCode,
 			@Parameter(description = "The line code (e.g. '1' or 'IC5')")
 			@RequestParam(required = true) String lineCode,
 			@Parameter(description = "Optional: The region code (if the line code is not unique per operator)")
 			@RequestParam(required = false) String regionCode,
-			@Parameter(description = "Optional: The direction type. Default: All directions")
-			@RequestParam(required = false) DirectionType directionType,
+			@Parameter(description = "Optional: The direction id. Default: All directions")
+			@RequestParam(required = false) DirectionId directionId,
 			@Parameter(description = "Optional: Get routes for this day (format YYYY-MM-DD). Default: Today")
 			@RequestParam(required = false) LocalDate calendarDay,
 			@Parameter(description = "Optional: Get routes for this amount of additional days after `calendarDay`. Default: 0")
@@ -60,7 +60,7 @@ public class RouteControllerV1 {
 			@RequestParam(required = false, defaultValue = "90") BigDecimal threshold,
 			@Parameter(description = "Optional: Get routes from a different database than the default")
 			@RequestParam(required = false) String databaseName) {
-		return routeService.findRoutesByDirection(operatorCode, lineCode, Optional.ofNullable(regionCode), Optional.ofNullable(directionType),
+		return routeService.findRoutesByDirection(operatorCode, lineCode, Optional.ofNullable(regionCode), Optional.ofNullable(directionId),
 				Optional.ofNullable(calendarDay), Optional.ofNullable(previewDays), threshold, Optional.ofNullable(databaseName));
 	}
 }

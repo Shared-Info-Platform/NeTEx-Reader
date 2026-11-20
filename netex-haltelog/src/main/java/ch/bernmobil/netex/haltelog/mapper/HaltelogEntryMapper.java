@@ -34,7 +34,7 @@ public class HaltelogEntryMapper {
 		result.setHaltId(call.stopPointCode != null ? call.stopPointCode : call.stopPlaceCode);
 		result.setBetreiberId(journey.operatorCode);
 		result.setLinienId(journey.lineCode);
-		result.setRichtungsId(journey.directionType);
+		result.setRichtungsId(journey.directionId);
 		result.setAbfahrtszeitPlan(call.departure != null ? call.departure.time : null);
 		result.setAnkunftszeitPlan(call.arrival != null ? call.arrival.time : null);
 		if (!Objects.equals(call.stopPointName, call.stopPlaceName)) { // netex uses stopPlaceName as default for stopPointName; ignore it in this case

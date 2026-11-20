@@ -12,7 +12,6 @@ public class RouteAggregation {
 	public static final String FIELDNAME_OPERATOR_CODE = "operatorCode";
 	public static final String FIELDNAME_LINE_CODE = "lineCode";
 	public static final String FIELDNAME_REGION_CODE = "regionCode";
-	public static final String FIELDNAME_DIRECTION_TYPE = "directionType";
 	public static final String FIELDNAME_DIRECTION_ID = "directionId";
 	public static final String FIELDNAME_STOP_PLACES = "stopPlaces";
 	public static final String FIELDNAME_JOURNEYS = "journeys";
@@ -29,9 +28,6 @@ public class RouteAggregation {
 	@BsonProperty(FIELDNAME_REGION_CODE)
 	public String regionCode; // optional
 
-	@BsonProperty(FIELDNAME_DIRECTION_TYPE)
-	public String directionType;
-
 	@BsonProperty(FIELDNAME_DIRECTION_ID)
 	public String directionId;
 
@@ -43,7 +39,7 @@ public class RouteAggregation {
 
 	@BsonId
 	public String getId() {
-		return calendarDay + "_" + operatorCode + "_" + lineCode + "_" + regionCode + "_" + directionType + "_" + directionId + "_" + stopPlaces.hashCode();
+		return calendarDay + "_" + operatorCode + "_" + lineCode + "_" + regionCode + "_" + directionId + "_" + stopPlaces.hashCode();
 	}
 
 	public record StopPlace(String code, String name) {}

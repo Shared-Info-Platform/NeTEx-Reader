@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import ch.bernmobil.netex.api.NetexApiProperties;
 import ch.bernmobil.netex.api.model.Route;
-import ch.bernmobil.netex.api.model.Route.DirectionType;
+import ch.bernmobil.netex.api.model.Route.DirectionId;
 import ch.bernmobil.netex.api.model.Route.StopPlace;
 import ch.bernmobil.netex.persistence.admin.ImportVersionRepository;
 import ch.bernmobil.netex.persistence.model.ImportVersion;
@@ -40,20 +40,20 @@ public class RouteService {
 		this.importVersionRepository = importVersionRepository;
 	}
 
-	public Map<DirectionType, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<String> regionCode, Optional<DirectionType> directionType,
+	public Map<DirectionId, List<Route>> findRoutesByDirection(String operatorCode, String lineCode, Optional<String> regionCode, Optional<DirectionId> directionId,
 			Optional<LocalDate> calendarDay, Optional<Integer> previewDays, BigDecimal threshold, Optional<String> databaseName) {
-		final List<String> directionTypes = directionType.map(DirectionType::name).map(List::of).orElse(getDefaultDirectionTypes());
+		final List<String> directionIds = directionId.map(DirectionId::name).map(List::of).orElse(getDefaultDirectionIds());
 		final List<String> calendarDays = getCalendarDays(calendarDay.orElse(LocalDate.now()), previewDays.orElse(0));
 
 		final List<RouteAggregationRepository> repositories = getRepositories(databaseName);
 		final List<RouteAggregation> aggregations = new ArrayList<>();
 		for (final RouteAggregationRepository repository : repositories) {
-			aggregations.addAll(repository.findRouteAggregations(operatorCode, lineCode, regionCode, directionTypes, calendarDays));
+			aggregations.addAll(repository.findRouteAggregations(operatorCode, lineCode, regionCode, directionIds, calendarDays));
 		}
-		final Map<DirectionType, List<RouteAggregation>> aggregationsByDirection = groupRouteAggregationsByDirectionType(aggregations);
+		final Map<DirectionId, List<RouteAggregation>> aggregationsByDirection = groupRouteAggregationsByDirectionId(aggregations);
 
-		final Map<DirectionType, List<Route>> result = new TreeMap<>(); // use tree map to sort inbound > outbound
-		for (final Entry<DirectionType, List<RouteAggregation>> entry : aggregationsByDirection.entrySet()) {
+		final Map<DirectionId, List<Route>> result = new TreeMap<>(); // use tree map to sort inbound > outbound
+		for (final Entry<DirectionId, List<RouteAggregation>> entry : aggregationsByDirection.entrySet()) {
 			final List<Route> routes = groupRouteAggregationsByRoute(entry.getValue()).values().stream().map(this::createRoute).collect(Collectors.toCollection(() -> new ArrayList<>()));
 			result.put(entry.getKey(), cutOffAfterThreshold(routes, threshold));
 		}
@@ -82,8 +82,8 @@ public class RouteService {
 		return result;
 	}
 
-	private List<String> getDefaultDirectionTypes() {
-		return List.of(DirectionType.inbound.toString(), DirectionType.outbound.toString());
+	private List<String> getDefaultDirectionIds() {
+		return List.of(DirectionId.H.name(), DirectionId.R.name());
 	}
 
 	private List<String> getCalendarDays(LocalDate start, int previewDays) {
@@ -119,11 +119,11 @@ public class RouteService {
 		}
 	}
 
-	private Map<DirectionType, List<RouteAggregation>> groupRouteAggregationsByDirectionType(List<RouteAggregation> aggregations) {
-		final Map<DirectionType, List<RouteAggregation>> result = new HashMap<>();
+	private Map<DirectionId, List<RouteAggregation>> groupRouteAggregationsByDirectionId(List<RouteAggregation> aggregations) {
+		final Map<DirectionId, List<RouteAggregation>> result = new HashMap<>();
 		for (final RouteAggregation aggregation : aggregations) {
-			final DirectionType directionType = DirectionType.valueOf(aggregation.directionType);
-			final List<RouteAggregation> list = result.computeIfAbsent(directionType, key -> new ArrayList<>());
+			final DirectionId directionId = DirectionId.valueOf(aggregation.directionId);
+			final List<RouteAggregation> list = result.computeIfAbsent(directionId, key -> new ArrayList<>());
 			list.add(aggregation);
 		}
 		return result;
@@ -146,8 +146,7 @@ public class RouteService {
 		result.setOperatorCode(first.operatorCode);
 		result.setLineCode(first.lineCode);
 		result.setRegionCode(first.regionCode);
-		result.setDirectionType(DirectionType.valueOf(first.directionType));
-		result.setDirectionId(first.directionId);
+		result.setDirectionId(DirectionId.valueOf(first.directionId));
 		result.setStopPlaces(first.stopPlaces.stream().map(this::createStopPlace).toList());
 		result.setNumberOfJourneys(aggregations.stream().mapToLong(ra -> ra.journeys).sum());
 		return result;
@@ -161,10 +160,10 @@ public class RouteService {
 		return BigDecimal.valueOf(value).divide(total, 5, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
 	}
 
-	private record RouteId(String operatorCode, String lineCode, String regionCode, String directionType, String directionId, List<String> stopPlaceCodes) {
+	private record RouteId(String operatorCode, String lineCode, String regionCode, String directionId, List<String> stopPlaceCodes) {
 		public static RouteId of(RouteAggregation aggregation) {
 			final List<String> stopPlaceCodes = aggregation.stopPlaces.stream().map(ch.bernmobil.netex.persistence.model.RouteAggregation.StopPlace::code).toList();
-			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.regionCode, aggregation.directionType, aggregation.directionId, stopPlaceCodes);
+			return new RouteId(aggregation.operatorCode, aggregation.lineCode, aggregation.regionCode, aggregation.directionId, stopPlaceCodes);
 		}
 	}
 

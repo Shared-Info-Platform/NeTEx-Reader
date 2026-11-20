@@ -4,7 +4,6 @@ import ch.bernmobil.netex.importer.journey.dom.Call;
 import ch.bernmobil.netex.importer.journey.dom.Journey;
 import ch.bernmobil.netex.persistence.model.CallWithJourney;
 import ch.bernmobil.netex.persistence.model.JourneyWithCalls;
-
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,7 +13,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 25.0.3 (Oracle Corporation)"
 )
 public class JourneyMapperImpl implements JourneyMapper {
 

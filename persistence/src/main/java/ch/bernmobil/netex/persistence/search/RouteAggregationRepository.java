@@ -21,11 +21,11 @@ public class RouteAggregationRepository {
 		collection = client.getDatabase(databaseName).getCollection("RouteAggregations", RouteAggregation.class);
 	}
 
-	public List<RouteAggregation> findRouteAggregations(String operatorCode, String lineCode, Optional<String> regionCode, Collection<String> directionTypes, Collection<String> calendarDays) {
+	public List<RouteAggregation> findRouteAggregations(String operatorCode, String lineCode, Optional<String> regionCode, Collection<String> directionIds, Collection<String> calendarDays) {
 		final List<Bson> filters = new ArrayList<>();
 		filters.add(Filters.eq(RouteAggregation.FIELDNAME_OPERATOR_CODE, operatorCode));
 		filters.add(Filters.eq(RouteAggregation.FIELDNAME_LINE_CODE, lineCode));
-		filters.add(Filters.in(RouteAggregation.FIELDNAME_DIRECTION_TYPE, directionTypes));
+		filters.add(Filters.in(RouteAggregation.FIELDNAME_DIRECTION_ID, directionIds));
 		filters.add(Filters.in(RouteAggregation.FIELDNAME_CALENDAR_DAY, calendarDays));
 		regionCode.ifPresent(code -> filters.add(Filters.eq(RouteAggregation.FIELDNAME_REGION_CODE, code)));
 		final Bson filter = Filters.and(filters);

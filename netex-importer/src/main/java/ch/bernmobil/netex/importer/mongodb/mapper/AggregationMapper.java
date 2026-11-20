@@ -36,7 +36,6 @@ public interface AggregationMapper {
 	@Mapping(target = "operatorCode", source = "id.operatorCode")
 	@Mapping(target = "lineCode", source = "id.lineCode")
 	@Mapping(target = "regionCode", source = "id.regionCode")
-	@Mapping(target = "directionType", source = "id.directionType")
 	@Mapping(target = "directionId", source = "id.directionId")
 	@Mapping(target = "stopPlaces", source = "id.stopPlaces")
 	ch.bernmobil.netex.persistence.model.RouteAggregation mapRouteAggregation(RouteAggregation aggregation);

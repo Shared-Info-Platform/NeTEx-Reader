@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import ch.bernmobil.netex.api.model.Route;
-import ch.bernmobil.netex.api.model.Route.DirectionType;
+import ch.bernmobil.netex.api.model.Route.DirectionId;
 import ch.bernmobil.netex.api.model.Route.StopPlace;
 import ch.bernmobil.netex.api.service.RouteService;
 import ch.bernmobil.netex.api.service.RouteService.NotFoundException;
@@ -44,8 +44,7 @@ public class RouteControllerV1Test {
 		route1.setOperatorCode("operator");
 		route1.setLineCode("line");
 		route1.setRegionCode("region");
-		route1.setDirectionType(DirectionType.inbound);
-		route1.setDirectionId("R");
+		route1.setDirectionId(DirectionId.R);
 		route1.setStopPlaces(List.of(new StopPlace("1", "1"), new StopPlace("2", "2")));
 		route1.setNumberOfJourneys(2);
 		route1.setPercentagePerDirection(new BigDecimal("66.667"));
@@ -54,8 +53,7 @@ public class RouteControllerV1Test {
 		route2.setOperatorCode("operator");
 		route2.setLineCode("line");
 		route2.setRegionCode("region");
-		route2.setDirectionType(DirectionType.inbound);
-		route2.setDirectionId("R");
+		route2.setDirectionId(DirectionId.R);
 		route2.setStopPlaces(List.of(new StopPlace("1", "1")));
 		route2.setNumberOfJourneys(1);
 		route2.setPercentagePerDirection(new BigDecimal("33.333"));
@@ -64,13 +62,12 @@ public class RouteControllerV1Test {
 		route3.setOperatorCode("operator");
 		route3.setLineCode("line");
 		route3.setRegionCode("region");
-		route3.setDirectionType(DirectionType.outbound);
-		route3.setDirectionId("H");
+		route3.setDirectionId(DirectionId.H);
 		route3.setStopPlaces(List.of(new StopPlace("4", "4")));
 		route3.setNumberOfJourneys(3);
 		route3.setPercentagePerDirection(new BigDecimal("100.000"));
 
-		final Map<DirectionType, List<Route>> routes = new TreeMap<>(Map.of(DirectionType.inbound, List.of(route1, route2), DirectionType.outbound, List.of(route3)));
+		final Map<DirectionId, List<Route>> routes = new TreeMap<>(Map.of(DirectionId.R, List.of(route1, route2), DirectionId.H, List.of(route3)));
 
 		Mockito.when(routeService.findRoutesByDirection(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(routes);
@@ -127,10 +124,10 @@ public class RouteControllerV1Test {
 	public void testPassesAllArgumentsToRouteService() throws Exception {
 		mvc.perform(MockMvcRequestBuilders.get("/routes/v1/find").accept(MediaType.APPLICATION_JSON)
 				.queryParam("operatorCode", "operator").queryParam("lineCode", "line").queryParam("regionCode", "region")
-				.queryParam("directionType", "inbound").queryParam("calendarDay", "2024-09-09").queryParam("previewDays", "2")
+				.queryParam("directionId", "R").queryParam("calendarDay", "2024-09-09").queryParam("previewDays", "2")
 				.queryParam("threshold", "50.05").queryParam("databaseName", "database"))
 				.andExpect(MockMvcResultMatchers.status().isOk());
-		Mockito.verify(routeService).findRoutesByDirection("operator", "line", Optional.of("region"), Optional.of(DirectionType.inbound),
+		Mockito.verify(routeService).findRoutesByDirection("operator", "line", Optional.of("region"), Optional.of(DirectionId.R),
 				Optional.of(LocalDate.of(2024, 9, 9)), Optional.of(2), new BigDecimal("50.05"), Optional.of("database"));
 	}
 
@@ -153,12 +150,24 @@ public class RouteControllerV1Test {
 
 	private String expectedJson() {
 		return "{"
-				+ "\"inbound\":["
+				+ "\"H\":["
 					+ "{"
 						+ "\"operatorCode\":\"operator\","
 						+ "\"lineCode\":\"line\","
 						+ "\"regionCode\":\"region\","
-						+ "\"directionType\":\"inbound\","
+						+ "\"directionId\":\"H\","
+						+ "\"stopPlaces\":["
+							+ "{\"code\":\"4\",\"name\":\"4\"}"
+						+ "],"
+						+ "\"numberOfJourneys\":3,"
+						+ "\"percentagePerDirection\":100.000"
+					+ "}"
+				+ "],"
+				+ "\"R\":["
+					+ "{"
+						+ "\"operatorCode\":\"operator\","
+						+ "\"lineCode\":\"line\","
+						+ "\"regionCode\":\"region\","
 						+ "\"directionId\":\"R\","
 						+ "\"stopPlaces\":["
 							+ "{\"code\":\"1\",\"name\":\"1\"},"
@@ -171,27 +180,12 @@ public class RouteControllerV1Test {
 						+ "\"operatorCode\":\"operator\","
 						+ "\"lineCode\":\"line\","
 						+ "\"regionCode\":\"region\","
-						+ "\"directionType\":\"inbound\","
 						+ "\"directionId\":\"R\","
 						+ "\"stopPlaces\":["
 							+ "{\"code\":\"1\",\"name\":\"1\"}"
 						+ "],"
 						+ "\"numberOfJourneys\":1,"
 						+ "\"percentagePerDirection\":33.333"
-					+ "}"
-				+ "],"
-				+ "\"outbound\":["
-					+ "{"
-						+ "\"operatorCode\":\"operator\","
-						+ "\"lineCode\":\"line\","
-						+ "\"regionCode\":\"region\","
-						+ "\"directionType\":\"outbound\","
-						+ "\"directionId\":\"H\","
-						+ "\"stopPlaces\":["
-							+ "{\"code\":\"4\",\"name\":\"4\"}"
-						+ "],"
-						+ "\"numberOfJourneys\":3,"
-						+ "\"percentagePerDirection\":100.000"
 					+ "}"
 				+ "]"
 			+ "}";
